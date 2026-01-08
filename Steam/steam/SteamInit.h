@@ -38,46 +38,28 @@ STEAM_API int STEAM_CALL SteamStartup(unsigned int uUsingMask, TSteamError *pErr
 
 				if (bSteamBlobSystem)
 				{
-					CDR = CContentDescriptionRecord::LoadFromFile(szCDRFile);
-					if (!CDR)
+					if (bRawCDR)
+					{
+						CDR = CContentDescriptionRecord::LoadFromFile(szCDRFile);
+					}
+					else
 					{
 						CBlobFileSystem ClientRegistryBlob;
-						if (!ClientRegistryBlob.Open(szBlobFile))
+						if (ClientRegistryBlob.Open(szBlobFile))
 						{
-							// Try downloading the CDR using CookieAPI.lib / thanks to steamCooker
-							/*initCookieApi();
-							int cdrSize;
-							char * cdr=downloadContentDescriptionRecord("steam2.steampowered.com",27030,&cdrSize);
-							if(!cdr)
-							{
-							if (bLogging) Logger->Write("Unable to download ContentDescriptionRecord. Falling back to revApps.ini\n");
-							return TRUE;
-							}
-							int ok=importContentDescriptionRecordInBlob("ClientRegistry.blob","/TopKey/ContentDescriptionRecord",cdr,cdrSize);
-							if (!ok)
-							{
-							if (bLogging) Logger->Write("Unable to create ClientRegistry. Falling back to revApps.ini\n");
-							return TRUE;
-							}
-							if (bLogging) Logger->Write("ContentDescriptionRecord successfully downloaded.\n");*/
-
-							if (bLogging) Logger->Write("	Error Initializing Blob Manager ... Advanced Steam Functions Disabled!\n");
-							if (bLogging) Logger->Write("	GCF Support from Ini file only!\n");
-							bSteamBlobSystem = false;
-						}
-						else
-						{
-							if (CBlobNode* CDRNode = ClientRegistryBlob.GetNodeByPath("ContentDescriptionRecord"))
+							CBlobNode* CDRNode = ClientRegistryBlob.GetNodeByPath("ContentDescriptionRecord");
+							if (CDRNode)
 							{
 								CDR = new CContentDescriptionRecord(CDRNode->KeyValue->Value);
 							}
-							else
-							{
-								if (bLogging) Logger->Write("	Error Locating CDR ... Advanced Steam Functions Disabled!\n");
-								if (bLogging) Logger->Write("	GCF Support from Ini file only!\n");
-								bSteamBlobSystem = false;
-							}
 						}
+					}
+
+					if (!CDR)
+					{
+						if (bLogging) Logger->Write("	Error Locating CDR ... Advanced Steam Functions Disabled!\n");
+						if (bLogging) Logger->Write("	GCF Support from Ini file only!\n");
+						bSteamBlobSystem = false;
 					}
 				}
 			}

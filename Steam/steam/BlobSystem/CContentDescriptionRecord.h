@@ -181,6 +181,9 @@ public:
 	static CContentDescriptionRecord* LoadFromFile(const char* FileName)
 	{
 		FILE* File = fopen(FileName, "rb");
+		if (!File)
+			return NULL;
+
 		fseek(File, 0, SEEK_END);
 		size_t FileLen = ftell(File);
 		fseek(File, 0, SEEK_SET);
