@@ -1,6 +1,5 @@
 #include "CacheSystem\CacheSystemCommon.h"
 #include "CacheSystem\Cache\CCache.h"
-#include <direct.h>
 
 #include "strtools.h"
 #include "MurmurHash.h"
@@ -63,14 +62,12 @@ public:
 
 	CacheHandle MountCache(const char* cszFileName, unsigned int index, const char* ExtraMountPath)
 	{
-		std::string FullPath(cszFileName);
-		int dot = FullPath.find_last_of('\\');
-		std::string szTemp = FullPath.substr(dot + 1);
+		const char *cszCacheName = V_GetFileName(cszFileName);
 
 		for (TCacheHandle* hCache : Caches)
 		{
 			CCache* CheckCacheFile = hCache->hCacheFile;
-			if (strcmp(CheckCacheFile->Name,szTemp.c_str()) == 0)
+			if (strcmp(CheckCacheFile->Name, cszCacheName) == 0)
 			{
 				if (bLogging && bLogFS)	Logger->Write("	Cache is already mounted: %s\n", cszFileName);
 				return false;
@@ -83,7 +80,7 @@ public:
 			CacheFile->Read(ExtraMountPath);
 			CacheFile->Index = 0;
 			CacheFile->bIsMounted = false;
-			strcpy(CacheFile->Name,szTemp.c_str()); 
+			strncpy(CacheFile->Name, cszCacheName, sizeof(CacheFile->Name));
 			TCacheHandle* hCache = new TCacheHandle;
 			hCache->fCacheFile = fCacheFile;
 			hCache->hCacheFile = CacheFile;
@@ -193,46 +190,32 @@ public:
 			_getcwd(szFullPath, MAX_PATH);
 		}
 
-		V_ComposeFileName( szFullPath, FileToExtract->FullName, szFullPath, MAX_PATH );
+		V_ComposeFileName(szFullPath, FileToExtract->FullName, szFullPath, MAX_PATH);
 
 		char szFilePath[MAX_PATH];
 		V_ExtractFilePath(szFullPath, szFilePath, MAX_PATH);
-
-		struct _stat filestat;
-
-		int retval = _stat(szFilePath, &filestat);
-		if(retval == -1)
-		{
-			CreateDir(szFilePath);
-		}
+		CreateDirHierarchy(szFilePath);
 
 		if(FILE* FileToWrite = fopen(szFullPath, "wb"))
 		{
-			unsigned int bytestoread = CacheSizeFile(hFile);
-			unsigned int uBuffSize = 524288;
-			char Buff[524288];
-			while(bytestoread > 0)
+			unsigned int uBytesLeft = CacheSizeFile(hFile);
+			unsigned int uBuffSize = 512 * 1024;
+			char* Buff = new char[uBuffSize];
+			while (uBytesLeft > 0)
 			{
-				if(bytestoread >= uBuffSize)
-				{
-					CacheReadFile(Buff, 1, uBuffSize, hFile);
-					fwrite(Buff, 1, uBuffSize, FileToWrite);
-					bytestoread -= uBuffSize;
-				}
-				else
-				{
-					CacheReadFile(Buff, 1, bytestoread, hFile);
-					fwrite(Buff, 1, bytestoread, FileToWrite);
-					bytestoread = 0;
-				}
+				unsigned int uWriteSize = min(uBuffSize, uBytesLeft);
+				CacheReadFile(Buff, 1, uWriteSize, hFile);
+				fwrite(Buff, 1, uWriteSize, FileToWrite);
+				uBytesLeft -= uWriteSize;
 			}
+			delete[] Buff;
 			fclose(FileToWrite);
 			//if (bLogging && bLogFS) Logger->Write("\tFound cache (%s) Extracted to > %s\n", FileToExtract->FullName,  szFilePath);
 			return 1;
 		}
 		//if (bLogging && bLogFS) Logger->Write("\tFound cache (%s) FAILED to Extract to > %s\n", FileToExtract->FullName,  szFilePath);
 		return 0;
-	};
+	}
 
 	unsigned int CacheReadFile(void *pBuf, unsigned int uSize, unsigned int uCount, TFileInCacheHandle* hFile)
 	{
@@ -240,7 +223,6 @@ public:
 
 		if (hFile)
 		{
-
 			if (strchr(hFile->mode, 'b'))
 			{
 				readedlength = ReadBinary(pBuf, uSize, uCount, hFile);
@@ -254,11 +236,10 @@ public:
 		return readedlength; // needs to return count
 	}
 
-	 
-	unsigned int ReadBinary(void *pBuf, unsigned int uSize, unsigned int uCount, TFileInCacheHandle* hFile)
+	unsigned int ReadBinary(void* pBuf, unsigned int uSize, unsigned int uCount, TFileInCacheHandle* hFile)
 	{
 		CCache* hCacheFile = (CCache*)hFile->FileInCache->pCache;
-		TManifestEntriesInCache* hFileInCache =  hFile->FileInCache;
+		TManifestEntriesInCache* hFileInCache = hFile->FileInCache;
  
 		unsigned char* szBuff = reinterpret_cast<unsigned char*>(pBuf);
 		unsigned int uReadedDataAmount = 0;
@@ -294,7 +275,7 @@ public:
 	{
 		CCache* hCacheFile = (CCache*)hFile->FileInCache->pCache;
 		FILE* fCacheFile = hCacheFile->fCacheFile;
-		TManifestEntriesInCache* hFileInCache =  hFile->FileInCache;
+		TManifestEntriesInCache* hFileInCache = hFile->FileInCache;
  
 		int retval = 0;
 	   
@@ -317,13 +298,13 @@ public:
 		return retval;
 	}
  
-	unsigned int ReadText(void *pBuf, unsigned int uSize, unsigned int uCount, TFileInCacheHandle* hFile)
+	unsigned int ReadText(void* pBuf, unsigned int uSize, unsigned int uCount, TFileInCacheHandle* hFile)
 	{
 		CCache* hCacheFile = (CCache*)hFile->FileInCache->pCache;
-		TManifestEntriesInCache* hFileInCache =  hFile->FileInCache;
+		TManifestEntriesInCache* hFileInCache = hFile->FileInCache;
  
 		void* BufferedSector = new char[hCacheFile->Sectors->Header->PhysicalSectorSize];
-		unsigned int BufferedSectorIndex = UINT32_MAX;
+		unsigned int BufferedSectorIndex = UINT_MAX;
  
 		unsigned char* szBuff = reinterpret_cast<unsigned char*>(BufferedSector);
 		unsigned char* szBuffOut = reinterpret_cast<unsigned char*>(pBuf);
@@ -380,7 +361,7 @@ public:
 			uActualSectorIndex++;
 		}
  
-		delete [] BufferedSector;
+		delete[] BufferedSector;
 		return uReadedCharactersAmount;
 	}
  
@@ -388,7 +369,7 @@ public:
 	{
 		CCache* hCacheFile = (CCache*)hFile->FileInCache->pCache;
 		FILE* fCacheFile = hCacheFile->fCacheFile;
-		TManifestEntriesInCache* hFileInCache =  hFile->FileInCache;
+		TManifestEntriesInCache* hFileInCache = hFile->FileInCache;
  
 		int retval = 0;
  
@@ -458,23 +439,37 @@ public:
 		return -1;
 	}
 
-	void CreateDir(char* Path) { 
-		char DirName[256];
-		char* p = const_cast<char*>(Path);
-		char* q = DirName; 
-		while(*p)
+	void CreateDirHierarchy(const char* pRelativePath)
+	{
+		char szScratchFileName[MAX_PATH];
+		V_MakeAbsolutePath(szScratchFileName, MAX_PATH, pRelativePath);
+
+		int len = strlen(szScratchFileName) + 1;
+		char* end = szScratchFileName + len;
+		for (char* s = szScratchFileName; s < end; s++)
 		{
-			if (('\\' == *p) || ('/' == *p))
-			{
-				if (':' != *(p-1))
-				{
-					CreateDirectoryA(DirName, 0);
-				}
-			}
-			*q++ = *p++;
-			*q = '\0';
+			if (*s != CORRECT_PATH_SEPARATOR || s == szScratchFileName)
+				continue;
+
+#if defined(_WIN32)
+			if (*(s - 1) == ':')
+				continue;
+#endif
+
+			*s = '\0';
+#if defined(_WIN32)
+			_mkdir(szScratchFileName);
+#elif defined(_LINUX)
+			mkdir(szScratchFileName, S_IRWXU | S_IRGRP | S_IROTH); // owner has rwx, rest have r
+#endif
+			*s = CORRECT_PATH_SEPARATOR;
 		}
-		CreateDirectoryA(DirName, 0);
+
+#if defined(_WIN32)
+		_mkdir(szScratchFileName);
+#elif defined(_LINUX)
+		mkdir(szScratchFileName, S_IRWXU | S_IRGRP | S_IROTH);
+#endif
 	}
 
 	TFindHandle* CacheFindFirst(const char *cszPattern, ESteamFindFilter eFilter, TSteamElemInfo *pFindInfo)

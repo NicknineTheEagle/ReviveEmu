@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <vector>
-#include "registry.h"
+#include <direct.h>
 
 unsigned int rootAppID = 0;
 CLogFile* Logger;
@@ -92,6 +92,8 @@ CSteamID g_SteamID;
 #include "SteamUserIDValidation.h"		//User ID validation
 #include "SteamMiniDump.h"				//Minidump
 #include "SteamMisc.h"					//Misc
+
+#include "registry.h"
 
 
 bool inArgs(LPWSTR arg) {

@@ -18,7 +18,7 @@ public:
 	CCacheChecksumTable* ChecksumTable;
 	CCacheSectors* Sectors;
 	TManifestEntriesInCache* DirectoryTable;
-	char* Name;
+	char Name[MAX_PATH];
 
 	unsigned int Index;
 	bool bIsMounted;
@@ -26,7 +26,6 @@ public:
 	CCache(FILE* fCacheFile)
 	{
 		this->fCacheFile = fCacheFile;
-		this->Name = new char[255];
 	}
 	
 	~CCache()
@@ -43,8 +42,6 @@ public:
 			}
 			delete [] DirectoryTable;
 		}
-		if (Name)
-			delete [] Name;
 		if (Block)
 			delete Block;
 		if (AllocationTable)
