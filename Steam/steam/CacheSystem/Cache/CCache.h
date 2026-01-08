@@ -62,8 +62,6 @@ public:
 	
 	bool Read(const char* ExtraMountPath)
 	{
-		fseek(fCacheFile, 0, SEEK_END);
-		long total_size = ftell(fCacheFile);
 		fseek(fCacheFile, 0, SEEK_SET);
 		Header = new TCacheHeader;
 		fread((void*)Header, sizeof(TCacheHeader), 1, fCacheFile);
