@@ -157,8 +157,8 @@ public:
 					break;
 
 				default:
-						CDRData += DNode->datalength;
-						break;
+					CDRData += DNode->datalength;
+					break;
 			}
 		}
 
