@@ -264,8 +264,7 @@ public:
 		unsigned int uReadedDataAmount = 0;
 		unsigned int uTotalDataToRead = uSize * uCount;
 	   
-		//unsigned int uActualSectorIndex = hFile->Position / hCacheFile->Sectors->Header->PhysicalSectorSize;
-		__int64 uActualSectorIndex = hFile->Position / hCacheFile->Sectors->Header->PhysicalSectorSize;
+		unsigned int uActualSectorIndex = hFile->Position / hCacheFile->Sectors->Header->PhysicalSectorSize;
  
 		while(uReadedDataAmount < uTotalDataToRead)
 		{
@@ -291,8 +290,7 @@ public:
 		return uReadedDataAmount;   
 	}
  
-	int BinaryReadSector(__int64 iSectorIndex, void* pvBuff, unsigned int uOffset, unsigned int uSize, TFileInCacheHandle* hFile)
-	//int BinaryReadSector(int iSectorIndex, void* pvBuff, unsigned int uOffset, unsigned int uSize, TFileInCacheHandle* hFile)
+	int BinaryReadSector(unsigned int iSectorIndex, void* pvBuff, unsigned int uOffset, unsigned int uSize, TFileInCacheHandle* hFile)
 	{
 		CCache* hCacheFile = (CCache*)hFile->FileInCache->pCache;
 		FILE* fCacheFile = hCacheFile->fCacheFile;
@@ -325,7 +323,7 @@ public:
 		TManifestEntriesInCache* hFileInCache =  hFile->FileInCache;
  
 		void* BufferedSector = new char[hCacheFile->Sectors->Header->PhysicalSectorSize];
-		__int64 BufferedSectorIndex = 0xFFFFFFFFFFFFFFFF;
+		unsigned int BufferedSectorIndex = UINT32_MAX;
  
 		unsigned char* szBuff = reinterpret_cast<unsigned char*>(BufferedSector);
 		unsigned char* szBuffOut = reinterpret_cast<unsigned char*>(pBuf);
@@ -334,8 +332,7 @@ public:
 		unsigned int uDataAvailableToRead = 0;
 		unsigned int uTotalDataToRead = uSize * uCount;
  
-		//unsigned int uActualSectorIndex = hFile->Position / hCacheFile->Sectors->Header->PhysicalSectorSize;
-		__int64 uActualSectorIndex = hFile->Position / hCacheFile->Sectors->Header->PhysicalSectorSize;
+		unsigned int uActualSectorIndex = hFile->Position / hCacheFile->Sectors->Header->PhysicalSectorSize;
  
 		while(uReadedDataAmount < uTotalDataToRead)
 		{
@@ -387,8 +384,7 @@ public:
 		return uReadedCharactersAmount;
 	}
  
-	//int TextReadSector(int iSectorIndex, void* pvBuff, unsigned int uSize, TFileInCacheHandle* hFile)
-	int TextReadSector(__int64 iSectorIndex, void* pvBuff, unsigned int uSize, TFileInCacheHandle* hFile)
+	int TextReadSector(unsigned int iSectorIndex, void* pvBuff, unsigned int uSize, TFileInCacheHandle* hFile)
 	{
 		CCache* hCacheFile = (CCache*)hFile->FileInCache->pCache;
 		FILE* fCacheFile = hCacheFile->fCacheFile;
