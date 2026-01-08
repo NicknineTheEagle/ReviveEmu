@@ -41,33 +41,36 @@ public:
 		return false;
 	}
 
-	CBlobNode* GetNodeByPath(const char* cszNodePath) const
+	CBlobNode* GetNodeByPath(CBlobNode* pParentNode, const char* cszNodePath) const
 	{
 		char szTempNodePath[MAX_PATH];
 		strcpy(szTempNodePath, cszNodePath);
 		char* szNodeName = strtok(szTempNodePath, "\\");
 
-		for (CBlobNode* pNode : TopKey->Nodes)
+		for (CBlobNode* pNode : pParentNode->Nodes)
 		{
-			if (strcmp(pNode->Name, szNodeName) == 0 && szNodeName != NULL)
-			{
-				szNodeName = strtok(NULL, "\\");
-				if (szNodeName == NULL)
-				{
-					return pNode;
-				}
+			if (strcmp(pNode->Name, szNodeName) != 0)
+				continue;
 
-				if (pNode->Nodes.size() != 0)
-				{
-					// TODO: Search recursively.
-				}
-				else
-				{
-					break;
-				}
+			szNodeName = strtok(NULL, "\\");
+			if (szNodeName == NULL)
+			{
+				return pNode;
 			}
+
+			if (!pNode->Nodes.empty())
+			{
+				return GetNodeByPath(pNode, szNodeName);
+			}
+
+			break;
 		}
 
 		return NULL;
+	}
+
+	CBlobNode* GetNodeByPath(const char* cszNodePath) const
+	{
+		return GetNodeByPath(TopKey, cszNodePath);
 	}
 };
