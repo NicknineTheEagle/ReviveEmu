@@ -847,7 +847,7 @@ STEAM_API long SteamTellFile(SteamHandle_t hFile, TSteamError* pError)
 	SteamClearError(pError);
 
 	TFileInCacheHandle* hCacheFile = (TFileInCacheHandle*)hFile;
-	int retval = -1;
+	long retval = -1;
 
 	if (hCacheFile->IsFileLocal)
 	{
@@ -878,7 +878,7 @@ STEAM_API long SteamSizeFile(SteamHandle_t hFile, TSteamError* pError)
 	SteamClearError(pError);
 
 	TFileInCacheHandle* hCacheFile = (TFileInCacheHandle*)hFile;
-	int retval = -1;
+	long retval = -1;
 
 	if (hCacheFile->IsFileLocal)
 	{
