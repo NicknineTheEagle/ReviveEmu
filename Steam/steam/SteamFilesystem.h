@@ -4,11 +4,11 @@ extern unsigned int rootAppID;
 extern CRITICAL_SECTION g_CriticalSection;
 #define ENTER_CRITICAL_SECTION CEnterCriticalSection ECS(&g_CriticalSection)
 
-const char * GetCacheNameFromAppID(unsigned int uAppID)
+const char* GetCacheNameFromAppID(unsigned int uAppID)
 {
-	for(unsigned int i = 0; i < CDR->ApplicationRecords.size(); i++)
+	for (unsigned int i = 0; i < CDR->ApplicationRecords.size(); i++)
 	{
-		if(uAppID == CDR->ApplicationRecords[i]->AppId)
+		if (uAppID == CDR->ApplicationRecords[i]->AppId)
 		{
 			return CDR->ApplicationRecords[i]->InstallDirName;
 		}
@@ -16,11 +16,11 @@ const char * GetCacheNameFromAppID(unsigned int uAppID)
 	return NULL;
 }
 
-unsigned int GetAppIDFromCacheName(const char * szGCF)
+unsigned int GetAppIDFromCacheName(const char* szGCF)
 {
-	for(unsigned int i = 0; i < CDR->ApplicationRecords.size(); i++)
+	for (unsigned int i = 0; i < CDR->ApplicationRecords.size(); i++)
 	{
-		if(_stricmp(szGCF,CDR->ApplicationRecords[i]->InstallDirName) == 0)
+		if (_stricmp(szGCF, CDR->ApplicationRecords[i]->InstallDirName) == 0)
 		{
 			return CDR->ApplicationRecords[i]->AppId;
 		}
@@ -28,11 +28,11 @@ unsigned int GetAppIDFromCacheName(const char * szGCF)
 	return UINT_MAX;
 }
 
-unsigned int GetAppIDFromName(char * szName)
+unsigned int GetAppIDFromName(char* szName)
 {
-	for(unsigned int i = 0; i < CDR->ApplicationRecords.size(); i++)
+	for (unsigned int i = 0; i < CDR->ApplicationRecords.size(); i++)
 	{
-		if(_stricmp(szName,CDR->ApplicationRecords[i]->Name) == 0)
+		if (_stricmp(szName, CDR->ApplicationRecords[i]->Name) == 0)
 		{
 			return CDR->ApplicationRecords[i]->AppId;
 		}
@@ -42,9 +42,9 @@ unsigned int GetAppIDFromName(char * szName)
 
 unsigned int GetAppRecordID(unsigned int uAppID)
 {
-	for(unsigned int i = 0; i < CDR->ApplicationRecords.size(); i++)
+	for (unsigned int i = 0; i < CDR->ApplicationRecords.size(); i++)
 	{
-		if(uAppID == CDR->ApplicationRecords[i]->AppId)
+		if (uAppID == CDR->ApplicationRecords[i]->AppId)
 		{
 			return i;
 		}
@@ -69,29 +69,27 @@ void MountFileSystemByID(unsigned int uId, const char* szExtraMount)
 		strcpy(szPath, CacheLocations[uIndex]);
 		strcat(szPath, CORRECT_PATH_SEPARATOR_S);
 		strcat(szPath, szGCF);
-		strcat(szPath, ".gcf" );
+		strcat(szPath, ".gcf");
 
 		cHandle = CacheManager->MountCache(szPath, CacheManager->NumCaches(), szExtraMount);
 
-		if(cHandle != NULL)
+		if (cHandle != NULL)
 		{
 			vecGCF.push_back(cHandle);
 		}
 	}
 }
 
-void MountFileSystemByName(const char * szPath)
+void MountFileSystemByName(const char* szPath)
 {
 	intptr_t cHandle;
 	unsigned int index = vecGCF.size();
 	cHandle = CacheManager->MountCache(szPath, index, "");
-	if(cHandle != NULL)
+	if (cHandle != NULL)
 	{
 		vecGCF.push_back(cHandle);
 	}
 }
-
-
 
 void MountExtraCaches(unsigned int uAppID)
 {
@@ -111,7 +109,6 @@ void MountExtraCaches(unsigned int uAppID)
 	}
 #endif
 }
-
 
 void MountExtraLanguageCaches(unsigned int uAppId, const char* szMountLanguage, bool bCheckDependency)
 {
@@ -218,13 +215,13 @@ SteamHandle_t SteamOpenFile2(const char* cszFileName, const char* cszMode, int n
 	return (SteamHandle_t)hCacheFile;
 }
 
-STEAM_API int SteamMountFilesystem(unsigned int uAppId, const char *szMountPath, TSteamError *pError)
+STEAM_API int SteamMountFilesystem(unsigned int uAppId, const char* szMountPath, TSteamError* pError)
 {
 	if (bLogging) Logger->Write("SteamMountFilesystem (%u, %s)\n", uAppId, szMountPath);
 
 	ENTER_CRITICAL_SECTION;
 
-	if(CDR)
+	if (CDR)
 	{
 		unsigned int uAppRecord = GetAppRecordID(uAppId);
 
@@ -237,13 +234,13 @@ STEAM_API int SteamMountFilesystem(unsigned int uAppId, const char *szMountPath,
 			{
 				// Language Caches have been processed as this is a root AppID
 
-				for(unsigned int x = 0; x < CDR->ApplicationRecords[uAppRecord]->FilesystemsRecord.size(); x++)
+				for (unsigned int x = 0; x < CDR->ApplicationRecords[uAppRecord]->FilesystemsRecord.size(); x++)
 				{
 					CAppFilesystemRecord* pFSRecord = CDR->ApplicationRecords[uAppRecord]->FilesystemsRecord[x];
 
 					// Don't mount depots from other operating systems.
 #if defined(_WIN32)
-					const char *cszHostOS = "windows";
+					const char* cszHostOS = "windows";
 #elif defined(__APPLE__)
 					const char* cszHostOS = "macos";
 #elif defined(__linux__)
@@ -270,8 +267,7 @@ STEAM_API int SteamMountFilesystem(unsigned int uAppId, const char *szMountPath,
 					MountExtraCaches(rootAppID);
 				}
 
-				if (bLogging && bLogFS)
-					Logger->Write("Loading Default Cache Requirements for AppID(%d)\n", uAppId);
+				if (bLogging && bLogFS) Logger->Write("Loading Default Cache Requirements for AppID(%d)\n", uAppId);
 
 				MountFileSystemByID(uAppRecord, "");
 			}
@@ -297,7 +293,7 @@ STEAM_API int SteamUnmountFilesystem(unsigned int uAppID, TSteamError* pError)
 	return 1;
 }
 
-STEAM_API int SteamMountAppFilesystem(TSteamError *pError)
+STEAM_API int SteamMountAppFilesystem(TSteamError* pError)
 {
 	if (bLogging) Logger->Write("SteamMountAppFilesystem\n");
 
@@ -307,7 +303,8 @@ STEAM_API int SteamMountAppFilesystem(TSteamError *pError)
 	{
 		if (!appid)
 		{
-			MessageBoxA(NULL, "You are trying to launch an unknown App ID, please specify -appid on the command line or write App ID into steam_appid.txt.", "REVive - AppID?", 0);
+			MessageBoxA(NULL, "You are trying to launch an unknown App ID, please specify -appid on the command line or write App ID into steam_appid.txt.",
+			            "REVive - AppID?", 0);
 			ExitProcess(0xffffffff);
 		}
 
@@ -321,19 +318,19 @@ STEAM_API int SteamMountAppFilesystem(TSteamError *pError)
 			char szSection[64];
 			char szKey[64];
 			char szPath[MAX_PATH];
-			char *szGCF;
+			char* szGCF;
 			int i;
 
 			sprintf(szSection, "%d", appid);
 
-			for(i = 1; i < 50; i++)
+			for (i = 1; i < 50; i++)
 			{
 				for (unsigned int uIndex = 0; uIndex < CacheLocations.size(); uIndex++)
 				{
 					sprintf(szKey, "GCF%d", i);
 					szGCF = AppIni.IniReadValue(szSection, szKey);
 
-					if(szGCF != NULL)
+					if (szGCF != NULL)
 					{
 						strcpy(szPath, CacheLocations[uIndex]);
 						strcat(szPath, CORRECT_PATH_SEPARATOR_S);
@@ -355,7 +352,6 @@ STEAM_API int SteamMountAppFilesystem(TSteamError *pError)
 
 	return 1;
 }
-
 
 STEAM_API int SteamUnmountAppFilesystem(TSteamError* pError)
 {
@@ -382,7 +378,6 @@ STEAM_API int SteamUnmountAppFilesystem(TSteamError* pError)
 	SteamClearError(pError);
 	return 1;
 }
-
 
 STEAM_API SteamHandle_t SteamOpenFileEx(const char* cszFileName, const char* cszMode, unsigned int* puFileSize, TSteamError* pError)
 {
@@ -469,7 +464,7 @@ STEAM_API int SteamCloseFile(SteamHandle_t hFile, TSteamError* pError)
 	return retval;
 }
 
-STEAM_API SteamHandle_t SteamFindFirst(const char *cszPattern, ESteamFindFilter eFilter, TSteamElemInfo *pFindInfo, TSteamError *pError )
+STEAM_API SteamHandle_t SteamFindFirst(const char* cszPattern, ESteamFindFilter eFilter, TSteamElemInfo* pFindInfo, TSteamError* pError)
 {
 	ENTER_CRITICAL_SECTION;
 
@@ -540,7 +535,7 @@ STEAM_API SteamHandle_t SteamFindFirst(const char *cszPattern, ESteamFindFilter 
 	}
 }
 
-STEAM_API int SteamFindNext(SteamHandle_t hDirectory, TSteamElemInfo *pFindInfo, TSteamError *pError )
+STEAM_API int SteamFindNext(SteamHandle_t hDirectory, TSteamElemInfo* pFindInfo, TSteamError* pError)
 {
 	ENTER_CRITICAL_SECTION;
 
@@ -679,7 +674,6 @@ STEAM_API int SteamStat(const char* cszFileName, TSteamElemInfo* pInfo, TSteamEr
 
 	return retval;
 }
-
 
 STEAM_API int SteamFlushFile(SteamHandle_t hFile, TSteamError* pError)
 {
@@ -1069,7 +1063,8 @@ STEAM_API int STEAM_CALL SteamResumeCachePreloading(TSteamError* pError)
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamGetCacheFilePath(unsigned int uAppId, char* szFilePath, unsigned int uBufferLength, unsigned int* puRecievedLength, TSteamError* pError)
+STEAM_API int STEAM_CALL SteamGetCacheFilePath(unsigned int uAppId, char* szFilePath, unsigned int uBufferLength, unsigned int* puRecievedLength,
+                                               TSteamError* pError)
 {
 	if (bLogging && bLogFS) Logger->Write("SteamGetCacheFilePath\n");
 	SteamClearError(pError);

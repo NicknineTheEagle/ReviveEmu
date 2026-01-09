@@ -1,33 +1,34 @@
 #include "CacheSystem\CacheSystemCommon.h"
 #include "CacheSystem\Cache\CCache.h"
 
-#include "strtools.h"
 #include "MurmurHash.h"
+#include "strtools.h"
 
 #define MURMUR_SEED 0x44444444
-
 
 typedef struct
 {
 	FILE* fCacheFile;
 	CCache* hCacheFile;
-}TCacheHandle;
+} TCacheHandle;
 
 typedef struct
 {
 	bool IsFileLocal;
-	union {
+	union
+	{
 		FILE* LocalFile;
 		TManifestEntriesInCache* FileInCache;
 	};
 	unsigned int Position;
 	char mode[8];
-}TFileInCacheHandle;
+} TFileInCacheHandle;
 
 typedef struct
 {
 	bool IsFindLocal;
-	union {
+	union
+	{
 		intptr_t LocalFind;
 		TManifestEntriesInCache* hFind;
 	};
@@ -35,21 +36,21 @@ typedef struct
 	char szCachePattern[MAX_PATH];
 	int CurrentIndex;
 	char szPattern[MAX_PATH];
-}TFindHandle;
+} TFindHandle;
 
 class CCacheFileSystem
 {
-public:
+  public:
 	std::vector<TCacheHandle*> Caches;
 
 	CCacheFileSystem()
 	{
 	}
-	
+
 	~CCacheFileSystem()
 	{
 		// Unmount everything.
-		for (TCacheHandle *hCache : Caches)
+		for (TCacheHandle* hCache : Caches)
 		{
 			UnmountCache((CacheHandle)hCache);
 		}
@@ -62,19 +63,19 @@ public:
 
 	CacheHandle MountCache(const char* cszFileName, unsigned int index, const char* ExtraMountPath)
 	{
-		const char *cszCacheName = V_GetFileName(cszFileName);
+		const char* cszCacheName = V_GetFileName(cszFileName);
 
 		for (TCacheHandle* hCache : Caches)
 		{
 			CCache* CheckCacheFile = hCache->hCacheFile;
 			if (strcmp(CheckCacheFile->Name, cszCacheName) == 0)
 			{
-				if (bLogging && bLogFS)	Logger->Write("	Cache is already mounted: %s\n", cszFileName);
+				if (bLogging && bLogFS) Logger->Write("	Cache is already mounted: %s\n", cszFileName);
 				return false;
 			}
 		}
 
-		if(FILE* fCacheFile = fopen(cszFileName,"rb"))
+		if (FILE* fCacheFile = fopen(cszFileName, "rb"))
 		{
 			CCache* CacheFile = new CCache(fCacheFile);
 			CacheFile->Read(ExtraMountPath);
@@ -85,15 +86,15 @@ public:
 			hCache->fCacheFile = fCacheFile;
 			hCache->hCacheFile = CacheFile;
 			Caches.push_back(hCache);
-			
+
 			BuildGlobalDirectoryTable(CacheFile);
-		
-			if (bLogging && bLogFS)	Logger->Write("	Mounted %s\n", cszFileName);
+
+			if (bLogging && bLogFS) Logger->Write("	Mounted %s\n", cszFileName);
 
 			return (CacheHandle)hCache;
 		}
 
-		if (bLogging && bLogFS)	Logger->Write("	Failed to Mount %s\n", cszFileName);
+		if (bLogging && bLogFS) Logger->Write("	Failed to Mount %s\n", cszFileName);
 
 		return false;
 	}
@@ -102,7 +103,7 @@ public:
 	{
 		for (auto it = Caches.begin(); it != Caches.end(); it++)
 		{
-			TCacheHandle *hCache = *it;
+			TCacheHandle* hCache = *it;
 			if (hCache == (TCacheHandle*)hCacheToMount)
 			{
 				//if (bLogging && bLogFS) Logger->Write("	Unmounted %s\n", hCache->hCacheFile->Name);
@@ -117,7 +118,7 @@ public:
 		return false;
 	}
 
-	TFileInCacheHandle* CacheOpenFileEx(const char *cszFileName, const char *cszMode, unsigned int *puSize)
+	TFileInCacheHandle* CacheOpenFileEx(const char* cszFileName, const char* cszMode, unsigned int* puSize)
 	{
 		if (strpbrk(cszMode, "wa"))
 			return NULL;
@@ -168,7 +169,7 @@ public:
 
 	int CacheCloseFile(TFileInCacheHandle* hFile)
 	{
-		if(hFile)
+		if (hFile)
 		{
 			delete hFile;
 			return 0;
@@ -176,11 +177,11 @@ public:
 		return EOF;
 	}
 
-	unsigned int CacheExtractFile(TFileInCacheHandle* hFile, const char * czDest)
+	unsigned int CacheExtractFile(TFileInCacheHandle* hFile, const char* czDest)
 	{
-		TManifestEntriesInCache *FileToExtract = hFile->FileInCache;
+		TManifestEntriesInCache* FileToExtract = hFile->FileInCache;
 		char szFullPath[MAX_PATH];
-		
+
 		if (czDest)
 		{
 			strcpy(szFullPath, czDest);
@@ -196,7 +197,7 @@ public:
 		V_ExtractFilePath(szFullPath, szFilePath, MAX_PATH);
 		CreateDirHierarchy(szFilePath);
 
-		if(FILE* FileToWrite = fopen(szFullPath, "wb"))
+		if (FILE* FileToWrite = fopen(szFullPath, "wb"))
 		{
 			unsigned int uBytesLeft = CacheSizeFile(hFile);
 			unsigned int uBuffSize = 512 * 1024;
@@ -217,7 +218,7 @@ public:
 		return 0;
 	}
 
-	unsigned int CacheReadFile(void *pBuf, unsigned int uSize, unsigned int uCount, TFileInCacheHandle* hFile)
+	unsigned int CacheReadFile(void* pBuf, unsigned int uSize, unsigned int uCount, TFileInCacheHandle* hFile)
 	{
 		unsigned int readedlength = 0;
 
@@ -240,173 +241,176 @@ public:
 	{
 		CCache* hCacheFile = (CCache*)hFile->FileInCache->pCache;
 		TManifestEntriesInCache* hFileInCache = hFile->FileInCache;
- 
+
 		unsigned char* szBuff = reinterpret_cast<unsigned char*>(pBuf);
 		unsigned int uReadedDataAmount = 0;
 		unsigned int uTotalDataToRead = uSize * uCount;
-	   
+
 		unsigned int uActualSectorIndex = hFile->Position / hCacheFile->Sectors->Header->PhysicalSectorSize;
- 
-		while(uReadedDataAmount < uTotalDataToRead)
+
+		while (uReadedDataAmount < uTotalDataToRead)
 		{
 			unsigned int uOffset = hFile->Position % hCacheFile->Sectors->Header->PhysicalSectorSize;
-			unsigned int uActualDataToRead = ((hCacheFile->Sectors->Header->PhysicalSectorSize - uOffset) >= (uTotalDataToRead - uReadedDataAmount) ? (uTotalDataToRead - uReadedDataAmount) : (hCacheFile->Sectors->Header->PhysicalSectorSize - uOffset));
- 
+			unsigned int uActualDataToRead = ((hCacheFile->Sectors->Header->PhysicalSectorSize - uOffset) >= (uTotalDataToRead - uReadedDataAmount)
+			                                      ? (uTotalDataToRead - uReadedDataAmount)
+			                                      : (hCacheFile->Sectors->Header->PhysicalSectorSize - uOffset));
+
 			unsigned int uReadedData = BinaryReadSector(uActualSectorIndex, szBuff, uOffset, uActualDataToRead, hFile);
-		   
+
 			hFile->Position += uReadedData;
 			uReadedDataAmount += uReadedData;
- 
-			if(uActualDataToRead != uReadedData)
+
+			if (uActualDataToRead != uReadedData)
 			{
 				//set errno
 				break;
 			}
- 
+
 			szBuff += uReadedData;
- 
+
 			uActualSectorIndex++;
 		}
- 
-		return uReadedDataAmount;   
+
+		return uReadedDataAmount;
 	}
- 
+
 	int BinaryReadSector(unsigned int iSectorIndex, void* pvBuff, unsigned int uOffset, unsigned int uSize, TFileInCacheHandle* hFile)
 	{
 		CCache* hCacheFile = (CCache*)hFile->FileInCache->pCache;
 		FILE* fCacheFile = hCacheFile->fCacheFile;
 		TManifestEntriesInCache* hFileInCache = hFile->FileInCache;
- 
+
 		int retval = 0;
-	   
-		if(hFile->Position + uSize > hFileInCache->Size)
+
+		if (hFile->Position + uSize > hFileInCache->Size)
 			uSize = hFileInCache->Size - hFile->Position;
- 
-		if(uSize > 0)
+
+		if (uSize > 0)
 		{
 			//long lReadPosition = hCacheFile->Sectors->Header->FirstSectorOffset + (hFileInCache->Sectors[iSectorIndex] * hCacheFile->Sectors->Header->PhysicalSectorSize) + uOffset;
 			__int64 lReadPosition = (__int64)hCacheFile->Sectors->Header->FirstSectorOffset +
 			                        (__int64)(hFileInCache->Sectors[iSectorIndex]) * (__int64)(hCacheFile->Sectors->Header->PhysicalSectorSize) +
 			                        (__int64)uOffset;
 			//if(fseek(fCacheFile, lReadPosition, SEEK_SET))
-			if(_fseeki64(fCacheFile, lReadPosition, SEEK_SET))
+			if (_fseeki64(fCacheFile, lReadPosition, SEEK_SET))
 				return retval;
- 
+
 			retval = fread(pvBuff, 1, uSize, fCacheFile);
 		}
- 
+
 		return retval;
 	}
- 
+
 	unsigned int ReadText(void* pBuf, unsigned int uSize, unsigned int uCount, TFileInCacheHandle* hFile)
 	{
 		CCache* hCacheFile = (CCache*)hFile->FileInCache->pCache;
 		TManifestEntriesInCache* hFileInCache = hFile->FileInCache;
- 
+
 		void* BufferedSector = new char[hCacheFile->Sectors->Header->PhysicalSectorSize];
 		unsigned int BufferedSectorIndex = UINT_MAX;
- 
+
 		unsigned char* szBuff = reinterpret_cast<unsigned char*>(BufferedSector);
 		unsigned char* szBuffOut = reinterpret_cast<unsigned char*>(pBuf);
 		unsigned int uReadedDataAmount = 0;
 		unsigned int uReadedCharactersAmount = 0;
 		unsigned int uDataAvailableToRead = 0;
 		unsigned int uTotalDataToRead = uSize * uCount;
- 
+
 		unsigned int uActualSectorIndex = hFile->Position / hCacheFile->Sectors->Header->PhysicalSectorSize;
- 
-		while(uReadedDataAmount < uTotalDataToRead)
+
+		while (uReadedDataAmount < uTotalDataToRead)
 		{
-			if(hFile->Position == hFileInCache->Size)//EOF
+			if (hFile->Position == hFileInCache->Size) // EOF
 				break;
- 
-			if(BufferedSectorIndex != uActualSectorIndex)
+
+			if (BufferedSectorIndex != uActualSectorIndex)
 			{
-				if(TextReadSector(uActualSectorIndex, BufferedSector, hCacheFile->Sectors->Header->PhysicalSectorSize, hFile) != hCacheFile->Sectors->Header->PhysicalSectorSize)
+				if (TextReadSector(uActualSectorIndex, BufferedSector, hCacheFile->Sectors->Header->PhysicalSectorSize, hFile) !=
+				    hCacheFile->Sectors->Header->PhysicalSectorSize)
 					break;
- 
+
 				BufferedSectorIndex = uActualSectorIndex;
 			}
- 
+
 			unsigned int uOffset = hFile->Position % hCacheFile->Sectors->Header->PhysicalSectorSize;
-			unsigned int uActualDataToRead = ((hCacheFile->Sectors->Header->PhysicalSectorSize - uOffset) > (uTotalDataToRead - uReadedDataAmount) ? (uTotalDataToRead - uReadedDataAmount) : (hCacheFile->Sectors->Header->PhysicalSectorSize - uOffset));
- 
+			unsigned int uActualDataToRead = ((hCacheFile->Sectors->Header->PhysicalSectorSize - uOffset) > (uTotalDataToRead - uReadedDataAmount)
+			                                      ? (uTotalDataToRead - uReadedDataAmount)
+			                                      : (hCacheFile->Sectors->Header->PhysicalSectorSize - uOffset));
+
 			uDataAvailableToRead = hCacheFile->Sectors->Header->PhysicalSectorSize - uOffset;
-			if(uDataAvailableToRead > hFileInCache->Size - hFile->Position)
-				uDataAvailableToRead = hFileInCache->Size - hFile->Position;
- 
+			if (uDataAvailableToRead > hFileInCache->Size - hFile->Position) uDataAvailableToRead = hFileInCache->Size - hFile->Position;
+
 			unsigned int uReadedCharacters = 0;
- 
-			if(uActualDataToRead > 0)
+
+			if (uActualDataToRead > 0)
 			{
 				unsigned int uReadedData = 0;
- 
+
 				do
 				{
 					unsigned char ucChar = szBuff[uOffset + uReadedData];
-					if(ucChar != 0xD)
+					if (ucChar != 0xD)
 					{
 						szBuffOut[uReadedCharactersAmount + uReadedCharacters] = ucChar;
 						uReadedCharacters++;
 					}
 					uReadedData++;
-				}
-				while(uReadedCharacters < uActualDataToRead && uReadedData < uDataAvailableToRead);
- 
+				} while (uReadedCharacters < uActualDataToRead && uReadedData < uDataAvailableToRead);
+
 				hFile->Position += uReadedData;
 				uReadedDataAmount += uReadedData;
 				uReadedCharactersAmount += uReadedCharacters;
 			}
- 
+
 			uActualSectorIndex++;
 		}
- 
+
 		delete[] BufferedSector;
 		return uReadedCharactersAmount;
 	}
- 
+
 	int TextReadSector(unsigned int iSectorIndex, void* pvBuff, unsigned int uSize, TFileInCacheHandle* hFile)
 	{
 		CCache* hCacheFile = (CCache*)hFile->FileInCache->pCache;
 		FILE* fCacheFile = hCacheFile->fCacheFile;
 		TManifestEntriesInCache* hFileInCache = hFile->FileInCache;
- 
+
 		int retval = 0;
- 
+
 		//long lReadPosition = hCacheFile->Sectors->Header->FirstSectorOffset + (hFileInCache->Sectors[iSectorIndex] * hCacheFile->Sectors->Header->PhysicalSectorSize);
 		__int64 lReadPosition = (__int64)hCacheFile->Sectors->Header->FirstSectorOffset +
 		                        (__int64)(hFileInCache->Sectors[iSectorIndex]) * (__int64)(hCacheFile->Sectors->Header->PhysicalSectorSize);
 		//if(fseek(fCacheFile, lReadPosition, SEEK_SET))
-		if(_fseeki64(fCacheFile, lReadPosition, SEEK_SET))
+		if (_fseeki64(fCacheFile, lReadPosition, SEEK_SET))
 			return retval;
- 
+
 		retval = fread(pvBuff, 1, uSize, fCacheFile);
- 
+
 		return retval;
 	}
- 
+
 	int CacheSeekFile(TFileInCacheHandle* hFile, long lOffset, ESteamSeekMethod esMethod)
 	{
 		int retval = -1;
 
-		switch(esMethod)
+		switch (esMethod)
 		{
 		case eSteamSeekMethodSet:
-			if(lOffset <= (long)hFile->FileInCache->Size)
+			if (lOffset <= (long)hFile->FileInCache->Size)
 			{
 				hFile->Position = lOffset;
 				retval = 0;
 			}
 			break;
 		case eSteamSeekMethodCur:
-			if((hFile->Position + lOffset) >= 0 && (hFile->Position + lOffset) <= hFile->FileInCache->Size)
+			if ((hFile->Position + lOffset) >= 0 && (hFile->Position + lOffset) <= hFile->FileInCache->Size)
 			{
 				hFile->Position += lOffset;
 				retval = 0;
 			}
 			break;
 		case eSteamSeekMethodEnd:
-			if(lOffset <= (long)hFile->FileInCache->Size)
+			if (lOffset <= (long)hFile->FileInCache->Size)
 			{
 				hFile->Position = hFile->FileInCache->Size - lOffset;
 				retval = 0;
@@ -419,30 +423,28 @@ public:
 		return retval;
 	}
 
-
 	int CacheTellFile(TFileInCacheHandle* hFile)
 	{
-		if(hFile)
+		if (hFile)
 		{
 			return hFile->Position;
 		}
 		return -1;
 	}
 
-
 	int CacheSizeFile(TFileInCacheHandle* hFile)
 	{
-		if(hFile)
+		if (hFile)
 		{
 			return hFile->FileInCache->Size;
 		}
 		return -1;
 	}
 
-	void CreateDirHierarchy(const char* pRelativePath)
+	void CreateDirHierarchy(const char* cszRelativePath)
 	{
 		char szScratchFileName[MAX_PATH];
-		V_MakeAbsolutePath(szScratchFileName, MAX_PATH, pRelativePath);
+		V_MakeAbsolutePath(szScratchFileName, MAX_PATH, cszRelativePath);
 
 		int len = strlen(szScratchFileName) + 1;
 		char* end = szScratchFileName + len;
@@ -472,17 +474,17 @@ public:
 #endif
 	}
 
-	TFindHandle* CacheFindFirst(const char *cszPattern, ESteamFindFilter eFilter, TSteamElemInfo *pFindInfo)
-	{		
+	TFindHandle* CacheFindFirst(const char* cszPattern, ESteamFindFilter eFilter, TSteamElemInfo* pFindInfo)
+	{
 		char szCachePattern[MAX_PATH];
 		strcpy(szCachePattern, cszPattern);
-		
+
 		if (!GetFilenameInCache(szCachePattern))
 			return NULL;
 
 		if (szCachePattern[0])
 		{
-			if(TManifestEntriesInCache* ItemFound = FindItem(0, szCachePattern))
+			if (TManifestEntriesInCache* ItemFound = FindItem(0, szCachePattern))
 			{
 				pFindInfo->bIsDir = (ItemFound->Type == 0 ? 1 : 0);
 				pFindInfo->bIsLocal = 0;
@@ -510,9 +512,9 @@ public:
 		return NULL;
 	}
 
-	int CacheFindNext(TFindHandle* hFind, TSteamElemInfo *pFindInfo)
+	int CacheFindNext(TFindHandle* hFind, TSteamElemInfo* pFindInfo)
 	{
-		if(TManifestEntriesInCache* ItemFound = FindItem(hFind->CurrentIndex + 1, hFind->szCachePattern))
+		if (TManifestEntriesInCache* ItemFound = FindItem(hFind->CurrentIndex + 1, hFind->szCachePattern))
 		{
 			pFindInfo->bIsDir = (ItemFound->Type == 0 ? 1 : 0);
 			pFindInfo->bIsLocal = 0;
@@ -525,16 +527,16 @@ public:
 			hFind->CurrentIndex = GlobalIndexCounter;
 
 			//if (bLogging && bLogFS) Logger->Write("\tFound next file {%s} (%s) using pattern (%s)\n", ((CCache*)hFind->hFind->pCache)->Name, ItemFound->Name, hFind->szCachePattern);
-			
+
 			return 0;
 		}
-			
+
 		return -1;
 	}
 
 	int CacheFindClose(TFindHandle* hFind)
 	{
-		if (hFind) 
+		if (hFind)
 		{
 			delete hFind;
 			return 0;
@@ -542,17 +544,17 @@ public:
 		return -1;
 	}
 
-private:
+  private:
 	TManifestEntriesInCache* FindItem(unsigned int LastIndex, const char* cszPattern)
 	{
-		if(strpbrk(cszPattern, "?*"))
+		if (strpbrk(cszPattern, "?*"))
 		{
 			GlobalIndexCounter = LastIndex;
-			while(GlobalIndexCounter < GlobalDirectoryTableSize)
-			{		
+			while (GlobalIndexCounter < GlobalDirectoryTableSize)
+			{
 				TGlobalDirectory& FindItem = GlobalDirectoryTable[GlobalIndexCounter];
 
-				if(IsMatchingWithMask(FindItem.FullName, cszPattern))
+				if (IsMatchingWithMask(FindItem.FullName, cszPattern))
 				{
 					CCache* CacheFile = (CCache*)FindItem.pCache;
 					TManifestEntriesInCache* ItemFound = &CacheFile->DirectoryTable[FindItem.Index];
@@ -564,7 +566,7 @@ private:
 		}
 		else
 		{
-			uint32_t EntryHash = murmur3_32((const uint8_t*)cszPattern, strlen(cszPattern), MURMUR_SEED);		
+			uint32_t EntryHash = murmur3_32((const uint8_t*)cszPattern, strlen(cszPattern), MURMUR_SEED);
 			auto it = HashTable.find(EntryHash);
 
 			if (it != HashTable.end())
@@ -585,13 +587,12 @@ private:
 
 	bool IsMatchingWithMask(const char* szString, const char* szMask)
 	{
-		while(*szString != 0 || *szMask != 0)
+		while (*szString != 0 || *szMask != 0)
 		{
-
-			if(*szMask == '*')
+			if (*szMask == '*')
 			{
 				szMask++;
-				while(*szMask != *szString)
+				while (*szMask != *szString)
 				{
 					if (*szString == 0)
 					{
@@ -607,21 +608,21 @@ private:
 					}
 				}
 			}
-			else if(*szString == 0 && *szMask == 0)
+			else if (*szString == 0 && *szMask == 0)
 			{
 				break;
 			}
-			else if(*szString == 0 && *szMask != 0)
+			else if (*szString == 0 && *szMask != 0)
 			{
-				if(*szMask == '.')
+				if (*szMask == '.')
 				{
 					szMask++;
 				}
-				if(*szMask == '*')
+				if (*szMask == '*')
 				{
 					szMask++;
 				}
-				if(*szString == 0 && *szMask != 0)
+				if (*szString == 0 && *szMask != 0)
 				{
 					return false;
 				}
@@ -630,16 +631,16 @@ private:
 					break;
 				}
 			}
-			else if(*szString != 0 && *szMask == 0)
+			else if (*szString != 0 && *szMask == 0)
 			{
 				return false;
 			}
-			else if(*szMask == '?')
+			else if (*szMask == '?')
 			{
 				szString++;
 				szMask++;
 			}
-			else if(*szString == *szMask)
+			else if (*szString == *szMask)
 			{
 				szString++;
 				szMask++;
@@ -653,7 +654,7 @@ private:
 		return true;
 	}
 
-	bool GetFilenameInCache(char * cszFileName)
+	bool GetFilenameInCache(char* cszFileName)
 	{
 		char szBuf[MAX_PATH];
 		char szCWD[MAX_PATH];
@@ -716,7 +717,7 @@ private:
 		return NULL;
 	}
 
-private:
+  private:
 	void BuildGlobalDirectoryTable(CCache* CacheFile)
 	{
 		if (!CacheFile->bIsMounted)
@@ -724,7 +725,7 @@ private:
 			TManifestEntriesInCache* DirectoryTable = CacheFile->DirectoryTable;
 			TManifestEntriesInCache* ActualDirEntry;
 
-			for(unsigned int CacheIndex = 1; CacheIndex < CacheFile->Manifest->Header->ItemCount ; CacheIndex++)
+			for (unsigned int CacheIndex = 1; CacheIndex < CacheFile->Manifest->Header->ItemCount; CacheIndex++)
 			{
 				TGlobalDirectory FindThisItem;
 				ActualDirEntry = &DirectoryTable[CacheIndex];
@@ -756,4 +757,3 @@ private:
 		}
 	}
 };
-
