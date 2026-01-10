@@ -63,14 +63,11 @@ void MountFileSystemByID(unsigned int uId, const char* szExtraMount)
 
 	strcpy(szGCF, CDR->ApplicationRecords[uId]->InstallDirName);
 	_strlwr(szGCF);
+	strcat(szGCF, ".gcf");
 
 	for (unsigned int uIndex = 0; uIndex < CacheLocations.size(); uIndex++)
 	{
-		strcpy(szPath, CacheLocations[uIndex]);
-		strcat(szPath, CORRECT_PATH_SEPARATOR_S);
-		strcat(szPath, szGCF);
-		strcat(szPath, ".gcf");
-
+		V_ComposeFileName(CacheLocations[uIndex], szGCF, szPath, MAX_PATH);
 		cHandle = CacheManager->MountCache(szPath, CacheManager->NumCaches(), szExtraMount);
 
 		if (cHandle != NULL)
@@ -325,24 +322,18 @@ STEAM_API int SteamMountAppFilesystem(TSteamError* pError)
 
 			for (i = 1; i < 50; i++)
 			{
-				for (unsigned int uIndex = 0; uIndex < CacheLocations.size(); uIndex++)
+				sprintf(szKey, "GCF%d", i);
+				szGCF = AppIni.IniReadValue(szSection, szKey);
+
+				if (szGCF != NULL)
 				{
-					sprintf(szKey, "GCF%d", i);
-					szGCF = AppIni.IniReadValue(szSection, szKey);
-
-					if (szGCF != NULL)
+					for (unsigned int uIndex = 0; uIndex < CacheLocations.size(); uIndex++)
 					{
-						strcpy(szPath, CacheLocations[uIndex]);
-						strcat(szPath, CORRECT_PATH_SEPARATOR_S);
-						strcat(szPath, szGCF);
-
+						V_ComposeFileName(CacheLocations[uIndex], szGCF, szPath, MAX_PATH);
 						MountFileSystemByName(szPath);
-						delete[] szGCF;
 					}
-					else
-					{
-						break;
-					}
+
+					delete[] szGCF;
 				}
 			}
 		}
