@@ -137,8 +137,8 @@ STEAM_API const unsigned char* STEAM_CALL SteamGetEncryptionKeyToSendToNewClient
 		return retval;
 	}
 
-	*pReceiveSizeOfEncryptionKey = 160;
-	return m_key;
+	*pReceiveSizeOfEncryptionKey = sizeof(g_TicketKey);
+	return g_TicketKey;
 }
 
 STEAM_API ESteamError STEAM_CALL SteamStartValidatingUserIDTicket(void *pEncryptedUserIDTicketFromClient, unsigned int uSizeOfEncryptedUserIDTicketFromClient, unsigned int ObservedClientIPAddr, SteamUserIDTicketValidationHandle_t *pReceiveHandle)

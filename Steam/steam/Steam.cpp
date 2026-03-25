@@ -3,25 +3,6 @@
 
 #include "stdafx.h"
 
-#include "windows.h"
-
-#include "CriticalSection.h"
-
-#include <iostream>
-#include <conio.h>
-#include <fstream>
-#include <sys/stat.h>
-#include <map>
-#include <MMSystem.h>
-#include <io.h>
-#include <cstdio>
-#include <process.h>
-#include <shellapi.h>
-#include <stdio.h>
-#include <string.h>
-#include <vector>
-#include <direct.h>
-
 unsigned int rootAppID = 0;
 CLogFile* Logger;
 char szSteamDLLPath[MAX_PATH];
@@ -53,6 +34,8 @@ LPWSTR *szArglist;
 
 HMODULE g_hModule;
 
+#include "CriticalSection.h"
+
 CRITICAL_SECTION g_CriticalSection;
 static CInitCriticalSection s_InitCriticalSection(&g_CriticalSection);
 
@@ -68,7 +51,6 @@ unsigned int GlobalDirectoryTableSize = 0;
 unsigned int GlobalIndexCounter = 0;
 
 #include "Steam.h"
-#include "RevCommon.h"
 
 #include "BlobSystem\CBlobSystem.h"		//Blob
 
@@ -82,7 +64,6 @@ static CCacheFileSystem* CacheManager = NULL;
 CSteamID g_SteamID;
 
 #include "SteamFilesystem.h"			//Filesystem
-
 #include "SteamApplication.h"			//App Functions
 #include "SteamInterface.h"				//Interface
 #include "SteamInit.h"					//Initialization
@@ -93,6 +74,7 @@ CSteamID g_SteamID;
 #include "SteamMiniDump.h"				//Minidump
 #include "SteamMisc.h"					//Misc
 
+#include <shellapi.h>
 #include "registry.h"
 
 

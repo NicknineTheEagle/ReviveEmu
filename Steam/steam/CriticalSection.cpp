@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "CriticalSection.h"
 
 CInitCriticalSection::CInitCriticalSection(LPCRITICAL_SECTION lpCriticalSection)

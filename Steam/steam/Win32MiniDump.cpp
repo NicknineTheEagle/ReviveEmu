@@ -1,7 +1,6 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "Steam.h"
 #include "Win32MiniDump.h"
-#include <eh.h>
 
 CWin32MiniDump::CWin32MiniDump( const char* cszName, _se_translator_function fnSETranslatorFunction )
 {
@@ -42,7 +41,7 @@ void CWin32MiniDump::SetComment( const char* cszComment )
 
 void CWin32MiniDump::AddComment( const char* cszComment )
 {
-	this->m_vecComments.push_back( string( cszComment ) );
+	this->m_vecComments.push_back( std::string( cszComment ) );
 }
 
 void CWin32MiniDump::ClearComments()

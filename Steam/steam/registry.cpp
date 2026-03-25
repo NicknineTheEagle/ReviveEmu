@@ -1,7 +1,5 @@
 #include "stdafx.h"
-#include <olectl.h>
-#include <winreg.h>
-#include <string.h>
+#include "registry.h"
 
 void clearStringArray(char ** array, int size)
 {

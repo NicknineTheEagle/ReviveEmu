@@ -9,7 +9,18 @@
 
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 
-#include <cstdint>
+#include <windows.h>
 
+#include <cstdio>
+#include <cstring>
+#include <cstdint>
+#include <vector>
+#include <map>
+
+#include <io.h>
+#include <direct.h>
+
+#include "SteamCommon.h"
+#include "RevCommon.h"
 #include "iniFile.h"
 #include "logFile.h"

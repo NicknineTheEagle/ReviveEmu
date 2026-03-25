@@ -1,7 +1,5 @@
 #pragma once
 
-#include "SteamEngineClient.h"
-
 extern CLogFile* Logger;
 extern BOOL bLogging;
 BOOL bSteamStartup = FALSE;

@@ -126,15 +126,7 @@ public:
 	virtual SteamCallHandle_t WaitForAppReadyToLaunch(unsigned int uAppId, TSteamError *pError){return 1;}
 	virtual int IsCacheLoadingEnabled(unsigned int uAppId, int *pbIsLoading, TSteamError *pError){return 1;}
 	virtual SteamCallHandle_t StopLoadingCache(unsigned int uAppId, TSteamError *pError){return 1;}
-	
 	virtual ESteamError GetEncryptedUserIDTicket(const void *pEncryptionKeyReceivedFromAppServer, unsigned int uEncryptionKeyLength, void *pOutputBuffer, unsigned int uSizeOfOutputBuffer, unsigned int *pReceiveSizeOfEncryptedTicket, TSteamError *pError){return eSteamErrorNone;}
-	/*{
-		memcpy(pOutputBuffer, m_encrypted, 348);
-		*pReceiveSizeOfEncryptedTicket = 348;
-		SteamClearError(pError);
-		return eSteamErrorNone;
-	}*/
-	
 	virtual SteamCallHandle_t FlushCache(unsigned int uAppId, TSteamError *pError){return 1;}
 	virtual SteamCallHandle_t RepairOrDecryptCaches(unsigned int uAppId, int iArg2, TSteamError *pError){return 1;}
 	virtual SteamCallHandle_t LoadCacheFromDir(unsigned int uAppId, const char *cszPath, TSteamError *pError){return 1;}

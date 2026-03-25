@@ -9,8 +9,6 @@
 //			multi thread safe, finally added:)
 
 ////////////////////////////////////////////////////
-#pragma warning(disable:4996)//disable deprecated warnings
-
 #include "stdafx.h"
 #include "CriticalSection.h"
 
@@ -22,6 +20,7 @@ CLogFile::CLogFile(char* strFile)
 {
 	//AllocConsole();
 	strcpy(m_filename, strFile);
+	m_pLogFile = NULL;
 }
 
 //	Destructor, close if logfile is opened
@@ -29,14 +28,15 @@ CLogFile::~CLogFile()
 {
 	//FreeConsole();
 	if (m_pLogFile)
+	{
 		fflush(m_pLogFile);
 		fclose(m_pLogFile);
+	}
 }
 
 //	Write log info into the logfile, with printf like parameters support
 void CLogFile::Write(char*  pszFormat, ...)
 {
-	
 	ENTER_CRITICAL_SECTION;
 
 	m_pLogFile = fopen(m_filename, "a");
@@ -74,7 +74,6 @@ void CLogFile::Write(char*  pszFormat, ...)
 	fflush(m_pLogFile);
 	fclose(m_pLogFile);
 	//_cprintf(szLog);
-	
 }
 void CLogFile::Clear()
 {
@@ -82,5 +81,4 @@ void CLogFile::Clear()
 	if (!m_pLogFile)
 		return;
 	fclose(m_pLogFile);
-
 }
