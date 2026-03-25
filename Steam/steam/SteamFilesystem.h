@@ -301,7 +301,7 @@ STEAM_API int SteamMountAppFilesystem(TSteamError* pError)
 		if (!appid)
 		{
 			MessageBoxA(NULL, "You are trying to launch an unknown App ID, please specify -appid on the command line or write App ID into steam_appid.txt.",
-			            "REVive - AppID?", 0);
+						"REVive - AppID?", 0);
 			ExitProcess(0xffffffff);
 		}
 
@@ -1054,8 +1054,7 @@ STEAM_API int STEAM_CALL SteamResumeCachePreloading(TSteamError* pError)
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamGetCacheFilePath(unsigned int uAppId, char* szFilePath, unsigned int uBufferLength, unsigned int* puRecievedLength,
-                                               TSteamError* pError)
+STEAM_API int STEAM_CALL SteamGetCacheFilePath(unsigned int uAppId, char* szFilePath, unsigned int uBufferLength, unsigned int* puRecievedLength, TSteamError* pError)
 {
 	if (bLogging && bLogFS) Logger->Write("SteamGetCacheFilePath\n");
 	SteamClearError(pError);
