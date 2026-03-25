@@ -8,7 +8,7 @@ Get the latest release here: https://github.com/NicknineTheEagle/ReviveEmu/relea
 
 ## Building
 
-Open Steam.sln in Visual Studio 2022 and build it.
+With Windows SDK installed, open Steam.sln in Visual Studio 2022 and build it.
 
 ## Usage (loose files)
 
