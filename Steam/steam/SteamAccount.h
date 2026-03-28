@@ -165,29 +165,23 @@ STEAM_API int STEAM_CALL SteamGetSubscriptionStats(TSteamSubscriptionStats *pSub
 	return 0;
 }
 
-#ifdef STEAM2003
-STEAM_API int STEAM_CALL SteamGetUser(char *szUser, unsigned int uBufSize, unsigned int *puUserChars, TSteamError *pError)
-{
-// #ifdef DEBUG
-	if (bLogging && bLogAcc) Logger->Write("SteamGetUser\n");
-// #endif
-
-	if (!szUser)
-		return 0;
-
-	strncpy(szUser, szSteamUser, uBufSize);
-	if (puUserChars)
-		*puUserChars = strlen(szSteamUser);
-
-	SteamClearError(pError);
-	return 1;
-}
-#else
+//STEAM_API int STEAM_CALL SteamGetUser(char *szUser, unsigned int uBufSize, unsigned int *puUserChars, TSteamError *pError)
 STEAM_API int STEAM_CALL SteamGetUser(char *szUser, unsigned int uBufSize, unsigned int *puUserChars, TSteamGlobalUserID* pSteamGlobalUserID, TSteamError *pError)
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc) Logger->Write("SteamGetUser\n");
 // #endif
+
+	// 2003 DLL has less arguments.
+	TSteamError *pArgError = NULL;
+	if (g_CompatMode <= REV_COMPAT_2003)
+	{
+		memcpy(&pArgError, &pSteamGlobalUserID, sizeof(pArgError));
+	}
+	else
+	{
+		memcpy(&pArgError, &pError, sizeof(pArgError));
+	}
 
 	if (szUser)
 	{
@@ -196,15 +190,17 @@ STEAM_API int STEAM_CALL SteamGetUser(char *szUser, unsigned int uBufSize, unsig
 			*puUserChars = strlen(szSteamUser);
 	}
 	
-	if (pSteamGlobalUserID)
+	if (g_CompatMode > REV_COMPAT_2003)
 	{
-		g_SteamID.ConvertToSteam2(pSteamGlobalUserID);
+		if (pSteamGlobalUserID)
+		{
+			g_SteamID.ConvertToSteam2(pSteamGlobalUserID);
+		}
 	}
 
-	SteamClearError(pError);
+	SteamClearError(pArgError);
 	return 1;
 }
-#endif
 
 STEAM_API int STEAM_CALL SteamGetUserType(unsigned int* puArg1, TSteamError* pError)
 {

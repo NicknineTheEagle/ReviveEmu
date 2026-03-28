@@ -146,11 +146,7 @@ STEAM_API int					STEAM_CALL	SteamGetSubscriptionPurchaseCountry();
 STEAM_API int					STEAM_CALL	SteamGetSubscriptionReceipt(unsigned int uSubscriptionId , TSteamSubscriptionReceipt* pSteamSubscriptionReceipt, TSteamError *pError);
 STEAM_API int					STEAM_CALL	SteamGetSubscriptionStats(TSteamSubscriptionStats *pSubscriptionStats, TSteamError *pError);
 STEAM_API int					STEAM_CALL	SteamGetTotalUpdateStats(TSteamUpdateStats *pUpdateStats, TSteamError *pError);
-#ifdef STEAM2003
-STEAM_API int					STEAM_CALL	SteamGetUser(char *szUser, unsigned int uBufSize, unsigned int *puUserChars, TSteamError *pError);
-#else
 STEAM_API int					STEAM_CALL	SteamGetUser(char *szUser, unsigned int uBufSize, unsigned int *puUserChars, TSteamGlobalUserID* pSteamGlobalUserID, TSteamError *pError);
-#endif
 STEAM_API int					STEAM_CALL	SteamGetUserType(unsigned int* puArg1, TSteamError* pError);
 STEAM_API int					STEAM_CALL	SteamIsAccountNameInUse();
 STEAM_API int					STEAM_CALL	SteamIsAppSubscribed(unsigned int uAppId, int *pbIsAppSubscribed, int *pbIsSubscriptionPending, TSteamError *pError);

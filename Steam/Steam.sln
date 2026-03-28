@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.37111.16 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Steam", "steam\Steam.vcxproj", "{FD08F481-8B7E-4BCE-AD41-32A251B18667}"
 EndProject
@@ -9,17 +9,17 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
 		Release|Win32 = Release|Win32
-		Steam 2003|Win32 = Steam 2003|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{FD08F481-8B7E-4BCE-AD41-32A251B18667}.Debug|Win32.ActiveCfg = Debug|Win32
 		{FD08F481-8B7E-4BCE-AD41-32A251B18667}.Debug|Win32.Build.0 = Debug|Win32
 		{FD08F481-8B7E-4BCE-AD41-32A251B18667}.Release|Win32.ActiveCfg = Release|Win32
 		{FD08F481-8B7E-4BCE-AD41-32A251B18667}.Release|Win32.Build.0 = Release|Win32
-		{FD08F481-8B7E-4BCE-AD41-32A251B18667}.Steam 2003|Win32.ActiveCfg = Steam 2003|Win32
-		{FD08F481-8B7E-4BCE-AD41-32A251B18667}.Steam 2003|Win32.Build.0 = Steam 2003|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FBECEA23-8C50-468B-93C6-3728225A7314}
 	EndGlobalSection
 EndGlobal

@@ -1,20 +1,17 @@
 #pragma once
 
-#ifndef STEAM2003
 #include "SteamInterface001.h"
 #include "SteamInterface003.h"
 #include "SteamInterface004.h"
 #include "SteamInterface005.h"
 #include "SteamInterface006.h"
 #include "SteamDLLAppsystem001.h"
-#endif
 
 extern CLogFile* Logger;
 extern BOOL bLogging;
 
 STEAM_API void* STEAM_CALL CreateInterface(const char* cszSteamDLLAppsystemInterfaceVersion, int* pReturnCode)
 {
-#ifndef STEAM2003
 	if(bLogging) Logger->Write("CreateInterface(%s)\n", cszSteamDLLAppsystemInterfaceVersion); 
 	static CSteamDLLAppsystem001 SteamDLLAppsystem001;
 
@@ -27,7 +24,6 @@ STEAM_API void* STEAM_CALL CreateInterface(const char* cszSteamDLLAppsystemInter
 			return (void*)&SteamDLLAppsystem001;
 		}
 	}
-#endif
 
 	if (pReturnCode)
 		*pReturnCode = 1;
@@ -36,7 +32,6 @@ STEAM_API void* STEAM_CALL CreateInterface(const char* cszSteamDLLAppsystemInter
 
 STEAM_API void* STEAM_CALL _f(const char* cszSteamInterfaceVersion)
 {
-#ifndef STEAM2003
 	if(cszSteamInterfaceVersion != NULL)
 	{
 		if(bLogging) Logger->Write("Using Interface %s\n", cszSteamInterfaceVersion);
@@ -66,7 +61,6 @@ STEAM_API void* STEAM_CALL _f(const char* cszSteamInterfaceVersion)
 			return (void*)&SteamInterface006;
 		}
 	}
-#endif
 
 	return NULL;
 }

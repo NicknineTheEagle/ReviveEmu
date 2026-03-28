@@ -46,3 +46,9 @@ struct __declspec(align(8)) TSteam2WrapperTicket
 	uint32 uLocalIP;
 	uint32 uHandle;
 };
+
+enum ERevCompatMode
+{
+	REV_COMPAT_2003 = 0,
+	REV_COMPAT_NONE,
+};

@@ -2,8 +2,7 @@
 
 name: Windows build
 
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
+# Controls when the action will run.
 on: [push, pull_request, workflow_dispatch]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -27,11 +26,6 @@ jobs:
         working-directory: Steam
         run: MSBuild -m Steam.sln -t:Steam:Rebuild "-p:Configuration=Release" -p:Platform=Win32
 
-      - name: Build 2003 DLL
-        shell: cmd
-        working-directory: Steam
-        run: MSBuild -m Steam.sln -t:Steam:Rebuild "-p:Configuration=Steam 2003" -p:Platform=Win32
-
       - name: Prepare files for packaging
         shell: cmd
         run: |
@@ -40,9 +34,6 @@ jobs:
           copy Steam\Release\Steam.pdb artifacts\Steam.pdb
           copy Steam\steam\rev.ini artifacts\rev.ini
           copy Steam\steam\revApps.ini artifacts\revApps.ini
-          mkdir artifacts\2003
-          copy Steam\Release_2003\Steam.dll artifacts\2003\Steam.dll
-          copy Steam\Release_2003\Steam.pdb artifacts\2003\Steam.pdb
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

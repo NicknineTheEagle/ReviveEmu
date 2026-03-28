@@ -14,6 +14,7 @@ BOOL bLogFS = false;
 BOOL bLogUserId = false;
 BOOL bSteamClient = false;
 bool bAllowNonRev = true;
+ERevCompatMode g_CompatMode = REV_COMPAT_NONE;
 
 int nArgs;
 bool bSteamFileSystem = false;
@@ -504,6 +505,15 @@ void InitGlobalVaribles()
 						ExitProcess(1);
 					}
 					if (bLogging) Logger->Write("-- Original Steam.dll set: %s (0x%s)\n", szOrigSteamDll, buffer);
+				}
+
+				if (char* CompatMode = Ini->IniReadValue("Emulator", "CompatibilityMode"))
+				{
+					if (_stricmp(CompatMode, "2003") == 0)
+					{
+						g_CompatMode = REV_COMPAT_2003;
+					}
+					delete[] CompatMode;
 				}
 
 		//
