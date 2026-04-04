@@ -169,7 +169,7 @@ STEAM_API int SteamEnumerateAppDependency(unsigned int uAppId, unsigned int uDep
 
 		if (uAppRecord != UINT_MAX)
 		{
-			if (uDependency <= CDR->ApplicationRecords[uAppRecord]->FilesystemsRecord.size())
+			if (uDependency < CDR->ApplicationRecords[uAppRecord]->FilesystemsRecord.size())
 			{
 				pDependencyInfo->AppId = CDR->ApplicationRecords[uAppRecord]->FilesystemsRecord[uDependency]->AppId;
 				pDependencyInfo->IsRequired = (CDR->ApplicationRecords[uAppRecord]->FilesystemsRecord[uDependency]->IsOptional ? 0 : 1);
