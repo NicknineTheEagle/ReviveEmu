@@ -20,7 +20,6 @@ public:
 	TManifestEntriesInCache* DirectoryTable;
 	char Name[MAX_PATH];
 
-	unsigned int Index;
 	bool bIsMounted;
 
 	CCache(FILE* fCacheFile)

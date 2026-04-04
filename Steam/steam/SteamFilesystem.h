@@ -44,9 +44,8 @@ void MountFileSystemByID(unsigned int uId, const char* szExtraMount)
 	for (const char* cszLocation : CacheLocations)
 	{
 		V_ComposeFileName(cszLocation, szGCF, szPath, MAX_PATH);
-		cHandle = CacheManager->MountCache(szPath, CacheManager->NumCaches(), szExtraMount);
-
-		if (cHandle != NULL)
+		cHandle = CacheManager->MountCache(szPath, szExtraMount);
+		if (cHandle)
 		{
 			vecGCF.push_back(cHandle);
 		}
@@ -56,9 +55,8 @@ void MountFileSystemByID(unsigned int uId, const char* szExtraMount)
 void MountFileSystemByName(const char* szPath)
 {
 	intptr_t cHandle;
-	unsigned int index = vecGCF.size();
-	cHandle = CacheManager->MountCache(szPath, index, "");
-	if (cHandle != NULL)
+	cHandle = CacheManager->MountCache(szPath, "");
+	if (cHandle)
 	{
 		vecGCF.push_back(cHandle);
 	}

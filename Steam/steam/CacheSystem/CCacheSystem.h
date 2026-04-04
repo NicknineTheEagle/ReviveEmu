@@ -61,7 +61,7 @@ class CCacheFileSystem
 		return Caches.size();
 	}
 
-	CacheHandle MountCache(const char* cszFileName, unsigned int index, const char* ExtraMountPath)
+	CacheHandle MountCache(const char* cszFileName, const char* ExtraMountPath)
 	{
 		const char* cszCacheName = V_GetFileName(cszFileName);
 
@@ -79,7 +79,6 @@ class CCacheFileSystem
 		{
 			CCache* CacheFile = new CCache(fCacheFile);
 			CacheFile->Read(ExtraMountPath);
-			CacheFile->Index = 0;
 			CacheFile->bIsMounted = false;
 			strncpy(CacheFile->Name, cszCacheName, sizeof(CacheFile->Name));
 			TCacheHandle* hCache = new TCacheHandle;
