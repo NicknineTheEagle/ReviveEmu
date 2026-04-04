@@ -101,18 +101,16 @@ class CCacheFileSystem
 
 	bool UnmountCache(CacheHandle hCacheToMount)
 	{
-		for (auto it = Caches.begin(); it != Caches.end(); it++)
+		auto it = std::find(Caches.begin(), Caches.end(), (TCacheHandle*)hCacheToMount);
+		if (it != Caches.end())
 		{
 			TCacheHandle* hCache = *it;
-			if (hCache == (TCacheHandle*)hCacheToMount)
-			{
-				//if (bLogging && bLogFS) Logger->Write("	Unmounted %s\n", hCache->hCacheFile->Name);
-				delete hCache->hCacheFile;
-				fclose(hCache->fCacheFile);
-				delete hCache;
-				Caches.erase(it);
-				return true;
-			}
+			//if (bLogging && bLogFS) Logger->Write("	Unmounted %s\n", hCache->hCacheFile->Name);
+			delete hCache->hCacheFile;
+			fclose(hCache->fCacheFile);
+			delete hCache;
+			Caches.erase(it);
+			return true;
 		}
 
 		return false;

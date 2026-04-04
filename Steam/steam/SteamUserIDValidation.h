@@ -359,14 +359,10 @@ STEAM_API void STEAM_CALL SteamAbortOngoingUserIDTicketValidation(SteamUserIDTic
 		if (bLogging && bLogUserId) Logger->Write("\t returned.\n");
 	}
 
-	for (auto it = g_RevUserValidations.begin(); it != g_RevUserValidations.end(); it++)
-	{
-		if (hRevHandle == *it)
-		{
-			delete hRevHandle;
-			g_RevUserValidations.erase(it);
-			break;
-		}
+	auto it = std::find(g_RevUserValidations.begin(), g_RevUserValidations.end(), hRevHandle);
+	if (it != g_RevUserValidations.end()) {
+		delete hRevHandle;
+		g_RevUserValidations.erase(it);
 	}
 }
 
