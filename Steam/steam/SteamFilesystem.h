@@ -4,30 +4,6 @@ extern unsigned int rootAppID;
 extern CRITICAL_SECTION g_CriticalSection;
 #define ENTER_CRITICAL_SECTION CEnterCriticalSection ECS(&g_CriticalSection)
 
-const char* GetCacheNameFromAppID(unsigned int uAppID)
-{
-	for (unsigned int i = 0; i < CDR->ApplicationRecords.size(); i++)
-	{
-		if (uAppID == CDR->ApplicationRecords[i]->AppId)
-		{
-			return CDR->ApplicationRecords[i]->InstallDirName;
-		}
-	}
-	return NULL;
-}
-
-unsigned int GetAppIDFromCacheName(const char* szGCF)
-{
-	for (unsigned int i = 0; i < CDR->ApplicationRecords.size(); i++)
-	{
-		if (_stricmp(szGCF, CDR->ApplicationRecords[i]->InstallDirName) == 0)
-		{
-			return CDR->ApplicationRecords[i]->AppId;
-		}
-	}
-	return UINT_MAX;
-}
-
 unsigned int GetAppIDFromName(char* szName)
 {
 	for (unsigned int i = 0; i < CDR->ApplicationRecords.size(); i++)
@@ -187,8 +163,7 @@ SteamHandle_t SteamOpenFile2(const char* cszFileName, const char* cszMode, int n
 
 		char szDirPath[MAX_PATH] = "";
 		V_ExtractFilePath(szFullPath, szDirPath, MAX_PATH);
-		const char* pszFileName = V_GetFileName(szFullPath);
-		if (bLogging && bLogFS) Logger->Write("\tOpened 0x%08X from Local(%s) %s >> %s\n", (long)hCacheFile, cszMode, pszFileName, szDirPath);
+		if (bLogging && bLogFS) Logger->Write("\tOpened 0x%08X from Local(%s) %s >> %s\n", (long)hCacheFile, cszMode, cszFileName, szDirPath);
 	}
 	else
 	{
