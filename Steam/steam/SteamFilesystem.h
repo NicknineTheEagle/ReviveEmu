@@ -34,7 +34,7 @@ void MountFileSystemByID(unsigned int uId, const char* szExtraMount)
 	char szGCF[MAX_PATH];
 	intptr_t cHandle;
 
-	if (uId == UINT_MAX)
+	if (uId >= CDR->ApplicationRecords.size())
 		return;
 
 	strcpy(szGCF, CDR->ApplicationRecords[uId]->InstallDirName);
