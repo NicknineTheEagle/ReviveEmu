@@ -71,7 +71,7 @@ class CCacheFileSystem
 			if (strcmp(CheckCacheFile->Name, cszCacheName) == 0)
 			{
 				if (bLogging && bLogFS) Logger->Write("	Cache is already mounted: %s\n", cszFileName);
-				return false;
+				return NULL;
 			}
 		}
 
@@ -96,7 +96,7 @@ class CCacheFileSystem
 
 		if (bLogging && bLogFS) Logger->Write("	Failed to Mount %s\n", cszFileName);
 
-		return false;
+		return NULL;
 	}
 
 	bool UnmountCache(CacheHandle hCacheToMount)
