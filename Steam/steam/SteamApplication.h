@@ -1,12 +1,13 @@
 extern BOOL bSteamStartup;
 extern unsigned int  rootAppID;
 
-const char * GetNameById(unsigned int id) {
-	for (unsigned int i = 0; i < CDR->ApplicationRecords.size(); i++)
+const char* GetNameById(unsigned int id)
+{
+	for (CAppRecord* pRecord : CDR->ApplicationRecords)
 	{
-		if (id == CDR->ApplicationRecords[i]->AppId)
+		if (id == pRecord->AppId)
 		{
-			return CDR->ApplicationRecords[i]->InstallDirName;
+			return pRecord->InstallDirName;
 		}
 	}
 	return NULL;
@@ -444,9 +445,9 @@ STEAM_API int SteamIsSubscribed(unsigned int uSubscriptionId, int* pbIsSubscribe
 		return 1;
 	}
 
-	for (unsigned int x = 0; x < CDR->SubscriptionsRecord.size(); x++)
+	for (CSubscriptionRecord* pRecord : CDR->SubscriptionsRecord)
 	{
-		if (CDR->SubscriptionsRecord[x]->SubscriptionId == uSubscriptionId)
+		if (pRecord->SubscriptionId == uSubscriptionId)
 		{
 			*pbIsSubscribed = 1;
 			*pbIsSubscriptionPending = 0;
@@ -480,9 +481,9 @@ STEAM_API int STEAM_CALL SteamIsAppSubscribed(unsigned int uAppId, int* pbIsAppS
 		return 1;
 	}
 
-	for (unsigned int x = 0; x < CDR->ApplicationRecords.size(); x++)
+	for (CAppRecord* pRecord : CDR->ApplicationRecords)
 	{
-		if (CDR->ApplicationRecords[x]->AppId == uAppId)
+		if (pRecord->AppId == uAppId)
 		{
 			*pbIsAppSubscribed = 1;
 			*pbIsSubscriptionPending = 0;
@@ -557,65 +558,56 @@ STEAM_API int SteamGetAppStats(TSteamAppStats *pAppStats, TSteamError *pError) {
 		memset(pAppStats, 0, sizeof(TSteamAppStats));
 		pAppStats->uNumApps = CDR->ApplicationRecords.size();
 
-		for (unsigned int i = 0; i < pAppStats->uNumApps; i++)
+		for (CAppRecord* pAppRecord : CDR->ApplicationRecords)
 		{
-			unsigned int uAppRecord = GetAppRecordID(i);
-
-			if (uAppRecord != UINT_MAX)
+			if (pAppStats->uMaxNameChars < strlen(pAppRecord->Name))
 			{
-				CAppRecord* AppRecord = CDR->ApplicationRecords[uAppRecord];
+				pAppStats->uMaxNameChars = strlen(pAppRecord->Name);
+			}
 
-				if (AppRecord)
+			for (CAppVersionRecord* pVersionRecord : pAppRecord->VersionsRecord)
+			{
+				if (pAppStats->uMaxVersionLabelChars < strlen(pVersionRecord->Description))
 				{
-					if (pAppStats->uMaxNameChars < strlen(AppRecord->Name))
-					{
-						pAppStats->uMaxNameChars = strlen(AppRecord->Name);
-					}
+					pAppStats->uMaxVersionLabelChars = strlen(pVersionRecord->Description);
+				}
+			}
 
-					for (unsigned int j = 0; j < AppRecord->VersionsRecord.size(); j++)
-					{
-						if (pAppStats->uMaxVersionLabelChars < strlen(AppRecord->VersionsRecord[j]->Description))
-						{
-							pAppStats->uMaxVersionLabelChars = strlen(AppRecord->VersionsRecord[j]->Description);
-						}
-					}
+			if (pAppStats->uMaxLaunchOptions < pAppRecord->LaunchOptionsRecord.size())
+			{
+				pAppStats->uMaxLaunchOptions = pAppRecord->LaunchOptionsRecord.size();
+			}
 
-					if (pAppStats->uMaxLaunchOptions < AppRecord->LaunchOptionsRecord.size())
-					{
-						pAppStats->uMaxLaunchOptions = AppRecord->LaunchOptionsRecord.size();
-					}
-
-					for (unsigned int j = 0; j < AppRecord->LaunchOptionsRecord.size(); j++)
-					{
-						if (pAppStats->uMaxLaunchOptionDescChars < strlen(AppRecord->LaunchOptionsRecord[j]->Description))
-						{
-							pAppStats->uMaxLaunchOptionDescChars = strlen(AppRecord->LaunchOptionsRecord[j]->Description);
-						}
-
-						if (pAppStats->uMaxLaunchOptionCmdLineChars < strlen(AppRecord->LaunchOptionsRecord[j]->CommandLine))
-						{
-							pAppStats->uMaxLaunchOptionCmdLineChars = strlen(AppRecord->LaunchOptionsRecord[j]->CommandLine);
-						}
-					}
-
-					if (pAppStats->uMaxNumIcons < AppRecord->IconsRecord.size())
-					{
-						pAppStats->uMaxNumIcons = AppRecord->IconsRecord.size();
-					}
-
-					for (unsigned int j = 0; j < AppRecord->LaunchOptionsRecord.size(); j++)
-					{
-						if (pAppStats->uMaxIconSize < 128)
-						{
-							pAppStats->uMaxIconSize = 128;
-						}
-					}
+			for (CAppLaunchOptionRecord* pOptionRecord : pAppRecord->LaunchOptionsRecord)
+			{
+				if (pAppStats->uMaxLaunchOptionDescChars < strlen(pOptionRecord->Description))
+				{
+					pAppStats->uMaxLaunchOptionDescChars = strlen(pOptionRecord->Description);
 				}
 
-				SteamClearError(pError);
-				return 1;
+				if (pAppStats->uMaxLaunchOptionCmdLineChars < strlen(pOptionRecord->CommandLine))
+				{
+					pAppStats->uMaxLaunchOptionCmdLineChars = strlen(pOptionRecord->CommandLine);
+				}
+			}
+
+			if (pAppStats->uMaxNumIcons < pAppRecord->IconsRecord.size())
+			{
+				pAppStats->uMaxNumIcons = pAppRecord->IconsRecord.size();
+			}
+
+			for (CAppIconRecord* pOptionRecord : pAppRecord->IconsRecord)
+			{
+				// TODO
+				if (pAppStats->uMaxIconSize < 128)
+				{
+					pAppStats->uMaxIconSize = 128;
+				}
 			}
 		}
+
+		SteamClearError(pError);
+		return 1;
 	}
 
 	pError->eSteamError = eSteamErrorUnknown;
@@ -665,6 +657,9 @@ STEAM_API int SteamGetAppIds(unsigned int *puAppIds, unsigned int uMaxIds, TStea
 		{
 			for (unsigned int i = 0; i < uMaxIds; i++)
 			{
+				if (i >= CDR->ApplicationRecords.size())
+					break;
+
 				puAppIds[i] = CDR->ApplicationRecords[i]->AppId;
 			}
 			SteamClearError(pError);

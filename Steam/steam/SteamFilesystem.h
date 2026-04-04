@@ -6,11 +6,11 @@ extern CRITICAL_SECTION g_CriticalSection;
 
 unsigned int GetAppIDFromName(char* szName)
 {
-	for (unsigned int i = 0; i < CDR->ApplicationRecords.size(); i++)
+	for (CAppRecord* pRecord : CDR->ApplicationRecords)
 	{
-		if (_stricmp(szName, CDR->ApplicationRecords[i]->Name) == 0)
+		if (_stricmp(szName, pRecord->Name) == 0)
 		{
-			return CDR->ApplicationRecords[i]->AppId;
+			return pRecord->AppId;
 		}
 	}
 	return UINT_MAX;
@@ -41,9 +41,9 @@ void MountFileSystemByID(unsigned int uId, const char* szExtraMount)
 	_strlwr(szGCF);
 	strcat(szGCF, ".gcf");
 
-	for (unsigned int uIndex = 0; uIndex < CacheLocations.size(); uIndex++)
+	for (const char* cszLocation : CacheLocations)
 	{
-		V_ComposeFileName(CacheLocations[uIndex], szGCF, szPath, MAX_PATH);
+		V_ComposeFileName(cszLocation, szGCF, szPath, MAX_PATH);
 		cHandle = CacheManager->MountCache(szPath, CacheManager->NumCaches(), szExtraMount);
 
 		if (cHandle != NULL)
@@ -206,10 +206,8 @@ STEAM_API int SteamMountFilesystem(unsigned int uAppId, const char* szMountPath,
 			{
 				// Language Caches have been processed as this is a root AppID
 
-				for (unsigned int x = 0; x < CDR->ApplicationRecords[uAppRecord]->FilesystemsRecord.size(); x++)
+				for (CAppFilesystemRecord* pFSRecord : CDR->ApplicationRecords[uAppRecord]->FilesystemsRecord)
 				{
-					CAppFilesystemRecord* pFSRecord = CDR->ApplicationRecords[uAppRecord]->FilesystemsRecord[x];
-
 					// Don't mount depots from other operating systems.
 #if defined(_WIN32)
 					const char* cszHostOS = "windows";
@@ -302,9 +300,9 @@ STEAM_API int SteamMountAppFilesystem(TSteamError* pError)
 
 				if (szGCF != NULL)
 				{
-					for (unsigned int uIndex = 0; uIndex < CacheLocations.size(); uIndex++)
+					for (const char* cszLocation : CacheLocations)
 					{
-						V_ComposeFileName(CacheLocations[uIndex], szGCF, szPath, MAX_PATH);
+						V_ComposeFileName(cszLocation, szGCF, szPath, MAX_PATH);
 						MountFileSystemByName(szPath);
 					}
 
@@ -327,9 +325,9 @@ STEAM_API int SteamUnmountAppFilesystem(TSteamError* pError)
 
 	if (bSteamFileSystem == true)
 	{
-		for (size_t i = 0; i < vecGCF.size(); i++)
+		for (intptr_t hCache : vecGCF)
 		{
-			CacheManager->UnmountCache(vecGCF[i]);
+			CacheManager->UnmountCache(hCache);
 		}
 
 		vecGCF.clear();
