@@ -1,6 +1,6 @@
 #include "strtools.h"
 
-extern unsigned int rootAppID;
+extern unsigned int g_uRootAppId;
 extern CRITICAL_SECTION g_CriticalSection;
 #define ENTER_CRITICAL_SECTION CEnterCriticalSection ECS(&g_CriticalSection)
 
@@ -32,7 +32,6 @@ void MountFileSystemByID(unsigned int uId, const char* szExtraMount)
 {
 	char szPath[MAX_PATH];
 	char szGCF[MAX_PATH];
-	intptr_t cHandle;
 
 	if (uId >= CDR->ApplicationRecords.size())
 		return;
@@ -41,25 +40,16 @@ void MountFileSystemByID(unsigned int uId, const char* szExtraMount)
 	_strlwr(szGCF);
 	strcat(szGCF, ".gcf");
 
-	for (const char* cszLocation : CacheLocations)
+	for (const char* cszLocation : g_CacheLocations)
 	{
 		V_ComposeFileName(cszLocation, szGCF, szPath, MAX_PATH);
-		cHandle = CacheManager->MountCache(szPath, szExtraMount);
-		if (cHandle)
-		{
-			vecGCF.push_back(cHandle);
-		}
+		g_CacheManager->MountCache(szPath, szExtraMount);
 	}
 }
 
 void MountFileSystemByName(const char* szPath)
 {
-	intptr_t cHandle;
-	cHandle = CacheManager->MountCache(szPath, "");
-	if (cHandle)
-	{
-		vecGCF.push_back(cHandle);
-	}
+	g_CacheManager->MountCache(szPath, "");
 }
 
 void MountExtraCaches(unsigned int uAppID)
@@ -165,8 +155,8 @@ SteamHandle_t SteamOpenFile2(const char* cszFileName, const char* cszMode, int n
 	}
 	else
 	{
-		if (bSteamFileSystem == true)
-			hCacheFile = CacheManager->CacheOpenFileEx(cszFileName, cszMode, puFileSize);
+		if (g_bSteamFileSystem == true)
+			hCacheFile = g_CacheManager->CacheOpenFileEx(cszFileName, cszMode, puFileSize);
 
 		if (!hCacheFile)
 		{
@@ -197,7 +187,7 @@ STEAM_API int SteamMountFilesystem(unsigned int uAppId, const char* szMountPath,
 
 		if (uAppRecord != UINT_MAX)
 		{
-			MountExtraLanguageCaches(uAppId, szLanguage, true);
+			MountExtraLanguageCaches(uAppId, g_szLanguage, true);
 			MountExtraCaches(uAppId);
 
 			if (CDR->ApplicationRecords[uAppRecord]->FilesystemsRecord.size() > 0)
@@ -227,12 +217,12 @@ STEAM_API int SteamMountFilesystem(unsigned int uAppId, const char* szMountPath,
 				// Language Caches must be processed by calculating the rootAppID as some mods mount individual depots directly
 				// rootAppID was recorded on the last enumerate app call as this would populate the enumerations for the root app
 
-				unsigned int urootAppRecord = GetAppRecordID(rootAppID);
+				unsigned int urootAppRecord = GetAppRecordID(g_uRootAppId);
 
 				if (urootAppRecord != UINT_MAX)
 				{
-					MountExtraLanguageCaches(rootAppID, szLanguage, true);
-					MountExtraCaches(rootAppID);
+					MountExtraLanguageCaches(g_uRootAppId, g_szLanguage, true);
+					MountExtraCaches(g_uRootAppId);
 				}
 
 				if (bLogging && bLogFS) Logger->Write("Loading Default Cache Requirements for AppID(%d)\n", uAppId);
@@ -267,29 +257,29 @@ STEAM_API int SteamMountAppFilesystem(TSteamError* pError)
 
 	SteamClearError(pError);
 
-	if (bSteamFileSystem == true)
+	if (g_bSteamFileSystem == true)
 	{
-		if (!appid)
+		if (!g_uAppId)
 		{
 			MessageBoxA(NULL, "You are trying to launch an unknown App ID, please specify -appid on the command line or write App ID into steam_appid.txt.",
 						"REVive - AppID?", 0);
 			ExitProcess(0xffffffff);
 		}
 
-		if (bSteamBlobSystem == true && CDR)
+		if (g_bSteamBlobSystem == true && CDR)
 		{
-			return SteamMountFilesystem(appid, "", pError);
+			return SteamMountFilesystem(g_uAppId, "", pError);
 		}
 		else
 		{
-			CIniFile AppIni(szAppIni);
+			CIniFile AppIni(g_szAppIni);
 			char szSection[64];
 			char szKey[64];
 			char szPath[MAX_PATH];
 			char* szGCF;
 			int i;
 
-			sprintf(szSection, "%d", appid);
+			sprintf(szSection, "%d", g_uAppId);
 
 			for (i = 1; i < 50; i++)
 			{
@@ -298,7 +288,7 @@ STEAM_API int SteamMountAppFilesystem(TSteamError* pError)
 
 				if (szGCF != NULL)
 				{
-					for (const char* cszLocation : CacheLocations)
+					for (const char* cszLocation : g_CacheLocations)
 					{
 						V_ComposeFileName(cszLocation, szGCF, szPath, MAX_PATH);
 						MountFileSystemByName(szPath);
@@ -321,20 +311,11 @@ STEAM_API int SteamUnmountAppFilesystem(TSteamError* pError)
 
 	if (bLogging) Logger->Write("SteamUnmountAppFilesystem\n");
 
-	if (bSteamFileSystem == true)
+	if (g_bSteamFileSystem == true)
 	{
-		for (intptr_t hCache : vecGCF)
-		{
-			CacheManager->UnmountCache(hCache);
-		}
+		g_CacheManager->UnmountAll();
 
-		vecGCF.clear();
-		HashTable.clear();
-		GlobalDirectoryTable.clear();
-		GlobalDirectoryTableSize = 0;
-		GlobalIndexCounter = 0;
-
-		if (bLogging && bLogFS) Logger->Write("Cache Unmounted for AppID %d\n", appid);
+		if (bLogging && bLogFS) Logger->Write("Cache Unmounted for AppID %d\n", g_uAppId);
 	}
 
 	SteamClearError(pError);
@@ -373,7 +354,7 @@ STEAM_API unsigned int SteamReadFile(void* pBuf, unsigned int uSize, unsigned in
 	}
 	else
 	{
-		retval = CacheManager->CacheReadFile(pBuf, uSize, uCount, hCacheFile);
+		retval = g_CacheManager->CacheReadFile(pBuf, uSize, uCount, hCacheFile);
 
 		if (uSize > 1)
 		{
@@ -389,7 +370,7 @@ STEAM_API unsigned int SteamReadFile(void* pBuf, unsigned int uSize, unsigned in
 	return retval;
 }
 
-extern BOOL bSteamStartup;
+extern bool g_bSteamStartup;
 
 STEAM_API int SteamCloseFile(SteamHandle_t hFile, TSteamError* pError)
 {
@@ -403,7 +384,7 @@ STEAM_API int SteamCloseFile(SteamHandle_t hFile, TSteamError* pError)
 	// a garbage parameter if run without -steam. Real Steam fails out due to a check that throws
 	// a C++ exception if the engine never called SteamStartup.
 	// Ideally, we should do this for every function except for user validation but whatever.
-	if (!bSteamStartup)
+	if (!g_bSteamStartup)
 	{
 		pError->eSteamError = eSteamErrorLibraryNotInitialized;
 		return EOF;
@@ -420,7 +401,7 @@ STEAM_API int SteamCloseFile(SteamHandle_t hFile, TSteamError* pError)
 	}
 	else
 	{
-		retval = CacheManager->CacheCloseFile(hCacheFile);
+		retval = g_CacheManager->CacheCloseFile(hCacheFile);
 	}
 
 	return retval;
@@ -439,9 +420,9 @@ STEAM_API SteamHandle_t SteamFindFirst(const char* cszPattern, ESteamFindFilter 
 	case eSteamFindRemoteOnly:
 	case eSteamFindAll:
 		{
-			if (bSteamFileSystem)
+			if (g_bSteamFileSystem)
 			{
-				TFindHandle* hFind = CacheManager->CacheFindFirst(cszPattern, eFilter, pFindInfo);
+				TFindHandle* hFind = g_CacheManager->CacheFindFirst(cszPattern, eFilter, pFindInfo);
 				if (hFind)
 				{
 					return (SteamHandle_t)hFind;
@@ -514,7 +495,7 @@ STEAM_API int SteamFindNext(SteamHandle_t hDirectory, TSteamElemInfo* pFindInfo,
 
 	if (!hCacheFind->IsFindLocal && (hCacheFind->eFilter == eSteamFindAll || hCacheFind->eFilter == eSteamFindRemoteOnly))
 	{
-		int retval = CacheManager->CacheFindNext(hCacheFind, pFindInfo);
+		int retval = g_CacheManager->CacheFindNext(hCacheFind, pFindInfo);
 
 		if (retval == -1 && hCacheFind->eFilter == eSteamFindAll)
 		{
@@ -547,7 +528,7 @@ STEAM_API int SteamFindNext(SteamHandle_t hDirectory, TSteamElemInfo* pFindInfo,
 		return retval;
 	}
 
-	if ((hCacheFind->IsFindLocal && (hCacheFind->eFilter == eSteamFindAll || hCacheFind->eFilter == eSteamFindLocalOnly)) || !bSteamFileSystem)
+	if ((hCacheFind->IsFindLocal && (hCacheFind->eFilter == eSteamFindAll || hCacheFind->eFilter == eSteamFindLocalOnly)) || !g_bSteamFileSystem)
 	{
 		_finddata_t finddata;
 		int retval = _findnext(hCacheFind->LocalFind, &finddata);
@@ -589,7 +570,7 @@ STEAM_API int SteamFindClose(SteamHandle_t hDirectory, TSteamError* pError)
 	}
 	else
 	{
-		retval = CacheManager->CacheFindClose(hCacheFind);
+		retval = g_CacheManager->CacheFindClose(hCacheFind);
 	}
 
 	return retval;
@@ -623,9 +604,9 @@ STEAM_API int SteamStat(const char* cszFileName, TSteamElemInfo* pInfo, TSteamEr
 		pInfo->lLastAccessTime = (long)buf.st_atime;
 		pInfo->lLastModificationTime = (long)buf.st_mtime;
 	}
-	else if (bSteamFileSystem == true)
+	else if (g_bSteamFileSystem == true)
 	{
-		retval = CacheManager->CacheStat(cszFileName, pInfo);
+		retval = g_CacheManager->CacheStat(cszFileName, pInfo);
 	}
 
 	if (retval != 0)
@@ -680,7 +661,7 @@ STEAM_API int SteamGetc(SteamHandle_t hFile, TSteamError* pError)
 	else
 	{
 		unsigned char cChar;
-		if (CacheManager->CacheReadFile(&cChar, 1, 1, hCacheFile) == 1)
+		if (g_CacheManager->CacheReadFile(&cChar, 1, 1, hCacheFile) == 1)
 		{
 			retval = (int)cChar;
 		}
@@ -761,7 +742,7 @@ STEAM_API int SteamSeekFile(SteamHandle_t hFile, long lOffset, ESteamSeekMethod 
 	}
 	else
 	{
-		retval = CacheManager->CacheSeekFile(hCacheFile, lOffset, esMethod);
+		retval = g_CacheManager->CacheSeekFile(hCacheFile, lOffset, esMethod);
 		if (retval != 0)
 		{
 			if (bLogging && bLogFS) Logger->Write("\tCache seek failed (0x%08X)\n", (long)hFile);
@@ -821,7 +802,7 @@ STEAM_API long SteamTellFile(SteamHandle_t hFile, TSteamError* pError)
 	}
 	else
 	{
-		retval = CacheManager->CacheTellFile(hCacheFile);
+		retval = g_CacheManager->CacheTellFile(hCacheFile);
 		if (retval == -1)
 		{
 			if (bLogging && bLogFS) Logger->Write("\tCache Tell failed (0x%08X)\n", (long)hFile);
@@ -855,7 +836,7 @@ STEAM_API long SteamSizeFile(SteamHandle_t hFile, TSteamError* pError)
 	}
 	else
 	{
-		retval = CacheManager->CacheSizeFile((TFileInCacheHandle*)hFile);
+		retval = g_CacheManager->CacheSizeFile((TFileInCacheHandle*)hFile);
 	}
 
 	return retval;
@@ -891,12 +872,12 @@ STEAM_API int SteamGetLocalFileCopy(const char* cszFileName, TSteamError* pError
 	}
 
 	//Changed to always try cache if others fail - for dedicated server to work
-	if (bSteamFileSystem)
+	if (g_bSteamFileSystem)
 	{
-		TFileInCacheHandle* hFile = CacheManager->CacheOpenFileEx(cszFileName, "rb", NULL);
+		TFileInCacheHandle* hFile = g_CacheManager->CacheOpenFileEx(cszFileName, "rb", NULL);
 		if (hFile)
 		{
-			int retval = CacheManager->CacheExtractFile(hFile, NULL);
+			int retval = g_CacheManager->CacheExtractFile(hFile, NULL);
 			if (retval != 0)
 			{
 				if (bLogging && bLogFS) Logger->Write("\tFound Cache (%s)\n", cszFileName);

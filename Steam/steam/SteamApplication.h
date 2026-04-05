@@ -1,5 +1,5 @@
-extern BOOL bSteamStartup;
-extern unsigned int rootAppID;
+extern bool g_bSteamStartup;
+extern unsigned int g_uRootAppId;
 
 const char* GetNameById(unsigned int id)
 {
@@ -33,12 +33,10 @@ int GetFiles(const char* szSource, const char* szDest, int mode, const char* szM
 	}
 #endif
 
-	unsigned int cHandle;
-
-	cHandle = CacheManager->MountCache(szSource, szMount);
-	if (cHandle != NULL)
+	intptr_t cHandle = g_CacheManager->MountCache(szSource, szMount);
+	if (cHandle)
 	{
-		CCache* CacheFile = CacheManager->Caches[0]->hCacheFile;
+		CCache* CacheFile = g_CacheManager->Caches[0]->hCacheFile;
 		for (unsigned int x = 1; x < CacheFile->Manifest->Header->ItemCount; x++)
 		{
 			TestFile = &(CacheFile->DirectoryTable[x]);
@@ -87,12 +85,12 @@ int GetFiles(const char* szSource, const char* szDest, int mode, const char* szM
 
 						if (!retval)
 						{
-							retval = CacheManager->CacheExtractFile(hFile, szDest);
+							retval = g_CacheManager->CacheExtractFile(hFile, szDest);
 						}
 					}
 					else
 					{
-						retval = CacheManager->CacheExtractFile(hFile, szDest);
+						retval = g_CacheManager->CacheExtractFile(hFile, szDest);
 					}
 
 					delete hFile;
@@ -100,7 +98,7 @@ int GetFiles(const char* szSource, const char* szDest, int mode, const char* szM
 			}
 		}
 
-		CacheManager->UnmountCache(cHandle);
+		g_CacheManager->UnmountCache(cHandle);
 
 		return 1;
 	}
@@ -112,7 +110,7 @@ STEAM_API int SteamEnumerateApp(unsigned int uAppID, TSteamApp* pApp, TSteamErro
 {
 	if (bLogging) Logger->Write("SteamEnumerateApp (%u)\n", uAppID);
 
-	if (bSteamBlobSystem)
+	if (g_bSteamBlobSystem)
 	{
 		unsigned int uAppRecord = GetAppRecordID(uAppID);
 
@@ -164,9 +162,9 @@ STEAM_API int SteamEnumerateAppDependency(unsigned int uAppId, unsigned int uDep
 {
 	if (bLogging) Logger->Write("SteamEnumerateAppDependency (%u, %u)\n", uAppId, uDependency);
 
-	rootAppID = uAppId;
+	g_uRootAppId = uAppId;
 
-	if (bSteamBlobSystem)
+	if (g_bSteamBlobSystem)
 	{
 		unsigned int uAppRecord = GetAppRecordID(uAppId);
 
@@ -191,7 +189,7 @@ STEAM_API int SteamEnumerateAppLaunchOption(unsigned int uAppId, unsigned int uL
 {
 	if (bLogging) Logger->Write("SteamEnumerateAppLaunchOption\n");
 
-	if (bSteamBlobSystem)
+	if (g_bSteamBlobSystem)
 	{
 		unsigned int uAppRecord = GetAppRecordID(uAppId);
 
@@ -231,7 +229,7 @@ STEAM_API SteamCallHandle_t SteamRefreshMinimumFootprintFiles(unsigned int uAppI
 	char szPath[MAX_PATH];
 	char szDestination[MAX_PATH];
 
-	if (bSteamBlobSystem)
+	if (g_bSteamBlobSystem)
 	{
 		unsigned int uAppRecord = GetAppRecordID(uAppId);
 
@@ -241,16 +239,16 @@ STEAM_API SteamCallHandle_t SteamRefreshMinimumFootprintFiles(unsigned int uAppI
 
 			while (x > -1)
 			{
-				for (unsigned int uIndex = 0; uIndex < CacheLocations.size(); uIndex++)
+				for (unsigned int uIndex = 0; uIndex < g_CacheLocations.size(); uIndex++)
 				{
-					strcpy(szPath, CacheLocations[uIndex]);
+					strcpy(szPath, g_CacheLocations[uIndex]);
 					strcpy(szGCF, GetNameById(CDR->ApplicationRecords[uAppRecord]->FilesystemsRecord[x]->AppId));
 					strcat(szGCF, ".gcf");
 
 					//GetCurrentDirectoryA(MAX_PATH, szDestination);
-					strcpy(szDestination, CacheLocations[0]);
+					strcpy(szDestination, g_CacheLocations[0]);
 					strcat(szDestination, "\\");
-					strcat(szDestination, szSteamUser);
+					strcat(szDestination, g_szSteamUser);
 					strcat(szDestination, "\\");
 					strcat(szDestination, CDR->ApplicationRecords[uAppRecord]->InstallDirName);
 					strcat(szDestination, "\\");
@@ -287,9 +285,9 @@ STEAM_API SteamCallHandle_t SteamLaunchApp(unsigned int uAppId, unsigned int uLa
 
 	char szLaunchString[MAX_PATH * 2];
 
-	strcpy(szLaunchString, CacheLocations[0]);
+	strcpy(szLaunchString, g_CacheLocations[0]);
 	strcat(szLaunchString, "\\");
-	strcat(szLaunchString, szSteamUser);
+	strcat(szLaunchString, g_szSteamUser);
 	strcat(szLaunchString, "\\");
 	strcat(szLaunchString, GetNameById(uAppId));
 	strcat(szLaunchString, "\\");
@@ -303,7 +301,7 @@ STEAM_API SteamCallHandle_t SteamLaunchApp(unsigned int uAppId, unsigned int uLa
 	SteamRefreshMinimumFootprintFiles(uAppId, pError);
 	//}
 
-	SetEnvironmentVariableA("SteamUser", szSteamUser);
+	SetEnvironmentVariableA("SteamUser", g_szSteamUser);
 
 	strcat(szLaunchString, LaunchOption->szCmdLine);
 	strcat(szLaunchString, " ");
@@ -414,7 +412,7 @@ STEAM_API int SteamIsSubscribed(unsigned int uSubscriptionId, int* pbIsSubscribe
 	// "push ebp" instruction which depends on if and how local vars are used. Be careful when changing this function.
 	SteamClearError(pError);
 
-	if (!bSteamStartup)
+	if (!g_bSteamStartup)
 	{
 		SteamStartup(STEAM_USING_ALL, pError);
 	}
@@ -470,7 +468,7 @@ STEAM_API int STEAM_CALL SteamIsAppSubscribed(unsigned int uAppId, int* pbIsAppS
 
 	SteamClearError(pError);
 
-	if (!bSteamStartup)
+	if (!g_bSteamStartup)
 	{
 		SteamStartup(STEAM_USING_ALL, pError);
 	}
@@ -872,13 +870,13 @@ STEAM_API int SteamGetCacheDefaultDirectory(char* szPath, TSteamError* pError)
 	if (bLogging) Logger->Write("SteamGetCacheDefaultDirectory\n");
 	SteamClearError(pError);
 
-	if (!bSteamFileSystem)
+	if (!g_bSteamFileSystem)
 	{
 		pError->eSteamError = eSteamErrorUnknown;
 		return 0;
 	}
 
-	strcpy(szPath, CacheLocations[0]);
+	strcpy(szPath, g_CacheLocations[0]);
 	return 1;
 }
 

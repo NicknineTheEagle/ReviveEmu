@@ -38,13 +38,28 @@ typedef struct
 	char szPattern[MAX_PATH];
 } TFindHandle;
 
+typedef struct
+{
+	void* pCache;
+	char* FullName;
+	//char FullName[MAX_PATH];
+	unsigned int Index;
+} TGlobalDirectory;
+
 class CCacheFileSystem
 {
   public:
 	std::vector<TCacheHandle*> Caches;
 
+	unsigned int GlobalDirectoryTableSize;
+	unsigned int GlobalIndexCounter;
+	std::vector<TGlobalDirectory> GlobalDirectoryTable;
+	std::map<uint32_t, TGlobalDirectory> HashTable;
+
 	CCacheFileSystem()
 	{
+		GlobalDirectoryTableSize = 0;
+		GlobalIndexCounter = 0;
 	}
 
 	~CCacheFileSystem()
@@ -113,6 +128,21 @@ class CCacheFileSystem
 		}
 
 		return false;
+	}
+
+	void UnmountAll()
+	{
+		// Unmount everything.
+		for (TCacheHandle* hCache : Caches)
+		{
+			UnmountCache((CacheHandle)hCache);
+		}
+
+		// Clear file tables.
+		HashTable.clear();
+		GlobalDirectoryTable.clear();
+		GlobalDirectoryTableSize = 0;
+		GlobalIndexCounter = 0;
 	}
 
 	TFileInCacheHandle* CacheOpenFileEx(const char* cszFileName, const char* cszMode, unsigned int* puSize)

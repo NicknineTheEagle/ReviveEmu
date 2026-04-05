@@ -3,7 +3,7 @@
 #include "SteamInterface005.h"
 
 extern CLogFile* Logger;
-extern BOOL bLogging;
+extern bool bLogging;
 
 CSteamInterface005::CSteamInterface005(){if (bLogging) Logger->Write("CSteamInterface005 constructed.\n");}
 CSteamInterface005::~CSteamInterface005(){if (bLogging) Logger->Write("CSteamInterface005 destructed.\n");}

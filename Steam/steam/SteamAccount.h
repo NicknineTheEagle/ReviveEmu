@@ -1,9 +1,8 @@
 #pragma once
 
 extern CLogFile* Logger;
-extern BOOL bLogging;
-extern BOOL bLogAcc;
-extern BOOL bSteamClient;
+extern bool bLogging;
+extern bool bLogAcc;
 
 
 STEAM_API SteamCallHandle_t STEAM_CALL SteamCreateAccount(const char *cszUser, const char *cszPassphrase, const char *cszCreationKey, const char *cszPersonalQuestion, const char *cszAnswerToQuestion, const char* cszArg6, int *pbCreated, TSteamError *pError)
@@ -174,7 +173,7 @@ STEAM_API int STEAM_CALL SteamGetUser(char *szUser, unsigned int uBufSize, unsig
 
 	// 2003 DLL has less arguments.
 	TSteamError *pArgError = NULL;
-	if (g_CompatMode <= REV_COMPAT_2003)
+	if (g_eCompatMode <= REV_COMPAT_2003)
 	{
 		memcpy(&pArgError, &pSteamGlobalUserID, sizeof(pArgError));
 	}
@@ -185,12 +184,12 @@ STEAM_API int STEAM_CALL SteamGetUser(char *szUser, unsigned int uBufSize, unsig
 
 	if (szUser)
 	{
-		strncpy(szUser, szSteamUser, uBufSize);
+		strncpy(szUser, g_szSteamUser, uBufSize);
 		if (puUserChars)
-			*puUserChars = strlen(szSteamUser);
+			*puUserChars = strlen(g_szSteamUser);
 	}
 	
-	if (g_CompatMode > REV_COMPAT_2003)
+	if (g_eCompatMode > REV_COMPAT_2003)
 	{
 		if (pSteamGlobalUserID)
 		{
@@ -317,7 +316,7 @@ STEAM_API SteamCallHandle_t STEAM_CALL SteamSetUser(const char *cszUser, int *pb
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamSetUser (%s)\n", cszUser);
 // #endif
-	strcpy(szSteamUser, cszUser);
+	strcpy(g_szSteamUser, cszUser);
 	*pbUserSet = 1;
 	SteamClearError(pError);
 	return 1;

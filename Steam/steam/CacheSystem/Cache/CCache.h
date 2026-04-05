@@ -53,7 +53,6 @@ public:
 			delete Sectors;
 		if (Header)
 			delete Header;
-		HashTable.clear();
 	}
 	
 	bool Read(const char* ExtraMountPath)
@@ -172,7 +171,6 @@ private:
 				BuildFileInfo(i);
 			}
 
-			GlobalDirectoryTableSize++;
 			//if (bLogging && bLogFS) Logger->Write("Add to directory table: %s\n", DirectoryTable[i].FullName);
 
 		}

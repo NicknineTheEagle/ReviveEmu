@@ -1,10 +1,8 @@
 #pragma once
 
 extern CLogFile* Logger;
-extern BOOL bLogging;
-BOOL bSteamStartup = FALSE;
-
-typedef int (STEAM_CALL *SteamStartupCall)(unsigned int, TSteamError*);
+extern bool bLogging;
+extern bool g_bSteamStartup;
 
 /*
 ** Initialization
@@ -24,26 +22,26 @@ STEAM_API int STEAM_CALL SteamStartup(unsigned int uUsingMask, TSteamError *pErr
 
 	SteamClearError(pError);
 
-	if (!bSteamStartup)
+	if (!g_bSteamStartup)
 	{
 		if (uUsingMask & STEAM_USING_FILESYSTEM)
 		{
-			bSteamStartup = TRUE;
+			g_bSteamStartup = true;
 
-			if (bSteamFileSystem)
+			if (g_bSteamFileSystem)
 			{
-				CacheManager = new CCacheFileSystem();
+				g_CacheManager = new CCacheFileSystem();
 
-				if (bSteamBlobSystem)
+				if (g_bSteamBlobSystem)
 				{
-					if (bRawCDR)
+					if (g_bRawCDR)
 					{
-						CDR = CContentDescriptionRecord::LoadFromFile(szCDRFile);
+						CDR = CContentDescriptionRecord::LoadFromFile(g_szCDRFile);
 					}
 					else
 					{
 						CBlobFileSystem ClientRegistryBlob;
-						if (ClientRegistryBlob.Open(szBlobFile))
+						if (ClientRegistryBlob.Open(g_szBlobFile))
 						{
 							CBlobNode* CDRNode = ClientRegistryBlob.GetNodeByPath("ContentDescriptionRecord");
 							if (CDRNode)
@@ -57,7 +55,7 @@ STEAM_API int STEAM_CALL SteamStartup(unsigned int uUsingMask, TSteamError *pErr
 					{
 						if (bLogging) Logger->Write("	Error Locating CDR ... Advanced Steam Functions Disabled!\n");
 						if (bLogging) Logger->Write("	GCF Support from Ini file only!\n");
-						bSteamBlobSystem = false;
+						g_bSteamBlobSystem = false;
 					}
 				}
 			}
@@ -74,12 +72,12 @@ STEAM_API int STEAM_CALL SteamCleanup(TSteamError *pError)
 // #endif
 	SteamClearError(pError);
 
-	if (bSteamFileSystem)
+	if (g_bSteamFileSystem)
 	{
-		if (CacheManager)
+		if (g_CacheManager)
 		{
-			delete CacheManager;
-			CacheManager = NULL;
+			delete g_CacheManager;
+			g_CacheManager = NULL;
 		}
 
 		if (CDR)
@@ -89,7 +87,7 @@ STEAM_API int STEAM_CALL SteamCleanup(TSteamError *pError)
 		}
 	}
 
-	bSteamStartup = FALSE;
+	g_bSteamStartup = false;
 
 	return 1;
 }

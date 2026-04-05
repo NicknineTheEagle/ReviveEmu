@@ -1,7 +1,7 @@
 #pragma once
 
 extern CLogFile* Logger;
-extern BOOL bLogging;
+extern bool bLogging;
 
 /*
 ** Misc
@@ -139,12 +139,12 @@ STEAM_API int STEAM_CALL SteamFindServersIterateServer(ESteamServerType eSteamSe
 // #ifdef DEBUG
 	if (bLogging) Logger->Write("SteamFindServersIterateServer\n");
 // #endif
-	if (bSteamDll)
+	if (g_bSteamDll)
 	{
 		int retval = 1;
 		strcpy(szServerAddress, "empty");
 		int (*fptr)(int, int, char*, unsigned int);
-		*(void **)(&fptr) = GetProcAddress(GetModuleHandleA(szOrigSteamDll), "SteamFindServersIterateServer");
+		*(void **)(&fptr) = GetProcAddress(GetModuleHandleA(g_szOrigSteamDll), "SteamFindServersIterateServer");
 		retval = (*fptr)(eSteamServerType, uIndex, szServerAddress, iServerAddressChars);
 		if (bLogging) Logger->Write("\t (%u, %u, %s, %u) %u\n", eSteamServerType, uIndex, szServerAddress, iServerAddressChars, retval);
 		return retval;
@@ -186,11 +186,11 @@ STEAM_API int STEAM_CALL SteamFindServersNumServers(ESteamServerType eSteamServe
 // #ifdef DEBUG
 	if (bLogging) Logger->Write("SteamFindServersNumServers\n");
 // #endif
-	if (bSteamDll)
+	if (g_bSteamDll)
 	{
 		int retval = 1;
 		int (*fptr)(unsigned int);
-		*(void **)(&fptr) = GetProcAddress(GetModuleHandleA(szOrigSteamDll), "SteamFindServersNumServers");
+		*(void **)(&fptr) = GetProcAddress(GetModuleHandleA(g_szOrigSteamDll), "SteamFindServersNumServers");
 		retval = (*fptr)(eSteamServerType);
 		if (bLogging) Logger->Write("\t (%u) %u\n", eSteamServerType, retval);
 		return retval;
@@ -245,14 +245,14 @@ int SteamGetCurrentAppId(unsigned int* puAppId, TSteamError *pError)
 
 	SteamClearError(pError);
 
-	if (!appid)
+	if (!g_uAppId)
 	{
 		*puAppId = 0;
 		pError->eSteamError = eSteamErrorUnknown;
 		return 0;
 	}
 
-	*puAppId = appid;
+	*puAppId = g_uAppId;
 	return 1;
 }
 

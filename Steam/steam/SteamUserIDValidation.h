@@ -1,12 +1,11 @@
 #pragma once
 
 extern CLogFile* Logger;
-extern BOOL bLogging;
-extern BOOL bLogUserId;
-extern BOOL bSteamDll;
-extern BOOL bSteamClient;
-extern bool bAllowNonRev;
-extern char szOrigSteamDll[MAX_PATH];
+extern bool bLogging;
+extern bool bLogUserId;
+extern bool g_bSteamDll;
+extern bool g_bAllowNonRev;
+extern char g_szOrigSteamDll[MAX_PATH];
 
 enum ERevClientType
 {
@@ -83,11 +82,11 @@ STEAM_API ESteamError STEAM_CALL SteamInitializeUserIDTicketValidator(const char
 	if (bLogging && bLogUserId) Logger->Write("SteamInitializeUserIDTicketValidator\n");
 // #endif
 
-	if (bSteamDll)
+	if (g_bSteamDll)
 	{
 		ESteamError retval = eSteamErrorNone;
 		SteamInitializeUserIDTicketValidatorCall CallSteamInitializeUserIDTicketValidator;
-		CallSteamInitializeUserIDTicketValidator = (SteamInitializeUserIDTicketValidatorCall) GetProcAddress(GetModuleHandleA(szOrigSteamDll), "SteamInitializeUserIDTicketValidator");
+		CallSteamInitializeUserIDTicketValidator = (SteamInitializeUserIDTicketValidatorCall) GetProcAddress(GetModuleHandleA(g_szOrigSteamDll), "SteamInitializeUserIDTicketValidator");
 		retval = CallSteamInitializeUserIDTicketValidator(pszOptionalPublicEncryptionKeyFilename, pszOptionalPrivateDecryptionKeyFilename, ClientClockSkewToleranceInSeconds, ServerClockSkewToleranceInSeconds, MaxNumLoginsWithinClientClockSkewTolerancePerClient, HintPeakSimultaneousValidations, AbortValidationAfterStallingForNProcessSteps);
 		if (bLogging && bLogUserId) Logger->Write("\t %u\n", (int)retval);
 		return retval;
@@ -108,11 +107,11 @@ STEAM_API ESteamError STEAM_CALL SteamShutdownUserIDTicketValidator()
 	}
 	g_RevUserValidations.clear();
 
-	if (bSteamDll)
+	if (g_bSteamDll)
 	{
 		ESteamError retval = eSteamErrorNone;
 		ESteamError (*fptr)();
-		*(void **)(&fptr) = GetProcAddress(GetModuleHandleA(szOrigSteamDll), "SteamShutdownUserIDTicketValidator");
+		*(void **)(&fptr) = GetProcAddress(GetModuleHandleA(g_szOrigSteamDll), "SteamShutdownUserIDTicketValidator");
 		retval = (*fptr)();
 		if (bLogging && bLogUserId) Logger->Write("\t %u\n", (int)retval);
 		return retval;
@@ -127,11 +126,11 @@ STEAM_API const unsigned char* STEAM_CALL SteamGetEncryptionKeyToSendToNewClient
 	if (bLogging && bLogUserId) Logger->Write("SteamGetEncryptionKeyToSendToNewClient (0x%p)\n", pReceiveSizeOfEncryptionKey);
 // #endif
 
-	if (bSteamDll)
+	if (g_bSteamDll)
 	{
 		const unsigned char* retval;
 		const unsigned char* (*fptr)(unsigned int*);
-		*(void **)(&fptr) = GetProcAddress(GetModuleHandleA(szOrigSteamDll), "SteamGetEncryptionKeyToSendToNewClient");
+		*(void **)(&fptr) = GetProcAddress(GetModuleHandleA(g_szOrigSteamDll), "SteamGetEncryptionKeyToSendToNewClient");
 		retval = (*fptr)(pReceiveSizeOfEncryptionKey);
 		if (bLogging && bLogUserId) Logger->Write("\t 0x%08X\n", (int)retval);
 		return retval;
@@ -147,11 +146,11 @@ STEAM_API ESteamError STEAM_CALL SteamStartValidatingUserIDTicket(void *pEncrypt
 	if (bLogging && bLogUserId) Logger->Write("SteamStartValidatingUserIDTicket (0x%p, %u, %u, 0x%p)\n", pEncryptedUserIDTicketFromClient, uSizeOfEncryptedUserIDTicketFromClient, ObservedClientIPAddr, pReceiveHandle);
 	// #endif
 
-	if (bSteamDll)
+	if (g_bSteamDll)
 	{
 		SteamStartValidatingUserIDTicketCall StartValidating;
 		ESteamError retval = eSteamErrorNone;
-		StartValidating = (SteamStartValidatingUserIDTicketCall) GetProcAddress(GetModuleHandleA(szOrigSteamDll), "SteamStartValidatingUserIDTicket");
+		StartValidating = (SteamStartValidatingUserIDTicketCall) GetProcAddress(GetModuleHandleA(g_szOrigSteamDll), "SteamStartValidatingUserIDTicket");
 		retval = StartValidating(pEncryptedUserIDTicketFromClient, uSizeOfEncryptedUserIDTicketFromClient, ObservedClientIPAddr, pReceiveHandle);
 		if (bLogging && bLogUserId) Logger->Write("\t %u\n", (int)retval);
 
@@ -239,7 +238,7 @@ STEAM_API ESteamError STEAM_CALL SteamStartValidatingUserIDTicket(void *pEncrypt
 		hRevHandle->eClientType = eClientUnknown;
 		hRevHandle->Steam3ID.Set(ObservedClientIPAddr, k_EUniversePublic, k_EAccountTypeIndividual);
 		hRevHandle->uClientLocalIP = 0;
-		hRevHandle->eReturnCode = bAllowNonRev ? eSteamErrorNone : eSteamErrorInvalidUserIDTicket;
+		hRevHandle->eReturnCode = g_bAllowNonRev ? eSteamErrorNone : eSteamErrorInvalidUserIDTicket;
 	}
 
 	g_RevUserValidations.push_back(hRevHandle);
@@ -256,11 +255,11 @@ STEAM_API ESteamError STEAM_CALL SteamStartValidatingNewValveCDKey(void *pEncryp
 	if (bLogging && bLogUserId) Logger->Write("SteamStartValidatingNewValveCDKey\n");
 // #endif
 
-	if (bSteamDll)
+	if (g_bSteamDll)
 	{
 		ESteamError retval = eSteamErrorNone;
 		ESteamError (*fptr)(void*, unsigned int, unsigned int, struct sockaddr*, struct sockaddr*, SteamUserIDTicketValidationHandle_t*);
-		*(void **)(&fptr) = GetProcAddress(GetModuleHandleA(szOrigSteamDll), "SteamStartValidatingNewValveCDKey");
+		*(void **)(&fptr) = GetProcAddress(GetModuleHandleA(g_szOrigSteamDll), "SteamStartValidatingNewValveCDKey");
 		retval = (*fptr)(pEncryptedNewValveCDKeyFromClient, uSizeOfEncryptedNewValveCDKeyFromClient, ObservedClientIPAddr, pPrimaryValidateNewCDKeyServerSockAddr, pSecondaryValidateNewCDKeyServerSockAddr, pReceiveHandle);
 		if (bLogging && bLogUserId) Logger->Write("\t 0x%08X\n", (int)retval);
 
@@ -295,11 +294,11 @@ STEAM_API ESteamError STEAM_CALL SteamProcessOngoingUserIDTicketValidation(Steam
 
 	TRevUserValidationHandle* hRevHandle = (TRevUserValidationHandle*)Handle;
 
-	if (bSteamDll && hRevHandle->eClientType == eClientLegit)
+	if (g_bSteamDll && hRevHandle->eClientType == eClientLegit)
 	{
 		ESteamError retval = eSteamErrorNone;
 		ESteamError (*fptr)(SteamUserIDTicketValidationHandle_t, TSteamGlobalUserID*, unsigned int*, unsigned char*, size_t, size_t*);
-		*(void **)(&fptr) = GetProcAddress(GetModuleHandleA(szOrigSteamDll), "SteamProcessOngoingUserIDTicketValidation");
+		*(void **)(&fptr) = GetProcAddress(GetModuleHandleA(g_szOrigSteamDll), "SteamProcessOngoingUserIDTicketValidation");
 		retval = (*fptr)(hRevHandle->LegitHandle, pReceiveValidSteamGlobalUserID, pReceiveClientLocalIPAddr, pOptionalReceiveProofOfAuthenticationToken, SizeOfOptionalAreaToReceiveProofOfAuthenticationToken, pOptionalReceiveSizeOfProofOfAuthenticationToken);
 		if (bLogging && bLogUserId) Logger->Write("\t 0x%08X\n", (int)retval);
 		return retval;
@@ -351,10 +350,10 @@ STEAM_API void STEAM_CALL SteamAbortOngoingUserIDTicketValidation(SteamUserIDTic
 
 	TRevUserValidationHandle* hRevHandle = (TRevUserValidationHandle*)Handle;
 
-	if (bSteamDll && hRevHandle->eClientType == eClientLegit)
+	if (g_bSteamDll && hRevHandle->eClientType == eClientLegit)
 	{
 		void (*fptr)(SteamUserIDTicketValidationHandle_t);
-		*(void **)(&fptr) = GetProcAddress(GetModuleHandleA(szOrigSteamDll), "SteamAbortOngoingUserIDTicketValidation");
+		*(void **)(&fptr) = GetProcAddress(GetModuleHandleA(g_szOrigSteamDll), "SteamAbortOngoingUserIDTicketValidation");
 		(*fptr)(hRevHandle->LegitHandle);
 		if (bLogging && bLogUserId) Logger->Write("\t returned.\n");
 	}
@@ -371,11 +370,11 @@ STEAM_API ESteamError STEAM_CALL SteamOptionalCleanUpAfterClientHasDisconnected(
 // #ifdef DEBUG
 	if (bLogging && bLogUserId) Logger->Write("SteamOptionalCleanUpAfterClientHasDisconnected\n");
 // #endif
-	if (bSteamDll)
+	if (g_bSteamDll)
 	{
 		ESteamError retval = eSteamErrorNone;
 		ESteamError (*fptr)(unsigned int, unsigned int);
-		*(void **)(&fptr) = GetProcAddress(GetModuleHandleA(szOrigSteamDll), "SteamOptionalCleanUpAfterClientHasDisconnected");
+		*(void **)(&fptr) = GetProcAddress(GetModuleHandleA(g_szOrigSteamDll), "SteamOptionalCleanUpAfterClientHasDisconnected");
 		retval = (*fptr)(ObservedClientIPAddr, ClientLocalIPAddr);
 		if (bLogging && bLogUserId) Logger->Write("\t %u\n", (int)retval);
 		return retval;

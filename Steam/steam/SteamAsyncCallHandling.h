@@ -1,7 +1,7 @@
 #pragma once
 
 extern CLogFile* Logger;
-extern BOOL bLogging;
+extern bool bLogging;
 
 /*
 ** Asynchrounous call handling

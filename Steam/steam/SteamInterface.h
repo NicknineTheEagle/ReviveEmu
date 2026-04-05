@@ -8,7 +8,7 @@
 #include "SteamDLLAppsystem001.h"
 
 extern CLogFile* Logger;
-extern BOOL bLogging;
+extern bool bLogging;
 
 STEAM_API void* STEAM_CALL CreateInterface(const char* cszSteamDLLAppsystemInterfaceVersion, int* pReturnCode)
 {
