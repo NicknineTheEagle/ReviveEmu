@@ -34,7 +34,7 @@ typedef struct
 	};
 	ESteamFindFilter eFilter;
 	char szCachePattern[MAX_PATH];
-	int CurrentIndex;
+	unsigned int CurrentIndex;
 	char szPattern[MAX_PATH];
 } TFindHandle;
 
@@ -51,15 +51,11 @@ class CCacheFileSystem
   public:
 	std::vector<TCacheHandle*> Caches;
 
-	unsigned int GlobalDirectoryTableSize;
-	unsigned int GlobalIndexCounter;
 	std::vector<TGlobalDirectory> GlobalDirectoryTable;
 	std::map<uint32_t, TGlobalDirectory> HashTable;
 
 	CCacheFileSystem()
 	{
-		GlobalDirectoryTableSize = 0;
-		GlobalIndexCounter = 0;
 	}
 
 	~CCacheFileSystem()
@@ -141,8 +137,6 @@ class CCacheFileSystem
 		// Clear file tables.
 		HashTable.clear();
 		GlobalDirectoryTable.clear();
-		GlobalDirectoryTableSize = 0;
-		GlobalIndexCounter = 0;
 	}
 
 	TFileInCacheHandle* CacheOpenFileEx(const char* cszFileName, const char* cszMode, unsigned int* puSize)
@@ -511,7 +505,8 @@ class CCacheFileSystem
 
 		if (szCachePattern[0])
 		{
-			if (TManifestEntriesInCache* ItemFound = FindItem(0, szCachePattern))
+			unsigned int CurrentIndex = 0;
+			if (TManifestEntriesInCache* ItemFound = FindItem(0, szCachePattern, &CurrentIndex))
 			{
 				pFindInfo->bIsDir = (ItemFound->Type == 0 ? 1 : 0);
 				pFindInfo->bIsLocal = 0;
@@ -528,7 +523,7 @@ class CCacheFileSystem
 				strcpy(hFind->szCachePattern, szCachePattern);
 				strcpy(hFind->szPattern, cszPattern);
 
-				hFind->CurrentIndex = GlobalIndexCounter;
+				hFind->CurrentIndex = CurrentIndex;
 
 				//if (bLogging && bLogFS) Logger->Write("\tFound first file {%s} (%s) using pattern (%s)\n", ((CCache*)hFind->hFind->pCache)->Name, ItemFound->Name, szCachePattern);
 
@@ -541,7 +536,8 @@ class CCacheFileSystem
 
 	int CacheFindNext(TFindHandle* hFind, TSteamElemInfo* pFindInfo)
 	{
-		if (TManifestEntriesInCache* ItemFound = FindItem(hFind->CurrentIndex + 1, hFind->szCachePattern))
+		unsigned int CurrentIndex = 0;
+		if (TManifestEntriesInCache* ItemFound = FindItem(hFind->CurrentIndex + 1, hFind->szCachePattern, &CurrentIndex))
 		{
 			pFindInfo->bIsDir = (ItemFound->Type == 0 ? 1 : 0);
 			pFindInfo->bIsLocal = 0;
@@ -551,7 +547,7 @@ class CCacheFileSystem
 			pFindInfo->lLastAccessTime = 0x44444444;
 			pFindInfo->lLastModificationTime = 0x44444444;
 			hFind->hFind = ItemFound;
-			hFind->CurrentIndex = GlobalIndexCounter;
+			hFind->CurrentIndex = CurrentIndex;
 
 			//if (bLogging && bLogFS) Logger->Write("\tFound next file {%s} (%s) using pattern (%s)\n", ((CCache*)hFind->hFind->pCache)->Name, ItemFound->Name, hFind->szCachePattern);
 
@@ -572,23 +568,22 @@ class CCacheFileSystem
 	}
 
   private:
-	TManifestEntriesInCache* FindItem(unsigned int LastIndex, const char* cszPattern)
+	TManifestEntriesInCache* FindItem(unsigned int StartIndex, const char* cszPattern, unsigned int *pItemIndex = NULL)
 	{
 		if (strpbrk(cszPattern, "?*"))
 		{
-			GlobalIndexCounter = LastIndex;
-			while (GlobalIndexCounter < GlobalDirectoryTableSize)
+			for (unsigned int i = StartIndex; i < GlobalDirectoryTable.size(); i++)
 			{
-				TGlobalDirectory& FindItem = GlobalDirectoryTable[GlobalIndexCounter];
+				TGlobalDirectory& FindItem = GlobalDirectoryTable[i];
 
 				if (IsMatchingWithMask(FindItem.FullName, cszPattern))
 				{
 					CCache* CacheFile = (CCache*)FindItem.pCache;
 					TManifestEntriesInCache* ItemFound = &CacheFile->DirectoryTable[FindItem.Index];
+					if (pItemIndex)
+						*pItemIndex = i;
 					return ItemFound;
 				}
-
-				GlobalIndexCounter++;
 			}
 		}
 		else
@@ -604,6 +599,8 @@ class CCacheFileSystem
 				TManifestEntriesInCache* ItemFound = &CacheFile->DirectoryTable[FindItem.Index];
 				if (ItemFound)
 				{
+					if (pItemIndex)
+						*pItemIndex = 0;
 					return ItemFound;
 				}
 			}
@@ -766,9 +763,7 @@ class CCacheFileSystem
 				if (!HashTable.count(EntryHash))
 				{
 					HashTable[EntryHash] = FindThisItem;
-
 					GlobalDirectoryTable.push_back(FindThisItem);
-					GlobalIndexCounter++;
 
 					//if (bLogging && bLogFS) Logger->Write("\tAdd to Global Directory: %s\n", ActualDirEntry->FullName);
 				}
@@ -779,8 +774,6 @@ class CCacheFileSystem
 			}
 
 			CacheFile->bIsMounted = true;
-
-			GlobalDirectoryTableSize = HashTable.size();
 		}
 	}
 };
