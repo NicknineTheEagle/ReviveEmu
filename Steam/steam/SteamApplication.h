@@ -561,49 +561,27 @@ STEAM_API int SteamGetAppStats(TSteamAppStats* pAppStats, TSteamError* pError)
 
 		for (CAppRecord* pAppRecord : CDR->ApplicationRecords)
 		{
-			if (pAppStats->uMaxNameChars < strlen(pAppRecord->Name))
-			{
-				pAppStats->uMaxNameChars = strlen(pAppRecord->Name);
-			}
+			pAppStats->uMaxNameChars = max(pAppStats->uMaxNameChars, (uint32)strlen(pAppRecord->Name));
 
 			for (CAppVersionRecord* pVersionRecord : pAppRecord->VersionsRecord)
 			{
-				if (pAppStats->uMaxVersionLabelChars < strlen(pVersionRecord->Description))
-				{
-					pAppStats->uMaxVersionLabelChars = strlen(pVersionRecord->Description);
-				}
+				pAppStats->uMaxVersionLabelChars = max(pAppStats->uMaxVersionLabelChars, (uint32)strlen(pVersionRecord->Description));
 			}
 
-			if (pAppStats->uMaxLaunchOptions < pAppRecord->LaunchOptionsRecord.size())
-			{
-				pAppStats->uMaxLaunchOptions = pAppRecord->LaunchOptionsRecord.size();
-			}
+			pAppStats->uMaxLaunchOptions = max(pAppStats->uMaxLaunchOptions, (uint32)pAppRecord->LaunchOptionsRecord.size());
 
 			for (CAppLaunchOptionRecord* pOptionRecord : pAppRecord->LaunchOptionsRecord)
 			{
-				if (pAppStats->uMaxLaunchOptionDescChars < strlen(pOptionRecord->Description))
-				{
-					pAppStats->uMaxLaunchOptionDescChars = strlen(pOptionRecord->Description);
-				}
-
-				if (pAppStats->uMaxLaunchOptionCmdLineChars < strlen(pOptionRecord->CommandLine))
-				{
-					pAppStats->uMaxLaunchOptionCmdLineChars = strlen(pOptionRecord->CommandLine);
-				}
+				pAppStats->uMaxLaunchOptionDescChars = max(pAppStats->uMaxLaunchOptionDescChars, (uint32)strlen(pOptionRecord->Description));
+				pAppStats->uMaxLaunchOptionCmdLineChars = max(pAppStats->uMaxLaunchOptionCmdLineChars, (uint32)strlen(pOptionRecord->CommandLine));
 			}
 
-			if (pAppStats->uMaxNumIcons < pAppRecord->IconsRecord.size())
-			{
-				pAppStats->uMaxNumIcons = pAppRecord->IconsRecord.size();
-			}
+			pAppStats->uMaxNumIcons = max(pAppStats->uMaxNumIcons, (uint32)pAppRecord->IconsRecord.size());
 
 			for (CAppIconRecord* pOptionRecord : pAppRecord->IconsRecord)
 			{
 				// TODO
-				if (pAppStats->uMaxIconSize < 128)
-				{
-					pAppStats->uMaxIconSize = 128;
-				}
+				pAppStats->uMaxIconSize = max(pAppStats->uMaxIconSize, 128u);
 			}
 		}
 
