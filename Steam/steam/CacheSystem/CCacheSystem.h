@@ -14,37 +14,16 @@ typedef struct
 
 typedef struct
 {
-	bool IsFileLocal;
-	union
-	{
-		FILE* LocalFile;
-		TManifestEntriesInCache* FileInCache;
-	};
-	unsigned int Position;
-	char mode[8];
-} TFileInCacheHandle;
-
-typedef struct
-{
-	bool IsFindLocal;
-	union
-	{
-		intptr_t LocalFind;
-		TManifestEntriesInCache* hFind;
-	};
-	ESteamFindFilter eFilter;
-	char szCachePattern[MAX_PATH];
-	unsigned int CurrentIndex;
-	char szPattern[MAX_PATH];
-} TFindHandle;
-
-typedef struct
-{
 	void* pCache;
 	char* FullName;
 	//char FullName[MAX_PATH];
 	unsigned int Index;
 } TGlobalDirectory;
+
+extern TFileInCacheHandle* NewSteamFileHandle();
+extern void CloseSteamFileHandle(SteamHandle_t hSteamHandle);
+extern TFindHandle* NewSteamFindFileHandle();
+extern void CloseSteamFindFileHandle(SteamHandle_t hSteamHandle);
 
 class CCacheFileSystem
 {
@@ -65,11 +44,6 @@ class CCacheFileSystem
 		{
 			UnmountCache((CacheHandle)hCache);
 		}
-	}
-
-	unsigned int NumCaches()
-	{
-		return Caches.size();
 	}
 
 	CacheHandle MountCache(const char* cszFileName, const char* ExtraMountPath)
@@ -146,8 +120,7 @@ class CCacheFileSystem
 
 		if (TManifestEntriesInCache* FileToOpen = CacheFindFile(cszFileName))
 		{
-			TFileInCacheHandle* hFile = new TFileInCacheHandle();
-			memset(hFile, 0, sizeof(TFileInCacheHandle));
+			TFileInCacheHandle* hFile = NewSteamFileHandle();
 			hFile->FileInCache = FileToOpen;
 
 			if (puSize)
@@ -192,7 +165,7 @@ class CCacheFileSystem
 	{
 		if (hFile)
 		{
-			delete hFile;
+			CloseSteamFileHandle(hFile->hSteamHandle);
 			return 0;
 		}
 		return EOF;
@@ -516,7 +489,7 @@ class CCacheFileSystem
 				pFindInfo->lLastAccessTime = 0x44444444;
 				pFindInfo->lLastModificationTime = 0x44444444;
 
-				TFindHandle* hFind = new TFindHandle();
+				TFindHandle* hFind = NewSteamFindFileHandle();
 				hFind->IsFindLocal = false;
 				hFind->hFind = ItemFound;
 				hFind->eFilter = eFilter;
@@ -561,7 +534,7 @@ class CCacheFileSystem
 	{
 		if (hFind)
 		{
-			delete hFind;
+			CloseSteamFindFileHandle(hFind->hSteamHandle);
 			return 0;
 		}
 		return -1;

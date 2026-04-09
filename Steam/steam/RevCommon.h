@@ -64,3 +64,5 @@ T max(T a, T b)
 {
 	return a > b ? a : b;
 };
+
+extern SteamHandle_t NewSteamHandle();

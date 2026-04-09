@@ -1,6 +1,8 @@
 extern bool g_bSteamStartup;
 extern unsigned int g_uRootAppId;
 
+extern TFileInCacheHandle* NewSteamFileHandle();
+
 const char* GetNameById(unsigned int id)
 {
 	for (CAppRecord* pRecord : CDR->ApplicationRecords)
@@ -59,8 +61,7 @@ int GetFiles(const char* szSource, const char* szDest, int mode, const char* szM
 
 				if (bExtract == true)
 				{
-					TFileInCacheHandle* hFile = new TFileInCacheHandle();
-					memset(hFile, 0, sizeof(TFileInCacheHandle));
+					TFileInCacheHandle* hFile = NewSteamFileHandle();
 					hFile->FileInCache = TestFile;
 					strcpy(hFile->mode, "rb");
 
@@ -93,7 +94,7 @@ int GetFiles(const char* szSource, const char* szDest, int mode, const char* szM
 						retval = g_CacheManager->CacheExtractFile(hFile, szDest);
 					}
 
-					delete hFile;
+					g_CacheManager->CacheCloseFile(hFile);
 				}
 			}
 		}
@@ -357,11 +358,11 @@ STEAM_API SteamCallHandle_t SteamLaunchApp(unsigned int uAppId, unsigned int uLa
 	memset(&piProcessInfo, 0, sizeof(piProcessInfo));
 	siStartupInfo.cb = sizeof(siStartupInfo);
 
-	if (CreateProcess((LPCSTR)FullPathToExe, (LPSTR)FullParameters, 0, 0, false, CREATE_DEFAULT_ERROR_MODE, 0, 0, &siStartupInfo, &piProcessInfo) != false)
+	if (CreateProcess(FullPathToExe, FullParameters, 0, 0, false, CREATE_DEFAULT_ERROR_MODE, 0, 0, &siStartupInfo, &piProcessInfo) != false)
 	{
 		//retval = WaitForSingleObject(piProcessInfo.hProcess, INFINITE );
 		SteamClearError(pError);
-		retval = (SteamCallHandle_t)piProcessInfo.hProcess; //for check for handle completion
+		retval = piProcessInfo.hProcess ? 1 : 0;
 	}
 	else
 	{

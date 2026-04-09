@@ -4,6 +4,57 @@ extern unsigned int g_uRootAppId;
 extern CRITICAL_SECTION g_CriticalSection;
 #define ENTER_CRITICAL_SECTION CEnterCriticalSection ECS(&g_CriticalSection)
 
+std::map<SteamHandle_t, TFileInCacheHandle> g_FileHandles;
+std::map<SteamHandle_t, TFindHandle> g_FindFileHandles;
+
+TFileInCacheHandle* NewSteamFileHandle()
+{
+	SteamHandle_t hSteamHandle = NewSteamHandle();
+	TFileInCacheHandle hFile;
+	memset(&hFile, 0, sizeof(TFileInCacheHandle));
+	hFile.hSteamHandle = hSteamHandle;
+	auto result = g_FileHandles.insert({hSteamHandle, hFile});
+	return &((result.first)->second);
+}
+
+TFileInCacheHandle* GetSteamFileHandle(SteamHandle_t hSteamHandle)
+{
+	auto it = g_FileHandles.find(hSteamHandle);
+	if (it == g_FileHandles.end())
+		return NULL;
+
+	return &(it->second);
+}
+
+void CloseSteamFileHandle(SteamHandle_t hSteamHandle)
+{
+	g_FileHandles.erase(hSteamHandle);
+}
+
+TFindHandle* NewSteamFindFileHandle()
+{
+	SteamHandle_t hSteamHandle = NewSteamHandle();
+	TFindHandle hFile;
+	memset(&hFile, 0, sizeof(TFindHandle));
+	hFile.hSteamHandle = hSteamHandle;
+	auto result = g_FindFileHandles.insert({hSteamHandle, hFile});
+	return &((result.first)->second);
+}
+
+TFindHandle* GetSteamFindFileHandle(SteamHandle_t hSteamHandle)
+{
+	auto it = g_FindFileHandles.find(hSteamHandle);
+	if (it == g_FindFileHandles.end())
+		return NULL;
+
+	return &(it->second);
+}
+
+void CloseSteamFindFileHandle(SteamHandle_t hSteamHandle)
+{
+	g_FindFileHandles.erase(hSteamHandle);
+}
+
 unsigned int GetAppIDFromName(char* szName)
 {
 	for (CAppRecord* pRecord : CDR->ApplicationRecords)
@@ -130,14 +181,15 @@ SteamHandle_t SteamOpenFile2(const char* cszFileName, const char* cszMode, int n
 	V_MakeAbsolutePath(szFullPath, MAX_PATH, cszFileName);
 
 	TFileInCacheHandle* hCacheFile = NULL;
+	SteamHandle_t retval = STEAM_INVALID_HANDLE;
 	FILE* pFile = fopen(szFullPath, cszMode);
 
 	if (pFile)
 	{
-		hCacheFile = new TFileInCacheHandle();
-		memset(hCacheFile, 0, sizeof(TFileInCacheHandle));
+		hCacheFile = NewSteamFileHandle();
 		hCacheFile->IsFileLocal = 1;
 		hCacheFile->LocalFile = pFile;
+		retval = hCacheFile->hSteamHandle;
 
 		if (puFileSize)
 		{
@@ -151,7 +203,7 @@ SteamHandle_t SteamOpenFile2(const char* cszFileName, const char* cszMode, int n
 
 		char szDirPath[MAX_PATH] = "";
 		V_ExtractFilePath(szFullPath, szDirPath, MAX_PATH);
-		if (bLogging && bLogFS) Logger->Write("\tOpened 0x%08X from Local(%s) %s >> %s\n", (long)hCacheFile, cszMode, cszFileName, szDirPath);
+		if (bLogging && bLogFS) Logger->Write("\tOpened 0x%08X from Local(%s) %s >> %s\n", hCacheFile->hSteamHandle, cszMode, cszFileName, szDirPath);
 	}
 	else
 	{
@@ -165,14 +217,16 @@ SteamHandle_t SteamOpenFile2(const char* cszFileName, const char* cszMode, int n
 		}
 		else
 		{
+			retval = hCacheFile->hSteamHandle;
+
 			if (pbLocal)
 				*pbLocal = 0;
 
-			if (bLogging && bLogFS) Logger->Write("\tOpened 0x%08X from Cache(%s) %s\n", (long)hCacheFile, cszMode, cszFileName);
+			if (bLogging && bLogFS) Logger->Write("\tOpened 0x%08X from Cache(%s) %s\n", hCacheFile->hSteamHandle, cszMode, cszFileName);
 		}
 	}
 
-	return (SteamHandle_t)hCacheFile;
+	return retval;
 }
 
 STEAM_API int SteamMountFilesystem(unsigned int uAppId, const char* szMountPath, TSteamError* pError)
@@ -340,7 +394,7 @@ STEAM_API unsigned int SteamReadFile(void* pBuf, unsigned int uSize, unsigned in
 
 	SteamClearError(pError);
 
-	TFileInCacheHandle* hCacheFile = (TFileInCacheHandle*)hFile;
+	TFileInCacheHandle* hCacheFile = GetSteamFileHandle(hFile);
 	unsigned int retval = 0;
 
 	if (hCacheFile->IsFileLocal)
@@ -390,14 +444,14 @@ STEAM_API int SteamCloseFile(SteamHandle_t hFile, TSteamError* pError)
 		return EOF;
 	}
 
-	TFileInCacheHandle* hCacheFile = (TFileInCacheHandle*)hFile;
+	TFileInCacheHandle* hCacheFile = GetSteamFileHandle(hFile);
 	int retval = EOF;
 
 	if (hCacheFile->IsFileLocal)
 	{
 		FILE* pFile = hCacheFile->LocalFile;
 		retval = fclose(pFile);
-		delete hCacheFile;
+		CloseSteamFileHandle(hFile);
 	}
 	else
 	{
@@ -425,7 +479,7 @@ STEAM_API SteamHandle_t SteamFindFirst(const char* cszPattern, ESteamFindFilter 
 				TFindHandle* hFind = g_CacheManager->CacheFindFirst(cszPattern, eFilter, pFindInfo);
 				if (hFind)
 				{
-					return (SteamHandle_t)hFind;
+					return hFind->hSteamHandle;
 				}
 
 				if (eFilter == eSteamFindRemoteOnly)
@@ -458,8 +512,7 @@ STEAM_API SteamHandle_t SteamFindFirst(const char* cszPattern, ESteamFindFilter 
 			strcpy(pFindInfo->cszName, finddata.name);
 			SteamClearError(pError);
 
-			TFindHandle* hFind = new TFindHandle();
-			memset(hFind, 0, sizeof(TFindHandle));
+			TFindHandle* hFind = NewSteamFindFileHandle();
 
 			hFind->IsFindLocal = true;
 			hFind->LocalFind = hLocalFind;
@@ -467,7 +520,7 @@ STEAM_API SteamHandle_t SteamFindFirst(const char* cszPattern, ESteamFindFilter 
 			strcpy(hFind->szPattern, cszPattern);
 			if (bLogging && bLogFS) Logger->Write("\tFound Local file (%s) using pattern (%s)\n", finddata.name, cszPattern);
 
-			return (SteamHandle_t)hFind;
+			return hFind->hSteamHandle;
 		}
 	default:
 		{
@@ -486,7 +539,7 @@ STEAM_API int SteamFindNext(SteamHandle_t hDirectory, TSteamElemInfo* pFindInfo,
 
 	SteamClearError(pError);
 
-	TFindHandle* hCacheFind = reinterpret_cast<TFindHandle*>(hDirectory);
+	TFindHandle* hCacheFind = GetSteamFindFileHandle(hDirectory);
 
 	if (!strpbrk(hCacheFind->szPattern, "?*"))
 	{
@@ -560,13 +613,13 @@ STEAM_API int SteamFindClose(SteamHandle_t hDirectory, TSteamError* pError)
 
 	SteamClearError(pError);
 
-	TFindHandle* hCacheFind = (TFindHandle*)hDirectory;
+	TFindHandle* hCacheFind = GetSteamFindFileHandle(hDirectory);
 	int retval = -1;
 
 	if (hCacheFind->IsFindLocal)
 	{
 		retval = _findclose(hCacheFind->LocalFind);
-		delete hCacheFind;
+		CloseSteamFindFileHandle(hDirectory);
 	}
 	else
 	{
@@ -626,7 +679,7 @@ STEAM_API int SteamFlushFile(SteamHandle_t hFile, TSteamError* pError)
 
 	SteamClearError(pError);
 
-	TFileInCacheHandle* hCacheFile = (TFileInCacheHandle*)hFile;
+	TFileInCacheHandle* hCacheFile = GetSteamFileHandle(hFile);
 	int retval = EOF;
 
 	if (hCacheFile->IsFileLocal)
@@ -651,7 +704,7 @@ STEAM_API int SteamGetc(SteamHandle_t hFile, TSteamError* pError)
 
 	SteamClearError(pError);
 
-	TFileInCacheHandle* hCacheFile = (TFileInCacheHandle*)hFile;
+	TFileInCacheHandle* hCacheFile = GetSteamFileHandle(hFile);
 	int retval = EOF;
 
 	if (hCacheFile->IsFileLocal)
@@ -683,17 +736,18 @@ STEAM_API SteamHandle_t SteamOpenTmpFile(TSteamError* pError)
 	SteamClearError(pError);
 
 	TFileInCacheHandle* hCacheFile = NULL;
+	SteamHandle_t retval = STEAM_INVALID_HANDLE;
 	FILE* pFile = tmpfile();
 
 	if (pFile)
 	{
-		hCacheFile = new TFileInCacheHandle();
-		memset(hCacheFile, 0, sizeof(TFileInCacheHandle));
+		hCacheFile = NewSteamFileHandle();
 		hCacheFile->IsFileLocal = 1;
 		hCacheFile->LocalFile = pFile;
+		retval = hCacheFile->hSteamHandle;
 	}
 
-	return (SteamHandle_t)hCacheFile;
+	return retval;
 }
 
 STEAM_API int SteamPutc(int cChar, SteamHandle_t hFile, TSteamError* pError)
@@ -704,7 +758,7 @@ STEAM_API int SteamPutc(int cChar, SteamHandle_t hFile, TSteamError* pError)
 
 	SteamClearError(pError);
 
-	TFileInCacheHandle* hCacheFile = (TFileInCacheHandle*)hFile;
+	TFileInCacheHandle* hCacheFile = GetSteamFileHandle(hFile);
 	int retval = EOF;
 
 	if (hCacheFile->IsFileLocal)
@@ -729,7 +783,7 @@ STEAM_API int SteamSeekFile(SteamHandle_t hFile, long lOffset, ESteamSeekMethod 
 
 	SteamClearError(pError);
 
-	TFileInCacheHandle* hCacheFile = (TFileInCacheHandle*)hFile;
+	TFileInCacheHandle* hCacheFile = GetSteamFileHandle(hFile);
 	int retval = -1;
 
 	if (hCacheFile->IsFileLocal)
@@ -760,7 +814,7 @@ STEAM_API unsigned int SteamWriteFile(const void* pBuf, unsigned int uSize, unsi
 
 	SteamClearError(pError);
 
-	TFileInCacheHandle* hCacheFile = (TFileInCacheHandle*)hFile;
+	TFileInCacheHandle* hCacheFile = GetSteamFileHandle(hFile);
 	unsigned int writeamount = 0;
 
 	if (hCacheFile->IsFileLocal)
@@ -789,7 +843,7 @@ STEAM_API long SteamTellFile(SteamHandle_t hFile, TSteamError* pError)
 
 	SteamClearError(pError);
 
-	TFileInCacheHandle* hCacheFile = (TFileInCacheHandle*)hFile;
+	TFileInCacheHandle* hCacheFile = GetSteamFileHandle(hFile);
 	long retval = -1;
 
 	if (hCacheFile->IsFileLocal)
@@ -820,7 +874,7 @@ STEAM_API long SteamSizeFile(SteamHandle_t hFile, TSteamError* pError)
 
 	SteamClearError(pError);
 
-	TFileInCacheHandle* hCacheFile = (TFileInCacheHandle*)hFile;
+	TFileInCacheHandle* hCacheFile = GetSteamFileHandle(hFile);
 	long retval = -1;
 
 	if (hCacheFile->IsFileLocal)
@@ -836,7 +890,7 @@ STEAM_API long SteamSizeFile(SteamHandle_t hFile, TSteamError* pError)
 	}
 	else
 	{
-		retval = g_CacheManager->CacheSizeFile((TFileInCacheHandle*)hFile);
+		retval = g_CacheManager->CacheSizeFile(hCacheFile);
 	}
 
 	return retval;
@@ -881,12 +935,12 @@ STEAM_API int SteamGetLocalFileCopy(const char* cszFileName, TSteamError* pError
 			if (retval != 0)
 			{
 				if (bLogging && bLogFS) Logger->Write("\tFound Cache (%s)\n", cszFileName);
-				delete hFile;
+				g_CacheManager->CacheCloseFile(hFile);
 				return 1;
 			}
 			else
 			{
-				delete hFile;
+				g_CacheManager->CacheCloseFile(hFile);
 			}
 		}
 	}
@@ -924,7 +978,7 @@ STEAM_API int SteamPrintFile(SteamHandle_t hFile, TSteamError* pError, const cha
 
 	SteamClearError(pError);
 
-	TFileInCacheHandle* hCacheFile = (TFileInCacheHandle*)hFile;
+	TFileInCacheHandle* hCacheFile = GetSteamFileHandle(hFile);
 	int retval = 0;
 
 	if (hCacheFile->IsFileLocal)
@@ -952,7 +1006,7 @@ STEAM_API int STEAM_CALL SteamSetvBuf(SteamHandle_t hFile, void* pBuf, ESteamBuf
 
 	SteamClearError(pError);
 
-	TFileInCacheHandle* hCacheFile = (TFileInCacheHandle*)hFile;
+	TFileInCacheHandle* hCacheFile = GetSteamFileHandle(hFile);
 	int retval = -1;
 
 	if (hCacheFile->IsFileLocal)

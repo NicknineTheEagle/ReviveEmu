@@ -172,3 +172,31 @@ typedef struct
 	bool IsLocalCopyHasPriorityOverChache;
 
 }TManifestEntriesInCache;
+
+typedef struct
+{
+	SteamHandle_t hSteamHandle;
+	bool IsFileLocal;
+	union
+	{
+		FILE* LocalFile;
+		TManifestEntriesInCache* FileInCache;
+	};
+	unsigned int Position;
+	char mode[8];
+}TFileInCacheHandle;
+
+typedef struct
+{
+	SteamHandle_t hSteamHandle;
+	bool IsFindLocal;
+	union
+	{
+		intptr_t LocalFind;
+		TManifestEntriesInCache* hFind;
+	};
+	ESteamFindFilter eFilter;
+	char szCachePattern[MAX_PATH];
+	unsigned int CurrentIndex;
+	char szPattern[MAX_PATH];
+}TFindHandle;

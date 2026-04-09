@@ -132,7 +132,7 @@ STEAM_API const unsigned char* STEAM_CALL SteamGetEncryptionKeyToSendToNewClient
 		const unsigned char* (*fptr)(unsigned int*);
 		*(void **)(&fptr) = GetProcAddress(GetModuleHandleA(g_szOrigSteamDll), "SteamGetEncryptionKeyToSendToNewClient");
 		retval = (*fptr)(pReceiveSizeOfEncryptionKey);
-		if (bLogging && bLogUserId) Logger->Write("\t 0x%08X\n", (int)retval);
+		if (bLogging && bLogUserId) Logger->Write("\t 0x%p\n", retval);
 		return retval;
 	}
 

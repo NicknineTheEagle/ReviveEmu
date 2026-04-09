@@ -24,7 +24,7 @@ bool g_bSteamFileSystem = false;
 bool g_bSteamBlobSystem = false;
 bool g_bRawCDR = false;
 char g_szGCFPath[MAX_PATH * 5];
-static std::vector<const char*> g_CacheLocations;
+std::vector<const char*> g_CacheLocations;
 
 char g_szLanguage[MAX_PATH];
 char g_szSteamUser[MAX_PATH];
@@ -48,7 +48,7 @@ CContentDescriptionRecord* CDR = NULL;
 
 #include "CacheSystem\CCacheSystem.h"	//Cache
 
-CCacheFileSystem* g_CacheManager = NULL;
+CCacheFileSystem *g_CacheManager;
 
 #include "SteamFilesystem.h"			//Filesystem
 #include "SteamApplication.h"			//App Functions
@@ -486,7 +486,7 @@ void InitGlobalVaribles()
 				if(g_bSteamDll) // is Original Steam DLL set ?
 				{
 					char buffer[255];
-					sprintf(buffer, "%x", (int)LoadLibraryA(g_szOrigSteamDll));
+					sprintf(buffer, "%p", LoadLibraryA(g_szOrigSteamDll));
 					if (!atoi(buffer)) 
 					{
 						char szErrMsg[255] = "Unable to load ";
@@ -553,4 +553,12 @@ void InitGlobalVaribles()
 			}
 
 			LocalFree(szArgList);
+}
+
+SteamHandle_t NewSteamHandle()
+{
+	static uint32 retval = 0;
+	retval++;
+	if (retval == 0) retval++;
+	return retval;
 }
