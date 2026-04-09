@@ -9,10 +9,22 @@ on: [push, pull_request, workflow_dispatch]
 jobs:
   # This workflow contains a single job called "build"
   build:
-    name: Visual Studio
+    name: ${{ matrix.name }}
 
     # The type of runner that the job will run on
     runs-on: windows-2022
+
+    strategy:
+      matrix:
+        include:
+          - name: "32-bit"
+            arch: "Win32"
+            bindir: "Release"
+            outname: "ReviveEmu-Win32"
+          - name: "64-bit"
+            arch: "x64"
+            bindir: "x64\\Release"
+            outname: "ReviveEmu-Win64"
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -24,21 +36,21 @@ jobs:
       - name: Build
         shell: cmd
         working-directory: Steam
-        run: MSBuild -m Steam.sln -t:Steam:Rebuild "-p:Configuration=Release" -p:Platform=Win32
+        run: MSBuild -m Steam.sln -t:Steam:Rebuild -p:Configuration=Release -p:Platform=${{ matrix.arch }}
 
       - name: Prepare files for packaging
         shell: cmd
         run: |
           mkdir artifacts
-          copy Steam\Release\Steam.dll artifacts\Steam.dll
-          copy Steam\Release\Steam.pdb artifacts\Steam.pdb
+          copy Steam\${{ matrix.bindir }}\Steam.dll artifacts\Steam.dll
+          copy Steam\${{ matrix.bindir }}\Steam.pdb artifacts\Steam.pdb
           copy Steam\steam\rev.ini artifacts\rev.ini
           copy Steam\steam\revApps.ini artifacts\revApps.ini
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ReviveEmu
+          name: ${{ matrix.outname }}
           path: artifacts
           if-no-files-found: error
   create-release:
