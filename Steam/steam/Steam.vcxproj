@@ -303,6 +303,7 @@
     <ClInclude Include="RevCommon.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Steam.h" />
+    <ClInclude Include="Steam3ID.h" />
     <ClInclude Include="SteamAccount.h" />
     <ClInclude Include="SteamApplication.h" />
     <ClInclude Include="SteamAsyncCallHandling.h" />

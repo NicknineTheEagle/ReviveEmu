@@ -127,8 +127,8 @@ STEAM_API int SteamEnumerateApp(unsigned int uAppID, TSteamApp* pApp, TSteamErro
 			pApp->uCurrentVersionId = CDR->ApplicationRecords[uAppRecord]->CurrentVersionId;
 			pApp->uMaxCurrentVersionLabelChars = 255;
 
-			strcpy(pApp->szCacheFile, CDR->ApplicationRecords[uAppRecord]->InstallDirName);
-			pApp->uMaxCacheFileChars = 255;
+			strcpy(pApp->szInstallDirName, CDR->ApplicationRecords[uAppRecord]->InstallDirName);
+			pApp->uMaxInstallDirNameChars = 255;
 
 			pApp->uId = CDR->ApplicationRecords[uAppRecord]->AppId;
 
@@ -173,9 +173,9 @@ STEAM_API int SteamEnumerateAppDependency(unsigned int uAppId, unsigned int uDep
 		{
 			if (uDependency < CDR->ApplicationRecords[uAppRecord]->FilesystemsRecord.size())
 			{
-				pDependencyInfo->AppId = CDR->ApplicationRecords[uAppRecord]->FilesystemsRecord[uDependency]->AppId;
-				pDependencyInfo->IsRequired = (CDR->ApplicationRecords[uAppRecord]->FilesystemsRecord[uDependency]->IsOptional ? 0 : 1);
-				strcpy(pDependencyInfo->szMountName, CDR->ApplicationRecords[uAppRecord]->FilesystemsRecord[uDependency]->MountName);
+				pDependencyInfo->uAppId = CDR->ApplicationRecords[uAppRecord]->FilesystemsRecord[uDependency]->AppId;
+				pDependencyInfo->bIsSystemDefined = 1;
+				strcpy(pDependencyInfo->szMountPath, CDR->ApplicationRecords[uAppRecord]->FilesystemsRecord[uDependency]->MountName);
 				SteamClearError(pError);
 				return 1;
 			}
@@ -206,7 +206,7 @@ STEAM_API int SteamEnumerateAppLaunchOption(unsigned int uAppId, unsigned int uL
 				pLaunchOption->uMaxCmdLineChars = strlen(LaunchOption->CommandLine);
 
 				pLaunchOption->uIndex = uLaunchOptionIndex;
-				pLaunchOption->iIconIndex = LaunchOption->IconIndex;
+				pLaunchOption->uIconIndex = LaunchOption->IconIndex;
 
 				pLaunchOption->bNoDesktopShortcut = (LaunchOption->NoDesktopShortcut ? 1 : 0);
 				pLaunchOption->bNoStartMenuShortcut = (LaunchOption->NoStartMenuShortcut ? 1 : 0);
@@ -563,6 +563,7 @@ STEAM_API int SteamGetAppStats(TSteamAppStats* pAppStats, TSteamError* pError)
 		for (CAppRecord* pAppRecord : CDR->ApplicationRecords)
 		{
 			pAppStats->uMaxNameChars = max(pAppStats->uMaxNameChars, (uint32)strlen(pAppRecord->Name));
+			pAppStats->uMaxInstallDirNameChars = max(pAppStats->uMaxInstallDirNameChars, (uint32)strlen(pAppRecord->InstallDirName));
 
 			for (CAppVersionRecord* pVersionRecord : pAppRecord->VersionsRecord)
 			{
@@ -751,7 +752,7 @@ STEAM_API int SteamGetAppDir(unsigned int uAppId, char* szAppDir, TSteamError* p
 	return 1;
 }
 
-STEAM_API int SteamGetAppUserDefinedRecord(unsigned int uAppId, AddEntryToKeyValueFn AddEntryToKeyValueFunc, void* pvCKeyValue, TSteamError* pError)
+STEAM_API int SteamGetAppUserDefinedRecord(unsigned int uAppId, KeyValueIteratorCallback_t AddEntryToKeyValueFunc, void* pvCKeyValue, TSteamError* pError)
 {
 	if (bLogging) Logger->Write("SteamGetAppUserDefinedRecord\n");
 	SteamClearError(pError);

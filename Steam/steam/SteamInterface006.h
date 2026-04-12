@@ -143,7 +143,7 @@ public:
 	virtual int GetCacheDecryptionKey(unsigned int uAppId, char* szCacheDecryptionKey, unsigned int uBufferLength, unsigned int* puRecievedLength, TSteamError *pError); // 1;}
 	virtual int GetSubscriptionExtendedInfo(unsigned int uSubscritptionId, const char* cszKeyName, char* szKeyValue, unsigned int uBufferLength, unsigned int* puRecievedLength, TSteamError *pError); // 1;}
 	virtual int GetSubscriptionPurchaseCountry(unsigned int uSubscritptionId, char* szCountry, unsigned int uBufferLength , int* piRecievedLength, TSteamError *pError); // 1;}
-	virtual int GetAppUserDefinedRecord(unsigned int uAppId, AddEntryToKeyValueFn AddEntryToKeyValueFunc, void* pvCKeyValue, TSteamError *pError); // 1;}
+	virtual int GetAppUserDefinedRecord(unsigned int uAppId, KeyValueIteratorCallback_t AddEntryToKeyValueFunc, void* pvCKeyValue, TSteamError *pError); // 1;}
 //SteamInterface006 functions
 	virtual int FindServersNumServers(ESteamServerType eSteamServerType); // 1;}
 	virtual int FindServersIterateServer(ESteamServerType eSteamServerType, int iIndex, char *szServerAddress, unsigned int uServerAddressChars); // 1;}

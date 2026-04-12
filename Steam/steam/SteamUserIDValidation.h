@@ -180,7 +180,7 @@ STEAM_API ESteamError STEAM_CALL SteamStartValidatingUserIDTicket(void *pEncrypt
 	memset(hRevHandle, 0, sizeof(TRevUserValidationHandle));
 	hRevHandle->uClientIP = ObservedClientIPAddr;
 
-	uint32_t uCheckTicket = *(uint32_t*)pEncryptedUserIDTicketFromClient;
+	uint32 uCheckTicket = *(uint32*)pEncryptedUserIDTicketFromClient;
 	if (uCheckTicket == REVTICKET_SIGNATURE)
 	{
 		// This is our auth ticket format.

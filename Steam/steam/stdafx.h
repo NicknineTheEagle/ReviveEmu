@@ -22,5 +22,7 @@
 
 #include "SteamCommon.h"
 #include "RevCommon.h"
+#define INCLUDED_STEAM2_USERID_STRUCTS
+#include "Steam3ID.h"
 #include "iniFile.h"
 #include "logFile.h"

@@ -1,7 +1,9 @@
 #ifndef INCLUDED_STEAM_H
 #define INCLUDED_STEAM_H
 
+#if defined(_MSC_VER) && (_MSC_VER > 1000)
 #pragma once
+#endif
 
 #ifndef INCLUDED_STEAM_COMMON_STEAMCOMMON_H
 	#include "SteamCommon.h"
@@ -136,7 +138,7 @@ STEAM_API int					STEAM_CALL	SteamGetAppPurchaseCountry(unsigned int uAppId, cha
 STEAM_API int					STEAM_CALL	SteamGetAppStats(TSteamAppStats *pAppStats, TSteamError *pError);
 STEAM_API int					STEAM_CALL	SteamGetAppUpdateStats(unsigned int uAppId, ESteamAppUpdateStatsQueryType uStatType, TSteamUpdateStats *pUpdateStats, TSteamError *pError);
 STEAM_API int					STEAM_CALL	SteamGetAppUserDefinedInfo(unsigned int uAppId, const char *cszPropertyName, char *szPropertyValue, unsigned int uBufSize, unsigned int *puPropertyValueLength, TSteamError *pError);
-STEAM_API int					STEAM_CALL	SteamGetAppUserDefinedRecord(unsigned int uAppId, AddEntryToKeyValueFn AddEntryToKeyValueFunc, void* pvCKeyValue, TSteamError *pError);
+STEAM_API int					STEAM_CALL	SteamGetAppUserDefinedRecord(unsigned int uAppId, KeyValueIteratorCallback_t AddEntryToKeyValueFunc, void* pvCKeyValue, TSteamError *pError);
 STEAM_API int					STEAM_CALL	SteamGetCurrentEmailAddress(char *szEmailaddress, unsigned int uBufSize, unsigned int *puEmailaddressChars, TSteamError *pError);
 STEAM_API int					STEAM_CALL	SteamGetNumAccountsWithEmailAddress();
 STEAM_API int					STEAM_CALL	SteamGetSponsorUrl(unsigned int uAppId, char *szUrl, unsigned int uBufSize, unsigned int *pUrlChars, TSteamError *pError);

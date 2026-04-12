@@ -1,5 +1,30 @@
 #pragma once
 
+// Standard Valve integer types
+typedef unsigned char uint8;
+typedef signed char int8;
+
+#if defined(_MSC_VER)
+
+typedef __int16 int16;
+typedef unsigned __int16 uint16;
+typedef __int32 int32;
+typedef unsigned __int32 uint32;
+typedef __int64 int64;
+typedef unsigned __int64 uint64;
+
+#else // _MSV_VER
+
+typedef short int16;
+typedef unsigned short uint16;
+typedef int int32;
+typedef unsigned int uint32;
+typedef long long int64;
+typedef unsigned long long uint64;
+
+#endif // _MSC_VER
+
+// Key used to encrypt auth ticket
 static const unsigned char g_TicketKey[160] = {
 		0x30, 0x81, 0x9D, 0x30, 0x0D, 0x06, 0x09, 0x2A, 0x86, 0x48, 0x86,
 		0xF7, 0x0D, 0x01, 0x01, 0x01, 0x05, 0x00, 0x03, 0x81, 0x8B, 0x00,
@@ -18,10 +43,13 @@ static const unsigned char g_TicketKey[160] = {
 		0x19, 0x57, 0xE9, 0x02, 0x01, 0x11
 };
 
+// Auth ticket structures
+#pragma pack(push, 8)
+
 #define REVTICKET_SIGNATURE     0x52455646 // "REVF"
 #define REVTICKET_VERSION       2
 
-struct __declspec(align(8)) TRevTicket
+struct TRevTicket
 {
 	uint32 uSignature;
 	uint32 uVersion;
@@ -29,7 +57,7 @@ struct __declspec(align(8)) TRevTicket
 	uint32 uLocalIP;
 };
 
-struct __declspec(align(8)) TRevTicketV1
+struct TRevTicketV1
 {
 	uint32 uSignature;
 	uint32 uVersion;
@@ -39,13 +67,15 @@ struct __declspec(align(8)) TRevTicketV1
 
 #define STEAMTICKET_SIGNATURE 0x63845768
 
-struct __declspec(align(8)) TSteam2WrapperTicket
+struct TSteam2WrapperTicket
 {
 	uint32 uSignature;
 	TSteamGlobalUserID SteamID;
 	uint32 uLocalIP;
 	uint32 uHandle;
 };
+
+#pragma pack(pop)
 
 enum ERevCompatMode
 {

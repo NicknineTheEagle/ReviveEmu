@@ -336,6 +336,9 @@
     <ClInclude Include="RevCommon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Steam3ID.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Steam.RES">
