@@ -815,12 +815,12 @@ STEAM_API unsigned int SteamWriteFile(const void* pBuf, unsigned int uSize, unsi
 	SteamClearError(pError);
 
 	TFileInCacheHandle* hCacheFile = GetSteamFileHandle(hFile);
-	unsigned int writeamount = 0;
+	unsigned int retval = 0;
 
 	if (hCacheFile->IsFileLocal)
 	{
-		writeamount = fwrite(pBuf, uSize, uCount, hCacheFile->LocalFile);
-		if (writeamount < uCount)
+		retval = fwrite(pBuf, uSize, uCount, hCacheFile->LocalFile);
+		if (retval < uCount)
 		{
 			if (bLogging && bLogFS) Logger->Write("\tWrite failed (0x%08X)\n", hFile);
 		}
@@ -832,7 +832,7 @@ STEAM_API unsigned int SteamWriteFile(const void* pBuf, unsigned int uSize, unsi
 		pError->eSteamError = eSteamErrorAccessDenied;
 	}
 
-	return writeamount;
+	return retval;
 }
 
 STEAM_API long SteamTellFile(SteamHandle_t hFile, TSteamError* pError)
@@ -880,7 +880,7 @@ STEAM_API long SteamSizeFile(SteamHandle_t hFile, TSteamError* pError)
 	if (hCacheFile->IsFileLocal)
 	{
 		FILE* f = hCacheFile->LocalFile;
-		int pos = ftell(f);
+		long pos = ftell(f);
 		if (pos >= 0)
 		{
 			fseek(f, 0, SEEK_END);

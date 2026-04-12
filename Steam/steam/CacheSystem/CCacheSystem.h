@@ -171,7 +171,7 @@ class CCacheFileSystem
 		return EOF;
 	}
 
-	unsigned int CacheExtractFile(TFileInCacheHandle* hFile, const char* czDest)
+	int CacheExtractFile(TFileInCacheHandle* hFile, const char* czDest)
 	{
 		TManifestEntriesInCache* FileToExtract = hFile->FileInCache;
 		char szFullPath[MAX_PATH];
@@ -267,7 +267,7 @@ class CCacheFileSystem
 		return uReadedDataAmount;
 	}
 
-	int BinaryReadSector(unsigned int iSectorIndex, void* pvBuff, unsigned int uOffset, unsigned int uSize, TFileInCacheHandle* hFile)
+	unsigned int BinaryReadSector(unsigned int iSectorIndex, void* pvBuff, unsigned int uOffset, unsigned int uSize, TFileInCacheHandle* hFile)
 	{
 		CCache* hCacheFile = (CCache*)hFile->FileInCache->pCache;
 		FILE* fCacheFile = hCacheFile->fCacheFile;
@@ -353,7 +353,7 @@ class CCacheFileSystem
 		return uReadedCharactersAmount;
 	}
 
-	int TextReadSector(unsigned int iSectorIndex, void* pvBuff, unsigned int uSize, TFileInCacheHandle* hFile)
+	unsigned int TextReadSector(unsigned int iSectorIndex, void* pvBuff, unsigned int uSize, TFileInCacheHandle* hFile)
 	{
 		CCache* hCacheFile = (CCache*)hFile->FileInCache->pCache;
 		FILE* fCacheFile = hCacheFile->fCacheFile;
