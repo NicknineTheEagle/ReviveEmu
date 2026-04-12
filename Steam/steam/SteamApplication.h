@@ -196,10 +196,10 @@ STEAM_API int SteamEnumerateAppLaunchOption(unsigned int uAppId, unsigned int uL
 
 		if (uAppRecord != UINT_MAX)
 		{
-			CAppLaunchOptionRecord* LaunchOption = CDR->ApplicationRecords[uAppRecord]->LaunchOptionsRecord[uLaunchOptionIndex];
-
-			if (LaunchOption)
+			if (uLaunchOptionIndex < CDR->ApplicationRecords[uAppRecord]->LaunchOptionsRecord.size())
 			{
+				CAppLaunchOptionRecord* LaunchOption = CDR->ApplicationRecords[uAppRecord]->LaunchOptionsRecord[uLaunchOptionIndex];
+
 				strcpy(pLaunchOption->szDesc, LaunchOption->Description);
 				pLaunchOption->uMaxDescChars = strlen(LaunchOption->Description);
 				strcpy(pLaunchOption->szCmdLine, LaunchOption->CommandLine);
