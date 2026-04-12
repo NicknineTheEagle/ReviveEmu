@@ -153,339 +153,317 @@ void InitGlobalVaribles()
 		}
 	}
 
-			char chLogFile[MAX_PATH];
-			char chIniFile[MAX_PATH];
-			char chClientPath[MAX_PATH];
-	        char szSteamDLLPath[MAX_PATH];
+	char chLogFile[MAX_PATH];
+	char chIniFile[MAX_PATH];
+	char chClientPath[MAX_PATH];
+	char szSteamDLLPath[MAX_PATH];
 
-			if(GetModuleFileNameA(g_hModule, szSteamDLLPath, MAX_PATH))
+	if (GetModuleFileNameA(g_hModule, szSteamDLLPath, MAX_PATH))
+	{
+		char szRelDLLPath[MAX_PATH];
+		bool bGotRelPath = V_MakeRelativePath(szSteamDLLPath, szRunFromPath, szRelDLLPath, MAX_PATH);
+
+		// HACK: If Steam.dll is in "bin" subdirectory, use the working dir for our config files.
+		if (bGotRelPath && _stricmp(szRelDLLPath, "bin\\steam.dll") == 0)
+		{
+			strcpy(szSteamDLLPath, szRunFromPath);
+		}
+		else
+		{
+			V_StripFilename(szSteamDLLPath);
+		}
+
+		V_AppendSlash(szSteamDLLPath, MAX_PATH);
+
+		strcpy(chIniFile, szSteamDLLPath);
+		strcat(chIniFile, "rev.ini");
+		strcpy(g_szAppIni, szSteamDLLPath);
+		strcat(g_szAppIni, "revApps.ini");
+
+		char chCmdLine[MAX_PATH];
+		char temp[MAX_PATH];
+		strcpy(chCmdLine, "");
+		for (int i = 0; i < nArgs; i++)
+		{
+			wcstombs(temp, szArgList[i], 255);
+			strcat(temp, " ");
+			strcat(chCmdLine, temp);
+		}
+
+		//
+		// Initialize and parse the INI file
+		//
+		CIniFile* Ini = new CIniFile(chIniFile);
+
+		if (char* Logging = Ini->IniReadValue("Emulator", "Logging")) // Is logging enabled ?
+		{
+			if (_stricmp(Logging, "True") == 0)
 			{
-				char szRelDLLPath[MAX_PATH];
-				bool bGotRelPath = V_MakeRelativePath(szSteamDLLPath, szRunFromPath, szRelDLLPath, MAX_PATH);
+				bLogging = true;
 
-				// HACK: If Steam.dll is in "bin" subdirectory, use the working dir for our config files.
-				if (bGotRelPath && _stricmp(szRelDLLPath, "bin\\steam.dll") == 0)
+				char szExePath[MAX_PATH];
+				GetModuleFileNameA(NULL, szExePath, MAX_PATH);
+				const char* chProcName = V_GetFileName(szExePath);
+
+				strcpy(chLogFile, szSteamDLLPath);
+				strcat(chLogFile, chProcName);
+				strcat(chLogFile, "_REVive.log");
+				Logger = new CLogFile(chLogFile);
+				Logger->Clear();
+				Logger->Write("Logging initialized.\n");
+				Logger->Write("Run path initialized to %s\n", szRunFromPath);
+				Logger->Write("Command line: %s\n", chCmdLine);
+			}
+			delete[] Logging;
+		}
+		if (bLogging)
+		{
+			if (char* Logging = Ini->IniReadValue("Log", "FileSystem")) // Is FS logging enabled ?
+			{
+				if (_stricmp(Logging, "True") == 0)
 				{
-					strcpy(szSteamDLLPath, szRunFromPath);
+					bLogFS = true;
+					if (bLogging) Logger->Write("FileSystem logging initialized.\n");
+				}
+				delete[] Logging;
+			}
+			if (char* Logging = Ini->IniReadValue("Log", "Account")) // Is Acc logging enabled ?
+			{
+				if (_stricmp(Logging, "True") == 0)
+				{
+					bLogAcc = true;
+					if (bLogging) Logger->Write("Account logging initialized.\n");
+				}
+				delete[] Logging;
+			}
+			if (char* Logging = Ini->IniReadValue("Log", "UserID")) // Is UserID logging enabled ?
+			{
+				if (_stricmp(Logging, "True") == 0)
+				{
+					bLogUserId = true;
+					if (bLogging) Logger->Write("UserID logging initialized.\n");
+				}
+				delete[] Logging;
+			}
+		}
+
+		if (char* SteamUSR = Ini->IniReadValue("Emulator", "SteamUser"))
+		{
+			if (strlen(SteamUSR) > 0)
+			{
+				strcpy(g_szSteamUser, SteamUSR);
+			}
+			else
+			{
+				strcpy(g_szSteamUser, "RevUser");
+			}
+			delete[] SteamUSR;
+		}
+		else
+		{
+			strcpy(g_szSteamUser, "RevUser");
+		}
+
+		SetEnvironmentVariableA("SteamUser", g_szSteamUser);
+		if (bLogging) Logger->Write("Steam User set to %s\n", g_szSteamUser);
+
+		if (char* CheckLang = Ini->IniReadValue("Emulator", "Language"))
+		{
+			strcpy(g_szLanguage, CheckLang);
+			if (strcmp(g_szOLDLanguage, "unset") == 0)
+			{
+				strcpy(g_szOLDLanguage, "English");
+			}
+
+			delete[] CheckLang;
+		}
+		else
+		{
+			if (strcmp(g_szOLDLanguage, "unset") == 0)
+			{
+				strcpy(g_szOLDLanguage, "English");
+				strcpy(g_szLanguage, g_szOLDLanguage);
+			}
+			else
+			{
+				strcpy(g_szLanguage, g_szOLDLanguage);
+			}
+		}
+
+		_strlwr(g_szLanguage);
+
+		setRegistry("Software\\Valve\\Steam", "Language", g_szLanguage);
+
+		if (bLogging) Logger->Write("Steam language initialized (%s)\n", g_szLanguage);
+
+		if (char* GCFEnable = Ini->IniReadValue("Emulator", "CacheEnabled"))
+		{
+			if (_stricmp(GCFEnable, "True") == 0)
+			{
+				if (char* Path = Ini->IniReadValue("Emulator", "CachePath"))
+				{
+					strcpy(g_szGCFPath, Path);
+					delete[] Path;
 				}
 				else
 				{
-					V_StripFilename(szSteamDLLPath);
+					g_szGCFPath[0] = '\0';
 				}
 
-				V_AppendSlash(szSteamDLLPath, MAX_PATH);
-
-				strcpy(chIniFile, szSteamDLLPath);
-				strcat(chIniFile, "rev.ini");
-				strcpy(g_szAppIni, szSteamDLLPath);
-				strcat(g_szAppIni, "revApps.ini");
-
-				char chCmdLine[MAX_PATH];
-				char temp[MAX_PATH];
-				strcpy(chCmdLine, "");
-		        for (int i = 0; i < nArgs; i++)
-		        {
-			        wcstombs(temp, szArgList[i], 255);
-			        strcat(temp, " ");
-			        strcat(chCmdLine, temp);
-		        }
-
-
-				//
-				// Initialize and parse the INI file
-				//
-				CIniFile* Ini = new CIniFile(chIniFile);
-
-				if(char* Logging = Ini->IniReadValue("Emulator", "Logging")) // Is logging enabled ?
+				if (char* Path = Ini->IniReadValue("Emulator", "CDRPath"))
 				{
-					if (_stricmp(Logging, "True") == 0) 
-					{
-						bLogging = true;
-
-						char szExePath[MAX_PATH];
-						GetModuleFileNameA(NULL, szExePath, MAX_PATH);
-						const char* chProcName = V_GetFileName(szExePath);
-
-						strcpy(chLogFile, szSteamDLLPath);
-						strcat(chLogFile, chProcName);
-						strcat(chLogFile, "_REVive.log");
-						Logger = new CLogFile(chLogFile);
-						Logger->Clear();
-						Logger->Write("Logging initialized.\n");
-						Logger->Write("Run path initialized to %s\n",szRunFromPath);
-						Logger->Write("Command line: %s\n", chCmdLine);
-
-					} 
-					delete[] Logging;
-				}
-				if (bLogging)
-				{
-					if(char* Logging = Ini->IniReadValue("Log", "FileSystem")) // Is FS logging enabled ?
-					{
-						if (_stricmp(Logging, "True") == 0) 
-						{
-							bLogFS = true;
-							if (bLogging) Logger->Write("FileSystem logging initialized.\n");
-						} 
-						delete[] Logging;
-					}
-					if(char* Logging = Ini->IniReadValue("Log", "Account")) // Is Acc logging enabled ?
-					{
-						if (_stricmp(Logging, "True") == 0) 
-						{
-							bLogAcc = true;
-							if (bLogging) Logger->Write("Account logging initialized.\n");
-						} 
-						delete[] Logging;
-					}
-					if(char* Logging = Ini->IniReadValue("Log", "UserID")) // Is UserID logging enabled ?
-					{
-						if (_stricmp(Logging, "True") == 0) 
-						{
-							bLogUserId = true;
-							if (bLogging) Logger->Write("UserID logging initialized.\n");
-						} 
-						delete[] Logging;
-					}
-				}
-
-				/*
-				if (bLogging)
-				{
-					Logger->Write("Processing passed arguments:\n");
-					char * szTEMP = new char[MAX_PATH];
-					for(int j=0; j<nArgs; j++) 
-					{
-						wcstombs(szTEMP, szArglist[j], MAX_PATH);
-						Logger->Write("\tArg[%u]: %s\n",j, szTEMP);
-
-					}
-					delete [] szTEMP;
-
-				}
-				*/
-
-				if(char* SteamUSR = Ini->IniReadValue("Emulator", "SteamUser"))
-				{
-					if (strlen(SteamUSR)>0)
-					{
-						strcpy(g_szSteamUser,SteamUSR);
-					}
-					else
-					{
-						strcpy(g_szSteamUser,"RevUser");
-					}
-					delete[] SteamUSR;
+					strcpy(g_szCDRFile, Path);
+					delete[] Path;
 				}
 				else
 				{
-					strcpy(g_szSteamUser,"RevUser");
+					strcpy(g_szCDRFile, szSteamDLLPath);
+					strcat(g_szCDRFile, "cdr.bin");
 				}
 
-				SetEnvironmentVariableA("SteamUser", g_szSteamUser);
-				if (bLogging) Logger->Write("Steam User set to %s\n",g_szSteamUser);
+				strcpy(g_szBlobFile, szSteamDLLPath);
+				strcat(g_szBlobFile, "ClientRegistry.Blob");
 
-				if(char* CheckLang = Ini->IniReadValue("Emulator", "Language")) 
+				struct _stat filestat;
+				if (_stat(g_szCDRFile, &filestat) == 0)
 				{
-					strcpy(g_szLanguage,CheckLang);
-					if (strcmp(g_szOLDLanguage,"unset") == 0)
-					{
-						strcpy(g_szOLDLanguage,"English");
-					}
-
-					delete[] CheckLang;
+					if (bLogging) Logger->Write("Cache support initialized via %s\n", g_szCDRFile);
+					g_bSteamFileSystem = true;
+					g_bSteamBlobSystem = true;
+					g_bRawCDR = true;
+				}
+				else if (_stat(g_szBlobFile, &filestat) == 0)
+				{
+					if (bLogging) Logger->Write("Cache support initialized via %s\n", g_szBlobFile);
+					g_bSteamFileSystem = true;
+					g_bSteamBlobSystem = true;
 				}
 				else
 				{
-					if (strcmp(g_szOLDLanguage,"unset") == 0)
+					g_bSteamBlobSystem = false;
+
+					if (_stat(g_szAppIni, &filestat) == 0)
 					{
-						strcpy(g_szOLDLanguage,"English");
-						strcpy(g_szLanguage,g_szOLDLanguage);
-					}
-					else
-					{
-						strcpy(g_szLanguage,g_szOLDLanguage);
-					}
-				}
-
-				_strlwr(g_szLanguage);
-
-				setRegistry("Software\\Valve\\Steam","Language",g_szLanguage); 
-
-				if (bLogging) Logger->Write("Steam language initialized (%s)\n", g_szLanguage);
-
-				if(char* GCFEnable = Ini->IniReadValue("Emulator", "CacheEnabled")) 
-				{
-					if (_stricmp(GCFEnable, "True") == 0) 
-					{
-						if (char* Path = Ini->IniReadValue("Emulator", "CachePath"))
-						{
-							strcpy(g_szGCFPath, Path);
-							delete[] Path;
-						}
-						else
-						{
-							g_szGCFPath[0] = '\0';
-						}
-
-						if (char* Path = Ini->IniReadValue("Emulator", "CDRPath"))
-				        {
-					        strcpy(g_szCDRFile, Path);
-					        delete[] Path;
-				        }
-				        else
-				        {
-					        strcpy(g_szCDRFile, szSteamDLLPath);
-					        strcat(g_szCDRFile, "cdr.bin");
-				        }
-
-				        strcpy(g_szBlobFile, szSteamDLLPath);
-				        strcat(g_szBlobFile, "ClientRegistry.Blob");
-
-						struct _stat filestat;
-				        if (_stat(g_szCDRFile, &filestat) == 0)
-				        {
-					        if (bLogging) Logger->Write("Cache support initialized via %s\n", g_szCDRFile);
-					        g_bSteamFileSystem = true;
-					        g_bSteamBlobSystem = true;
-							g_bRawCDR = true;
-						}
-						else if (_stat(g_szBlobFile, &filestat) == 0)
-						{		
-							if (bLogging) Logger->Write("Cache support initialized via %s\n",g_szBlobFile);
-							g_bSteamFileSystem = true;
-							g_bSteamBlobSystem = true;
-						}
-						else
-						{
-							g_bSteamBlobSystem = false;
-
-							if (_stat(g_szAppIni, &filestat) == 0)
-							{
-								if (bLogging) Logger->Write("Cache support initialized via revApps.Ini\n");
-								g_bSteamFileSystem = true;
-							}
-							else
-							{
-								g_bSteamFileSystem = false;
-								if (bLogging) Logger->Write("Cache support was not initialized. No ClientRegistry.Blob and No RevSteamApps.ini were found!\n");
-							}
-						} 
-
-						if (g_bSteamFileSystem == true)
-						{
-							char *pch = strtok(g_szGCFPath, " ");
-							while (pch != NULL)
-							{
-								g_CacheLocations.push_back(pch);
-								pch = strtok(NULL, " ");
-							}
-
-							if (g_CacheLocations.size() > 0)
-							{
-								if (bLogging) Logger->Write("-- Multiple cache locations detected\n");
-							}
-							else
-							{
-								g_bSteamFileSystem = false;
-								if (bLogging) Logger->Write("Cache support was not enabled as no valid GCF path was specified! Using extracted content only!\n");
-							}
-						}
+						if (bLogging) Logger->Write("Cache support initialized via revApps.Ini\n");
+						g_bSteamFileSystem = true;
 					}
 					else
 					{
 						g_bSteamFileSystem = false;
-						if (bLogging) Logger->Write("Cache support was not enabled. Using extracted content only!\n");
+						if (bLogging) Logger->Write("Cache support was not initialized. No ClientRegistry.Blob and No RevSteamApps.ini were found!\n");
 					}
-					delete[] GCFEnable;
 				}
 
-
-				if(char* SteamDll = Ini->IniReadValue("Emulator", "SteamDll"))
+				if (g_bSteamFileSystem == true)
 				{
-					strcpy(g_szOrigSteamDll, SteamDll);
-					g_bSteamDll = true;
-					delete[] SteamDll;
-				}
-				if(char* Misc = Ini->IniReadValue("Emulator", "ForceRevClient")) // Is other client emu allowed ?
-				{
-					if (_stricmp(Misc, "True") == 0) 
+					char* pch = strtok(g_szGCFPath, " ");
+					while (pch != NULL)
 					{
-						g_bAllowNonRev = false;
-						if (bLogging) Logger->Write("Non-REVive clients will not be allowed to join the server.\n");
-					} 
-					delete[] Misc;
-				}
-				if(g_bSteamDll) // is Original Steam DLL set ?
-				{
-					char buffer[255];
-					sprintf(buffer, "%p", LoadLibraryA(g_szOrigSteamDll));
-					if (!atoi(buffer)) 
-					{
-						char szErrMsg[255] = "Unable to load ";
-						strcat(szErrMsg, g_szOrigSteamDll);
-						strcat(szErrMsg, ". \nPlease edit or comment out SteamDll value in rev.ini");
-						MessageBoxA(0, szErrMsg, "Error", 0);
-						ExitProcess(1);
+						g_CacheLocations.push_back(pch);
+						pch = strtok(NULL, " ");
 					}
-					if (bLogging) Logger->Write("-- Original Steam.dll set: %s (0x%s)\n", g_szOrigSteamDll, buffer);
-				}
 
-				if (char* CompatMode = Ini->IniReadValue("Emulator", "CompatibilityMode"))
-				{
-					if (_stricmp(CompatMode, "2003") == 0)
+					if (g_CacheLocations.size() > 0)
 					{
-						g_eCompatMode = REV_COMPAT_2003;
+						if (bLogging) Logger->Write("-- Multiple cache locations detected\n");
 					}
-					delete[] CompatMode;
+					else
+					{
+						g_bSteamFileSystem = false;
+						if (bLogging) Logger->Write("Cache support was not enabled as no valid GCF path was specified! Using extracted content only!\n");
+					}
 				}
+			}
+			else
+			{
+				g_bSteamFileSystem = false;
+				if (bLogging) Logger->Write("Cache support was not enabled. Using extracted content only!\n");
+			}
+			delete[] GCFEnable;
+		}
+
+		if (char* SteamDll = Ini->IniReadValue("Emulator", "SteamDll"))
+		{
+			strcpy(g_szOrigSteamDll, SteamDll);
+			g_bSteamDll = true;
+			delete[] SteamDll;
+		}
+		if (char* Misc = Ini->IniReadValue("Emulator", "ForceRevClient")) // Is other client emu allowed ?
+		{
+			if (_stricmp(Misc, "True") == 0)
+			{
+				g_bAllowNonRev = false;
+				if (bLogging) Logger->Write("Non-REVive clients will not be allowed to join the server.\n");
+			}
+			delete[] Misc;
+		}
+		if (g_bSteamDll) // is Original Steam DLL set ?
+		{
+			char buffer[255];
+			sprintf(buffer, "%p", LoadLibraryA(g_szOrigSteamDll));
+			if (!atoi(buffer))
+			{
+				char szErrMsg[255] = "Unable to load ";
+				strcat(szErrMsg, g_szOrigSteamDll);
+				strcat(szErrMsg, ". \nPlease edit or comment out SteamDll value in rev.ini");
+				MessageBoxA(0, szErrMsg, "Error", 0);
+				ExitProcess(1);
+			}
+			if (bLogging) Logger->Write("-- Original Steam.dll set: %s (0x%s)\n", g_szOrigSteamDll, buffer);
+		}
+
+		if (char* CompatMode = Ini->IniReadValue("Emulator", "CompatibilityMode"))
+		{
+			if (_stricmp(CompatMode, "2003") == 0)
+			{
+				g_eCompatMode = REV_COMPAT_2003;
+			}
+			delete[] CompatMode;
+		}
 
 		//
 		// Set the registry values required for steamclient.dll to be loaded
 		//
-				if(char* SteamClient = Ini->IniReadValue("Emulator", "SteamClient")) // Should we enable steamclient loading ?
-				{
-					if (_stricmp(SteamClient, "True") == 0) 
-					{
-						g_bSteamClient = true;
-						strcpy(chClientPath, szSteamDLLPath);
+		if (char* SteamClient = Ini->IniReadValue("Emulator", "SteamClient")) // Should we enable steamclient loading ?
+		{
+			if (_stricmp(SteamClient, "True") == 0)
+			{
+				g_bSteamClient = true;
+				strcpy(chClientPath, szSteamDLLPath);
 
-						char szExePath[MAX_PATH];
-						GetModuleFileNameA(NULL, szExePath, MAX_PATH);
-						const char* chProcName = V_GetFileName(szExePath);
-				
-						if (!_stricmp(chProcName, "hlds.exe") || !_stricmp(chProcName, "hl.exe")) strcat(chClientPath, "steamclient.dll");
-						else if (!_stricmp(chProcName, "srcds.exe") || !_stricmp(chProcName, "hl2.exe") || !_stricmp(chProcName, "sdklauncher.exe")) strcat(chClientPath, "bin\\steamclient.dll");
-						else strcat(chClientPath, "steamclient.dll");
-						
-						if (bLogging) Logger->Write("-- Using Steam Client: %s\n", chClientPath);
-						setRegistry("Software\\Valve\\Steam\\ActiveProcess","pid",GetCurrentProcessId()); 
-						setRegistry("Software\\Valve\\Steam\\ActiveProcess","SteamClientDll",chClientPath);
+				char szExePath[MAX_PATH];
+				GetModuleFileNameA(NULL, szExePath, MAX_PATH);
+				const char* chProcName = V_GetFileName(szExePath);
 
-						/*HMODULE hSteamApi = GetModuleHandleA("steam_api.dll");
-						if (hSteamApi && _stristr(chCmdLine, "left4dead"))
-						{
-							FARPROC SteamAPI_Init = GetProcAddress(hSteamApi, "SteamAPI_Init");
-							SteamAPI_Init();
-							if (bLogging) Logger->Write("-- Using Steam Client: %s\n", chClientPath);
-						}*/
-					} 
-					delete[] SteamClient;
-				}
+				if (!_stricmp(chProcName, "hlds.exe") || !_stricmp(chProcName, "hl.exe"))
+					strcat(chClientPath, "steamclient.dll");
+				else if (!_stricmp(chProcName, "srcds.exe") || !_stricmp(chProcName, "hl2.exe") || !_stricmp(chProcName, "sdklauncher.exe"))
+					strcat(chClientPath, "bin\\steamclient.dll");
+				else
+					strcat(chClientPath, "steamclient.dll");
 
-				delete Ini;
-
-				//
-				// Initialize the unique User ID used to authenticate with game server
-				//
-				DWORD serialNumber;
-				GetVolumeInformationA(NULL, NULL, NULL, &serialNumber, NULL, NULL, NULL, NULL);
-				g_SteamID.Set(serialNumber, k_EUniversePublic, k_EAccountTypeIndividual);
-			} else {
-				ExitProcess(0);
+				if (bLogging) Logger->Write("-- Using Steam Client: %s\n", chClientPath);
+				setRegistry("Software\\Valve\\Steam\\ActiveProcess", "pid", GetCurrentProcessId());
+				setRegistry("Software\\Valve\\Steam\\ActiveProcess", "SteamClientDll", chClientPath);
 			}
+			delete[] SteamClient;
+		}
 
-			LocalFree(szArgList);
+		delete Ini;
+
+		//
+		// Initialize the unique User ID used to authenticate with game server
+		//
+		DWORD serialNumber;
+		GetVolumeInformationA(NULL, NULL, NULL, &serialNumber, NULL, NULL, NULL, NULL);
+		g_SteamID.Set(serialNumber, k_EUniversePublic, k_EAccountTypeIndividual);
+	}
+	else
+	{
+		ExitProcess(0);
+	}
+
+	LocalFree(szArgList);
 }
 
 SteamHandle_t NewSteamHandle()
