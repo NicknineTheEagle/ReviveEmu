@@ -255,7 +255,7 @@ class CCacheFileSystem
 
 			if (uActualDataToRead != uReadedData)
 			{
-				//set errno
+				// EOF reached
 				break;
 			}
 
@@ -273,25 +273,19 @@ class CCacheFileSystem
 		FILE* fCacheFile = hCacheFile->fCacheFile;
 		TManifestEntriesInCache* hFileInCache = hFile->FileInCache;
 
-		int retval = 0;
+		if (hFile->Position >= hFileInCache->Size) // EOF
+			return 0;
 
 		if (hFile->Position + uSize > hFileInCache->Size)
 			uSize = hFileInCache->Size - hFile->Position;
 
-		if (uSize > 0)
-		{
-			//long lReadPosition = hCacheFile->Sectors->Header->FirstSectorOffset + (hFileInCache->Sectors[iSectorIndex] * hCacheFile->Sectors->Header->PhysicalSectorSize) + uOffset;
-			__int64 lReadPosition = (__int64)hCacheFile->Sectors->Header->FirstSectorOffset +
-			                        (__int64)(hFileInCache->Sectors[iSectorIndex]) * (__int64)(hCacheFile->Sectors->Header->PhysicalSectorSize) +
-			                        (__int64)uOffset;
-			//if(fseek(fCacheFile, lReadPosition, SEEK_SET))
-			if (_fseeki64(fCacheFile, lReadPosition, SEEK_SET))
-				return retval;
+		__int64 lReadPosition = (__int64)hCacheFile->Sectors->Header->FirstSectorOffset +
+		                        (__int64)(hFileInCache->Sectors[iSectorIndex]) * (__int64)(hCacheFile->Sectors->Header->PhysicalSectorSize) +
+		                        (__int64)uOffset;
+		if (_fseeki64(fCacheFile, lReadPosition, SEEK_SET))
+			return 0;
 
-			retval = fread(pvBuff, 1, uSize, fCacheFile);
-		}
-
-		return retval;
+		return fread(pvBuff, 1, uSize, fCacheFile);
 	}
 
 	unsigned int ReadText(void* pBuf, unsigned int uSize, unsigned int uCount, TFileInCacheHandle* hFile)
@@ -312,7 +306,7 @@ class CCacheFileSystem
 
 		while (uReadedDataAmount < uTotalDataToRead)
 		{
-			if (hFile->Position == hFileInCache->Size) // EOF
+			if (hFile->Position >= hFileInCache->Size) // EOF
 				break;
 
 			if (BufferedSectorIndex != uActualSectorIndex)
@@ -327,8 +321,8 @@ class CCacheFileSystem
 			unsigned int uOffset = hFile->Position % hCacheFile->Sectors->Header->PhysicalSectorSize;
 			unsigned int uActualDataToRead = min(uTotalDataToRead - uReadedDataAmount,
 				hCacheFile->Sectors->Header->PhysicalSectorSize - uOffset);
-			unsigned int uDataAvailableToRead = min(hCacheFile->Sectors->Header->PhysicalSectorSize - uOffset,
-				hFileInCache->Size - hFile->Position);
+			unsigned int uDataAvailableToRead = min(hFileInCache->Size - hFile->Position,
+				hCacheFile->Sectors->Header->PhysicalSectorSize - uOffset);
 
 			unsigned int uReadedCharacters = 0;
 
@@ -365,18 +359,12 @@ class CCacheFileSystem
 		FILE* fCacheFile = hCacheFile->fCacheFile;
 		TManifestEntriesInCache* hFileInCache = hFile->FileInCache;
 
-		int retval = 0;
-
-		//long lReadPosition = hCacheFile->Sectors->Header->FirstSectorOffset + (hFileInCache->Sectors[iSectorIndex] * hCacheFile->Sectors->Header->PhysicalSectorSize);
 		__int64 lReadPosition = (__int64)hCacheFile->Sectors->Header->FirstSectorOffset +
 		                        (__int64)(hFileInCache->Sectors[iSectorIndex]) * (__int64)(hCacheFile->Sectors->Header->PhysicalSectorSize);
-		//if(fseek(fCacheFile, lReadPosition, SEEK_SET))
 		if (_fseeki64(fCacheFile, lReadPosition, SEEK_SET))
-			return retval;
+			return 0;
 
-		retval = fread(pvBuff, 1, uSize, fCacheFile);
-
-		return retval;
+		return fread(pvBuff, 1, uSize, fCacheFile);
 	}
 
 	int CacheSeekFile(TFileInCacheHandle* hFile, long lOffset, ESteamSeekMethod esMethod)
@@ -386,14 +374,14 @@ class CCacheFileSystem
 		switch (esMethod)
 		{
 		case eSteamSeekMethodSet:
-			if (lOffset <= (long)hFile->FileInCache->Size)
+			if (lOffset >= 0)
 			{
 				hFile->Position = lOffset;
 				retval = 0;
 			}
 			break;
 		case eSteamSeekMethodCur:
-			if ((hFile->Position + lOffset) >= 0 && (hFile->Position + lOffset) <= hFile->FileInCache->Size)
+			if (((long)hFile->Position + lOffset) >= 0)
 			{
 				hFile->Position += lOffset;
 				retval = 0;
