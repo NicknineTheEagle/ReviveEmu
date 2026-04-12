@@ -390,7 +390,7 @@ STEAM_API unsigned int SteamReadFile(void* pBuf, unsigned int uSize, unsigned in
 {
 	ENTER_CRITICAL_SECTION;
 
-	//if (bLogging && bLogFS) Logger->Write("SteamReadFile (0x%p, %u, %u, 0x%08X)\n", pBuf, uSize, uCount, (long)hFile);
+	//if (bLogging && bLogFS) Logger->Write("SteamReadFile (0x%p, %u, %u, 0x%08X)\n", pBuf, uSize, uCount, hFile);
 
 	SteamClearError(pError);
 
@@ -430,7 +430,7 @@ STEAM_API int SteamCloseFile(SteamHandle_t hFile, TSteamError* pError)
 {
 	ENTER_CRITICAL_SECTION;
 
-	if (bLogging && bLogFS) Logger->Write("SteamCloseFile (0x%08X)\n", (long)hFile);
+	if (bLogging && bLogFS) Logger->Write("SteamCloseFile (0x%08X)\n", hFile);
 
 	SteamClearError(pError);
 
@@ -675,7 +675,7 @@ STEAM_API int SteamFlushFile(SteamHandle_t hFile, TSteamError* pError)
 {
 	ENTER_CRITICAL_SECTION;
 
-	if (bLogging && bLogFS) Logger->Write("SteamFlushFile (0x%08X)\n", (long)hFile);
+	if (bLogging && bLogFS) Logger->Write("SteamFlushFile (0x%08X)\n", hFile);
 
 	SteamClearError(pError);
 
@@ -689,7 +689,7 @@ STEAM_API int SteamFlushFile(SteamHandle_t hFile, TSteamError* pError)
 	else
 	{
 		// Should never happen.
-		if (bLogging && bLogFS) Logger->Write("\tTried to flush cache file (0x%08X)\n", (long)hFile);
+		if (bLogging && bLogFS) Logger->Write("\tTried to flush cache file (0x%08X)\n", hFile);
 		pError->eSteamError = eSteamErrorAccessDenied;
 	}
 
@@ -700,7 +700,7 @@ STEAM_API int SteamGetc(SteamHandle_t hFile, TSteamError* pError)
 {
 	ENTER_CRITICAL_SECTION;
 
-	if (bLogging && bLogFS) Logger->Write("SteamGetc (0x%08X)\n", (long)hFile);
+	if (bLogging && bLogFS) Logger->Write("SteamGetc (0x%08X)\n", hFile);
 
 	SteamClearError(pError);
 
@@ -754,7 +754,7 @@ STEAM_API int SteamPutc(int cChar, SteamHandle_t hFile, TSteamError* pError)
 {
 	ENTER_CRITICAL_SECTION;
 
-	if (bLogging && bLogFS) Logger->Write("SteamPutc (%u, 0x%08X)\n", cChar, (long)hFile);
+	if (bLogging && bLogFS) Logger->Write("SteamPutc (%u, 0x%08X)\n", cChar, hFile);
 
 	SteamClearError(pError);
 
@@ -768,7 +768,7 @@ STEAM_API int SteamPutc(int cChar, SteamHandle_t hFile, TSteamError* pError)
 	else
 	{
 		// Should never happen.
-		if (bLogging && bLogFS) Logger->Write("\tTried to write to cache file!!! (0x%08X)\n", (long)hFile);
+		if (bLogging && bLogFS) Logger->Write("\tTried to write to cache file!!! (0x%08X)\n", hFile);
 		pError->eSteamError = eSteamErrorAccessDenied;
 	}
 
@@ -779,7 +779,7 @@ STEAM_API int SteamSeekFile(SteamHandle_t hFile, long lOffset, ESteamSeekMethod 
 {
 	ENTER_CRITICAL_SECTION;
 
-	if (bLogging && bLogFS) Logger->Write("SteamSeekFile (0x%08X, %u, %u)\n", (long)hFile, lOffset, esMethod);
+	if (bLogging && bLogFS) Logger->Write("SteamSeekFile (0x%08X, %u, %u)\n", hFile, lOffset, esMethod);
 
 	SteamClearError(pError);
 
@@ -791,7 +791,7 @@ STEAM_API int SteamSeekFile(SteamHandle_t hFile, long lOffset, ESteamSeekMethod 
 		retval = fseek(hCacheFile->LocalFile, lOffset, esMethod);
 		if (retval != 0)
 		{
-			if (bLogging && bLogFS) Logger->Write("\tLocal seek failed (0x%08X)\n", (long)hFile);
+			if (bLogging && bLogFS) Logger->Write("\tLocal seek failed (0x%08X)\n", hFile);
 		}
 	}
 	else
@@ -799,7 +799,7 @@ STEAM_API int SteamSeekFile(SteamHandle_t hFile, long lOffset, ESteamSeekMethod 
 		retval = g_CacheManager->CacheSeekFile(hCacheFile, lOffset, esMethod);
 		if (retval != 0)
 		{
-			if (bLogging && bLogFS) Logger->Write("\tCache seek failed (0x%08X)\n", (long)hFile);
+			if (bLogging && bLogFS) Logger->Write("\tCache seek failed (0x%08X)\n", hFile);
 		}
 	}
 
@@ -810,7 +810,7 @@ STEAM_API unsigned int SteamWriteFile(const void* pBuf, unsigned int uSize, unsi
 {
 	ENTER_CRITICAL_SECTION;
 
-	if (bLogging && bLogFS) Logger->Write("SteamWriteFile (0x%p, %u, %u, 0x%08X)\n", pBuf, uSize, uCount, (long)hFile);
+	if (bLogging && bLogFS) Logger->Write("SteamWriteFile (0x%p, %u, %u, 0x%08X)\n", pBuf, uSize, uCount, hFile);
 
 	SteamClearError(pError);
 
@@ -822,13 +822,13 @@ STEAM_API unsigned int SteamWriteFile(const void* pBuf, unsigned int uSize, unsi
 		writeamount = fwrite(pBuf, uSize, uCount, hCacheFile->LocalFile);
 		if (writeamount < uCount)
 		{
-			if (bLogging && bLogFS) Logger->Write("\tWrite failed (0x%08X)\n", (long)hFile);
+			if (bLogging && bLogFS) Logger->Write("\tWrite failed (0x%08X)\n", hFile);
 		}
 	}
 	else
 	{
 		// Should never happen.
-		if (bLogging && bLogFS) Logger->Write("\tTried to write to cache file!!! (0x%08X)\n", (long)hFile);
+		if (bLogging && bLogFS) Logger->Write("\tTried to write to cache file!!! (0x%08X)\n", hFile);
 		pError->eSteamError = eSteamErrorAccessDenied;
 	}
 
@@ -839,7 +839,7 @@ STEAM_API long SteamTellFile(SteamHandle_t hFile, TSteamError* pError)
 {
 	ENTER_CRITICAL_SECTION;
 
-	if (bLogging && bLogFS) Logger->Write("SteamTellFile (0x%08X)\n", (long)hFile);
+	if (bLogging && bLogFS) Logger->Write("SteamTellFile (0x%08X)\n", hFile);
 
 	SteamClearError(pError);
 
@@ -851,7 +851,7 @@ STEAM_API long SteamTellFile(SteamHandle_t hFile, TSteamError* pError)
 		retval = ftell(hCacheFile->LocalFile);
 		if (retval == -1)
 		{
-			if (bLogging && bLogFS) Logger->Write("\tLocal Tell failed (0x%08X)\n", (long)hFile);
+			if (bLogging && bLogFS) Logger->Write("\tLocal Tell failed (0x%08X)\n", hFile);
 		}
 	}
 	else
@@ -859,7 +859,7 @@ STEAM_API long SteamTellFile(SteamHandle_t hFile, TSteamError* pError)
 		retval = g_CacheManager->CacheTellFile(hCacheFile);
 		if (retval == -1)
 		{
-			if (bLogging && bLogFS) Logger->Write("\tCache Tell failed (0x%08X)\n", (long)hFile);
+			if (bLogging && bLogFS) Logger->Write("\tCache Tell failed (0x%08X)\n", hFile);
 		}
 	}
 
@@ -870,7 +870,7 @@ STEAM_API long SteamSizeFile(SteamHandle_t hFile, TSteamError* pError)
 {
 	ENTER_CRITICAL_SECTION;
 
-	if (bLogging && bLogFS) Logger->Write("SteamSizeFile (0x%08X)\n", (long)hFile);
+	if (bLogging && bLogFS) Logger->Write("SteamSizeFile (0x%08X)\n", hFile);
 
 	SteamClearError(pError);
 
@@ -974,7 +974,7 @@ STEAM_API int SteamPrintFile(SteamHandle_t hFile, TSteamError* pError, const cha
 {
 	ENTER_CRITICAL_SECTION;
 
-	if (bLogging && bLogFS) Logger->Write("SteamPrintFile (0x%08X)\n", (long)hFile);
+	if (bLogging && bLogFS) Logger->Write("SteamPrintFile (0x%08X)\n", hFile);
 
 	SteamClearError(pError);
 
@@ -991,7 +991,7 @@ STEAM_API int SteamPrintFile(SteamHandle_t hFile, TSteamError* pError, const cha
 	else
 	{
 		// Should never happen.
-		if (bLogging && bLogFS) Logger->Write("\tTried to write to cache file!!! (0x%08X)\n", (long)hFile);
+		if (bLogging && bLogFS) Logger->Write("\tTried to write to cache file!!! (0x%08X)\n", hFile);
 		pError->eSteamError = eSteamErrorAccessDenied;
 	}
 
@@ -1002,7 +1002,7 @@ STEAM_API int STEAM_CALL SteamSetvBuf(SteamHandle_t hFile, void* pBuf, ESteamBuf
 {
 	ENTER_CRITICAL_SECTION;
 
-	if (bLogging && bLogFS) Logger->Write("SteamSetvBuf (0x%08X, 0x%p, %u, %u)\n", (long)hFile, pBuf, eMethod, uBytes);
+	if (bLogging && bLogFS) Logger->Write("SteamSetvBuf (0x%08X, 0x%p, %u, %u)\n", hFile, pBuf, eMethod, uBytes);
 
 	SteamClearError(pError);
 
@@ -1025,7 +1025,7 @@ STEAM_API int STEAM_CALL SteamSetvBuf(SteamHandle_t hFile, void* pBuf, ESteamBuf
 	}
 	else
 	{
-		if (bLogging && bLogFS) Logger->Write("\tSteamSetvBuf not implemented for cache files (0x%08X)\n", (long)hFile);
+		if (bLogging && bLogFS) Logger->Write("\tSteamSetvBuf not implemented for cache files (0x%08X)\n", hFile);
 		pError->eSteamError = eSteamErrorUnknown;
 	}
 
