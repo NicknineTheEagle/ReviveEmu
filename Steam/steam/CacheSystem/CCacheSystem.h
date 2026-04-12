@@ -236,7 +236,7 @@ class CCacheFileSystem
 		CCache* hCacheFile = (CCache*)hFile->FileInCache->pCache;
 		TManifestEntriesInCache* hFileInCache = hFile->FileInCache;
 
-		unsigned char* szBuff = reinterpret_cast<unsigned char*>(pBuf);
+		char* szBuff = (char*)pBuf;
 		unsigned int uReadedDataAmount = 0;
 		unsigned int uTotalDataToRead = uSize * uCount;
 
@@ -245,9 +245,8 @@ class CCacheFileSystem
 		while (uReadedDataAmount < uTotalDataToRead)
 		{
 			unsigned int uOffset = hFile->Position % hCacheFile->Sectors->Header->PhysicalSectorSize;
-			unsigned int uActualDataToRead = ((hCacheFile->Sectors->Header->PhysicalSectorSize - uOffset) >= (uTotalDataToRead - uReadedDataAmount)
-			                                      ? (uTotalDataToRead - uReadedDataAmount)
-			                                      : (hCacheFile->Sectors->Header->PhysicalSectorSize - uOffset));
+			unsigned int uActualDataToRead = min(uTotalDataToRead - uReadedDataAmount,
+				hCacheFile->Sectors->Header->PhysicalSectorSize - uOffset);
 
 			unsigned int uReadedData = BinaryReadSector(uActualSectorIndex, szBuff, uOffset, uActualDataToRead, hFile);
 
@@ -303,11 +302,10 @@ class CCacheFileSystem
 		void* BufferedSector = new char[hCacheFile->Sectors->Header->PhysicalSectorSize];
 		unsigned int BufferedSectorIndex = UINT_MAX;
 
-		unsigned char* szBuff = reinterpret_cast<unsigned char*>(BufferedSector);
-		unsigned char* szBuffOut = reinterpret_cast<unsigned char*>(pBuf);
+		char* szBuff = (char*)BufferedSector;
+		char* szBuffOut = (char*)pBuf;
 		unsigned int uReadedDataAmount = 0;
 		unsigned int uReadedCharactersAmount = 0;
-		unsigned int uDataAvailableToRead = 0;
 		unsigned int uTotalDataToRead = uSize * uCount;
 
 		unsigned int uActualSectorIndex = hFile->Position / hCacheFile->Sectors->Header->PhysicalSectorSize;
@@ -327,12 +325,10 @@ class CCacheFileSystem
 			}
 
 			unsigned int uOffset = hFile->Position % hCacheFile->Sectors->Header->PhysicalSectorSize;
-			unsigned int uActualDataToRead = ((hCacheFile->Sectors->Header->PhysicalSectorSize - uOffset) > (uTotalDataToRead - uReadedDataAmount)
-			                                      ? (uTotalDataToRead - uReadedDataAmount)
-			                                      : (hCacheFile->Sectors->Header->PhysicalSectorSize - uOffset));
-
-			uDataAvailableToRead = hCacheFile->Sectors->Header->PhysicalSectorSize - uOffset;
-			if (uDataAvailableToRead > hFileInCache->Size - hFile->Position) uDataAvailableToRead = hFileInCache->Size - hFile->Position;
+			unsigned int uActualDataToRead = min(uTotalDataToRead - uReadedDataAmount,
+				hCacheFile->Sectors->Header->PhysicalSectorSize - uOffset);
+			unsigned int uDataAvailableToRead = min(hCacheFile->Sectors->Header->PhysicalSectorSize - uOffset,
+				hFileInCache->Size - hFile->Position);
 
 			unsigned int uReadedCharacters = 0;
 
@@ -342,8 +338,8 @@ class CCacheFileSystem
 
 				do
 				{
-					unsigned char ucChar = szBuff[uOffset + uReadedData];
-					if (ucChar != 0xD)
+					char ucChar = szBuff[uOffset + uReadedData];
+					if (ucChar != '\r')
 					{
 						szBuffOut[uReadedCharactersAmount + uReadedCharacters] = ucChar;
 						uReadedCharacters++;
