@@ -165,7 +165,7 @@ SteamHandle_t SteamOpenFile2(const char* cszFileName, const char* cszMode, int n
 {
 	ENTER_CRITICAL_SECTION;
 
-	if (bLogging && bLogFS) Logger->Write("SteamOpenFileEx (%s, %s, %u, 0x%p, 0x%p)\n", cszFileName, cszMode, nFlags, puFileSize, pbLocal);
+	if (bLogging && bLogFS) Logger->Write("SteamOpenFileEx (%s, %s, 0x%02X, 0x%p, 0x%p)\n", cszFileName, cszMode, nFlags, puFileSize, pbLocal);
 
 	SteamClearError(pError);
 
@@ -465,7 +465,7 @@ STEAM_API SteamHandle_t SteamFindFirst(const char* cszPattern, ESteamFindFilter 
 {
 	ENTER_CRITICAL_SECTION;
 
-	if (bLogging && bLogFS) Logger->Write("SteamFindFirst (%s, %u)\n", cszPattern, eFilter);
+	if (bLogging && bLogFS) Logger->Write("SteamFindFirst (%s, %d)\n", cszPattern, eFilter);
 
 	SteamClearError(pError);
 
@@ -754,7 +754,7 @@ STEAM_API int SteamPutc(int cChar, SteamHandle_t hFile, TSteamError* pError)
 {
 	ENTER_CRITICAL_SECTION;
 
-	if (bLogging && bLogFS) Logger->Write("SteamPutc (%u, 0x%08X)\n", cChar, hFile);
+	if (bLogging && bLogFS) Logger->Write("SteamPutc (%d, 0x%08X)\n", cChar, hFile);
 
 	SteamClearError(pError);
 
@@ -779,7 +779,7 @@ STEAM_API int SteamSeekFile(SteamHandle_t hFile, long lOffset, ESteamSeekMethod 
 {
 	ENTER_CRITICAL_SECTION;
 
-	if (bLogging && bLogFS) Logger->Write("SteamSeekFile (0x%08X, %u, %u)\n", hFile, lOffset, esMethod);
+	if (bLogging && bLogFS) Logger->Write("SteamSeekFile (0x%08X, %ld, %d)\n", hFile, lOffset, esMethod);
 
 	SteamClearError(pError);
 
@@ -1002,7 +1002,7 @@ STEAM_API int STEAM_CALL SteamSetvBuf(SteamHandle_t hFile, void* pBuf, ESteamBuf
 {
 	ENTER_CRITICAL_SECTION;
 
-	if (bLogging && bLogFS) Logger->Write("SteamSetvBuf (0x%08X, 0x%p, %u, %u)\n", hFile, pBuf, eMethod, uBytes);
+	if (bLogging && bLogFS) Logger->Write("SteamSetvBuf (0x%08X, 0x%p, %d, %u)\n", hFile, pBuf, eMethod, uBytes);
 
 	SteamClearError(pError);
 
