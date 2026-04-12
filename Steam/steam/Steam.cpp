@@ -153,6 +153,9 @@ void InitGlobalVaribles()
 		}
 	}
 
+	_snprintf(szEnvBuffer, sizeof(szEnvBuffer), "%u", g_uAppId);
+	SetEnvironmentVariableA("SteamAppId", szEnvBuffer);
+
 	char chLogFile[MAX_PATH];
 	char chIniFile[MAX_PATH];
 	char chClientPath[MAX_PATH];
