@@ -3,8 +3,9 @@
 class CLogFile
 {
 private:
-	FILE*	m_pLogFile;
-	char	m_filename[MAX_PATH];
+	FILE* m_pLogFile;
+	char m_filename[MAX_PATH];
+	std::mutex m_LogMutex;
 
 public:
 	CLogFile(char* strFile);

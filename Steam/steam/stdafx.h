@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <vector>
 #include <map>
+#include <mutex>
 
 #include <io.h>
 #include <direct.h>

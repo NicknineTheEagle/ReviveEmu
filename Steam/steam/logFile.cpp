@@ -10,10 +10,6 @@
 
 ////////////////////////////////////////////////////
 #include "stdafx.h"
-#include "CriticalSection.h"
-
-extern CRITICAL_SECTION g_CriticalSection;
-#define ENTER_CRITICAL_SECTION CEnterCriticalSection ECS(&g_CriticalSection)
 
 //	Constructor, open the logfile
 CLogFile::CLogFile(char* strFile)
@@ -37,7 +33,7 @@ CLogFile::~CLogFile()
 //	Write log info into the logfile, with printf like parameters support
 void CLogFile::Write(char*  pszFormat, ...)
 {
-	ENTER_CRITICAL_SECTION;
+	std::lock_guard<std::mutex> lock(m_LogMutex);
 
 	m_pLogFile = fopen(m_filename, "a");
 	if (!m_pLogFile)

@@ -35,10 +35,7 @@ char g_szAppIni[MAX_PATH];
 
 HMODULE g_hModule;
 
-#include "CriticalSection.h"
-
-CRITICAL_SECTION g_CriticalSection;
-static CInitCriticalSection s_InitCriticalSection(&g_CriticalSection);
+std::recursive_mutex g_GlobalMutex;
 
 #include "Steam.h"
 

@@ -163,7 +163,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="CriticalSection.cpp" />
     <ClCompile Include="IniFile.cpp" />
     <ClCompile Include="logFile.cpp" />
     <ClCompile Include="MurmurHash.cpp" />
@@ -289,7 +288,6 @@
     <ClInclude Include="CacheSystem\Cache\CCacheManifest.h" />
     <ClInclude Include="CacheSystem\Cache\CCacheSectors.h" />
     <ClInclude Include="CacheSystem\CCacheSystem.h" />
-    <ClInclude Include="CriticalSection.h" />
     <ClInclude Include="dbghelp.h" />
     <ClInclude Include="IniFile.h" />
     <ClInclude Include="ISteamInterface001.h" />

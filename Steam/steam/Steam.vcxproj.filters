@@ -84,9 +84,6 @@
     <ClCompile Include="SteamInterface006.cpp">
       <Filter>Source Files\SteamInterface</Filter>
     </ClCompile>
-    <ClCompile Include="CriticalSection.cpp">
-      <Filter>Source Files\SteamDLLAppsystem</Filter>
-    </ClCompile>
     <ClCompile Include="SteamDLLAppsystem.cpp">
       <Filter>Source Files\SteamDLLAppsystem</Filter>
     </ClCompile>
@@ -141,9 +138,6 @@
     <None Include="revApps.ini" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CriticalSection.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="dbghelp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
