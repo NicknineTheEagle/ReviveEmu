@@ -40,7 +40,7 @@ typedef ESteamError (STEAM_CALL *SteamProcessOngoingUserIDTicketValidationCall)(
 const char* GetUserIDString(const TSteamGlobalUserID& steamid)
 {
 	static char idstr[128];
-	_snprintf(idstr, sizeof(idstr) - 1, "STEAM_%u:%u:%u", (SteamInstanceID_t)steamid.m_SteamInstanceID,
+	V_sprintf_safe(idstr, "STEAM_%u:%u:%u", (SteamInstanceID_t)steamid.m_SteamInstanceID,
 	          (unsigned int)((SteamLocalUserID_t)steamid.m_SteamLocalUserID.Split.High32bits),
 	          (unsigned int)((SteamLocalUserID_t)steamid.m_SteamLocalUserID.Split.Low32bits));
 	idstr[sizeof(idstr) - 1] = '\0';

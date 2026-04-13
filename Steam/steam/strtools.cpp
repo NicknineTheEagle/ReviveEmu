@@ -72,6 +72,33 @@
 
 #include "strtools.h"
 
+#ifdef POSIX
+#define _stricmp stricmp
+#define strcmpi stricmp
+#define stricmp strcasecmp
+#define _vsnprintf vsnprintf
+#define _alloca alloca
+#ifdef _snprintf
+#undef _snprintf
+#endif
+#define _snprintf snprintf
+#define _chdir chdir
+#define _strnicmp strnicmp
+#define strnicmp strncasecmp
+#define _getcwd getcwd
+#define _snwprintf swprintf
+#define swprintf_s swprintf
+#define wcsicmp _wcsicmp
+#define _wcsicmp wcscmp
+#define _finite finite
+#define _tempnam tempnam
+#define _unlink unlink
+#define _access access
+#define _mkdir(dir) mkdir(dir, S_IRWXU | S_IRWXG | S_IRWXO)
+#define _wtoi(arg) wcstol(arg, NULL, 10)
+#define _wtoi64(arg) wcstoll(arg, NULL, 10)
+#endif
+
 #define Assert(_exp) ((void)0)
 #define AssertOnce(_exp) ((void)0)
 #define AssertMsg(_exp, _msg, ...) ((void)0)

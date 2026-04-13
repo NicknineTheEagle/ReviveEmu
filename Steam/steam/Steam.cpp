@@ -89,7 +89,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 		case DLL_PROCESS_ATTACH:
 			strcpy(g_szOLDLanguage,"unset");
 			getRegistryU("Software\\Valve\\Steam","Language",g_szOLDLanguage,MAX_PATH); 
-			_strlwr(g_szOLDLanguage);
+			V_strlower(g_szOLDLanguage);
 			g_hModule = hModule;
 			InitGlobalVaribles();
 			if (bLogging)Logger->Write("DllMain: DLL_PROCESS_ATTACH\n");
@@ -122,7 +122,7 @@ void InitGlobalVaribles()
 	LPWSTR* szArgList = CommandLineToArgvW(GetCommandLineW(), &nArgs);
 
 	char szRunFromPath[MAX_PATH];
-	_getcwd(szRunFromPath, MAX_PATH);
+	V_GetCurrentDirectory(szRunFromPath, MAX_PATH);
 
 	g_uAppId = 0;
 
@@ -153,7 +153,7 @@ void InitGlobalVaribles()
 		}
 	}
 
-	_snprintf(szEnvBuffer, sizeof(szEnvBuffer), "%u", g_uAppId);
+	V_sprintf_safe(szEnvBuffer, "%u", g_uAppId);
 	SetEnvironmentVariableA("SteamAppId", szEnvBuffer);
 
 	char chLogFile[MAX_PATH];
@@ -167,7 +167,7 @@ void InitGlobalVaribles()
 		bool bGotRelPath = V_MakeRelativePath(szSteamDLLPath, szRunFromPath, szRelDLLPath, MAX_PATH);
 
 		// HACK: If Steam.dll is in "bin" subdirectory, use the working dir for our config files.
-		if (bGotRelPath && _stricmp(szRelDLLPath, "bin\\steam.dll") == 0)
+		if (bGotRelPath && V_stricmp(szRelDLLPath, "bin\\steam.dll") == 0)
 		{
 			strcpy(szSteamDLLPath, szRunFromPath);
 		}
@@ -200,7 +200,7 @@ void InitGlobalVaribles()
 
 		if (char* Logging = Ini->IniReadValue("Emulator", "Logging")) // Is logging enabled ?
 		{
-			if (_stricmp(Logging, "True") == 0)
+			if (V_stricmp(Logging, "True") == 0)
 			{
 				bLogging = true;
 
@@ -223,7 +223,7 @@ void InitGlobalVaribles()
 		{
 			if (char* Logging = Ini->IniReadValue("Log", "FileSystem")) // Is FS logging enabled ?
 			{
-				if (_stricmp(Logging, "True") == 0)
+				if (V_stricmp(Logging, "True") == 0)
 				{
 					bLogFS = true;
 					if (bLogging) Logger->Write("FileSystem logging initialized.\n");
@@ -232,7 +232,7 @@ void InitGlobalVaribles()
 			}
 			if (char* Logging = Ini->IniReadValue("Log", "Account")) // Is Acc logging enabled ?
 			{
-				if (_stricmp(Logging, "True") == 0)
+				if (V_stricmp(Logging, "True") == 0)
 				{
 					bLogAcc = true;
 					if (bLogging) Logger->Write("Account logging initialized.\n");
@@ -241,7 +241,7 @@ void InitGlobalVaribles()
 			}
 			if (char* Logging = Ini->IniReadValue("Log", "UserID")) // Is UserID logging enabled ?
 			{
-				if (_stricmp(Logging, "True") == 0)
+				if (V_stricmp(Logging, "True") == 0)
 				{
 					bLogUserId = true;
 					if (bLogging) Logger->Write("UserID logging initialized.\n");
@@ -293,7 +293,7 @@ void InitGlobalVaribles()
 			}
 		}
 
-		_strlwr(g_szLanguage);
+		V_strlower(g_szLanguage);
 
 		setRegistry("Software\\Valve\\Steam", "Language", g_szLanguage);
 
@@ -301,7 +301,7 @@ void InitGlobalVaribles()
 
 		if (char* GCFEnable = Ini->IniReadValue("Emulator", "CacheEnabled"))
 		{
-			if (_stricmp(GCFEnable, "True") == 0)
+			if (V_stricmp(GCFEnable, "True") == 0)
 			{
 				if (char* Path = Ini->IniReadValue("Emulator", "CachePath"))
 				{
@@ -393,7 +393,7 @@ void InitGlobalVaribles()
 		}
 		if (char* Misc = Ini->IniReadValue("Emulator", "ForceRevClient")) // Is other client emu allowed ?
 		{
-			if (_stricmp(Misc, "True") == 0)
+			if (V_stricmp(Misc, "True") == 0)
 			{
 				g_bAllowNonRev = false;
 				if (bLogging) Logger->Write("Non-REVive clients will not be allowed to join the server.\n");
@@ -403,7 +403,7 @@ void InitGlobalVaribles()
 		if (g_bSteamDll) // is Original Steam DLL set ?
 		{
 			char buffer[255];
-			sprintf(buffer, "%p", LoadLibraryA(g_szOrigSteamDll));
+			V_sprintf_safe(buffer, "%p", LoadLibraryA(g_szOrigSteamDll));
 			if (!atoi(buffer))
 			{
 				char szErrMsg[255] = "Unable to load ";
@@ -417,7 +417,7 @@ void InitGlobalVaribles()
 
 		if (char* CompatMode = Ini->IniReadValue("Emulator", "CompatibilityMode"))
 		{
-			if (_stricmp(CompatMode, "2003") == 0)
+			if (V_stricmp(CompatMode, "2003") == 0)
 			{
 				g_eCompatMode = REV_COMPAT_2003;
 			}
@@ -429,7 +429,7 @@ void InitGlobalVaribles()
 		//
 		if (char* SteamClient = Ini->IniReadValue("Emulator", "SteamClient")) // Should we enable steamclient loading ?
 		{
-			if (_stricmp(SteamClient, "True") == 0)
+			if (V_stricmp(SteamClient, "True") == 0)
 			{
 				g_bSteamClient = true;
 				strcpy(chClientPath, szSteamDLLPath);
@@ -438,9 +438,9 @@ void InitGlobalVaribles()
 				GetModuleFileNameA(NULL, szExePath, MAX_PATH);
 				const char* chProcName = V_GetFileName(szExePath);
 
-				if (!_stricmp(chProcName, "hlds.exe") || !_stricmp(chProcName, "hl.exe"))
+				if (!V_stricmp(chProcName, "hlds.exe") || !V_stricmp(chProcName, "hl.exe"))
 					strcat(chClientPath, "steamclient.dll");
-				else if (!_stricmp(chProcName, "srcds.exe") || !_stricmp(chProcName, "hl2.exe") || !_stricmp(chProcName, "sdklauncher.exe"))
+				else if (!V_stricmp(chProcName, "srcds.exe") || !V_stricmp(chProcName, "hl2.exe") || !V_stricmp(chProcName, "sdklauncher.exe"))
 					strcat(chClientPath, "bin\\steamclient.dll");
 				else
 					strcat(chClientPath, "steamclient.dll");

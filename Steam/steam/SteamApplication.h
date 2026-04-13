@@ -1,3 +1,5 @@
+#pragma once
+
 extern bool g_bSteamStartup;
 extern unsigned int g_uRootAppId;
 
@@ -29,9 +31,9 @@ int GetFiles(const char* szSource, const char* szDest, int mode, const char* szM
 	strcpy(szCWD, szDest);
 
 #if 0
-	if(_getcwd(szCWD, sizeof(szCWD)))
+	if(V_GetCurrentDirectory(szCWD, sizeof(szCWD)))
 	{
-		_strlwr(szCWD);
+		V_strlower(szCWD);
 	}
 #endif
 
@@ -329,7 +331,7 @@ STEAM_API SteamCallHandle_t SteamLaunchApp(unsigned int uAppId, unsigned int uLa
 		V_StrLeft(szLaunchString, pos, FullPathToExe, MAX_PATH);
 
 		V_StrRight(FullPathToExe, 2, testExe, 10);
-		_strlwr(testExe);
+		V_strlower(testExe);
 
 		if (strcmp(testExe, "hl") == 0)
 		{
@@ -338,7 +340,7 @@ STEAM_API SteamCallHandle_t SteamLaunchApp(unsigned int uAppId, unsigned int uLa
 		else
 		{
 			V_StrRight(FullPathToExe, 3, testExe, 10);
-			_strlwr(testExe);
+			V_strlower(testExe);
 			if (strcmp(testExe, "hl2") == 0)
 			{
 				strcat(FullPathToExe, ".exe");
@@ -529,7 +531,7 @@ STEAM_API int SteamGetAppUserDefinedInfo(unsigned int uAppId, const char* cszPro
 				const char* recordKey = record.first;
 				const char* recordVal = record.second;
 
-				if (_stricmp(cszPropertyName, recordKey) == 0)
+				if (V_stricmp(cszPropertyName, recordKey) == 0)
 				{
 					size_t len = strlen(recordVal);
 

@@ -182,7 +182,7 @@ class CCacheFileSystem
 		}
 		else
 		{
-			_getcwd(szFullPath, MAX_PATH);
+			V_GetCurrentDirectory(szFullPath, MAX_PATH);
 		}
 
 		V_ComposeFileName(szFullPath, FileToExtract->FullName, szFullPath, MAX_PATH);
@@ -640,7 +640,7 @@ class CCacheFileSystem
 		char szBuf[MAX_PATH];
 		char szCWD[MAX_PATH];
 
-		if (!_getcwd(szCWD, MAX_PATH))
+		if (!V_GetCurrentDirectory(szCWD, MAX_PATH))
 			return false;
 
 		// Covert to lowercase for lookup.

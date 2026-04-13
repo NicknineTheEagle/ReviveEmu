@@ -130,15 +130,15 @@ private:
 				char* entrypath = new char[pathlength];
 				if (ExtraMountLength > 0)
 				{
-					_snprintf(entrypath, pathlength,"%s%s\\%s", ExtraMount, PathName, entryname);
+					V_snprintf(entrypath, pathlength,"%s%s\\%s", ExtraMount, PathName, entryname);
 				}
 				else
 				{
-					_snprintf(entrypath, pathlength,"%s\\%s", PathName, entryname);
+					V_snprintf(entrypath, pathlength,"%s\\%s", PathName, entryname);
 				}
 				DirectoryTable[i].Name = new char[length];
-				strcpy(DirectoryTable[i].Name, _strlwr(entryname));
-				DirectoryTable[i].FullName = _strlwr(entrypath);
+				strcpy(DirectoryTable[i].Name, V_strlower(entryname));
+				DirectoryTable[i].FullName = V_strlower(entrypath);
 				DirectoryTable[i].Size = Manifest->Entries[i].ItemSize;
 				DirectoryTable[i].FirstIndex = Manifest->Entries[i].FirstIndex;
 				DirectoryTable[i].NextIndex = Manifest->Entries[i].NextIndex;
@@ -154,15 +154,15 @@ private:
 				char* entrypath = new char[pathlength];
 				if (ExtraMountLength > 0)
 				{
-					_snprintf(entrypath, pathlength,"%s%s\\%s", ExtraMount, PathName, entryname);
+					V_snprintf(entrypath, pathlength,"%s%s\\%s", ExtraMount, PathName, entryname);
 				}
 				else
 				{
-					_snprintf(entrypath, pathlength,"%s\\%s", PathName, entryname);
+					V_snprintf(entrypath, pathlength,"%s\\%s", PathName, entryname);
 				}
 				DirectoryTable[i].Name = new char[length];
-				strcpy(DirectoryTable[i].Name, _strlwr(entryname));
-				DirectoryTable[i].FullName = _strlwr(entrypath);
+				strcpy(DirectoryTable[i].Name, V_strlower(entryname));
+				DirectoryTable[i].FullName = V_strlower(entrypath);
 				DirectoryTable[i].Size = Manifest->Entries[i].ItemSize;
 				DirectoryTable[i].Type = Manifest->Entries[i].Type;
 				DirectoryTable[i].FirstIndex = Manifest->Entries[i].FirstIndex;

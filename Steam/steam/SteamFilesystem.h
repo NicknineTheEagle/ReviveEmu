@@ -1,4 +1,4 @@
-#include "strtools.h"
+#pragma once
 
 extern unsigned int g_uRootAppId;
 extern CRITICAL_SECTION g_CriticalSection;
@@ -59,7 +59,7 @@ unsigned int GetAppIDFromName(char* szName)
 {
 	for (CAppRecord* pRecord : CDR->ApplicationRecords)
 	{
-		if (_stricmp(szName, pRecord->Name) == 0)
+		if (V_stricmp(szName, pRecord->Name) == 0)
 		{
 			return pRecord->AppId;
 		}
@@ -88,7 +88,7 @@ void MountFileSystemByID(unsigned int uId, const char* szExtraMount)
 		return;
 
 	strcpy(szGCF, CDR->ApplicationRecords[uId]->InstallDirName);
-	_strlwr(szGCF);
+	V_strlower(szGCF);
 	strcat(szGCF, ".gcf");
 
 	for (const char* cszLocation : g_CacheLocations)
@@ -130,7 +130,7 @@ void MountExtraLanguageCaches(unsigned int uAppId, const char* szMountLanguage, 
 
 	// Mount localization depot for the app if it exists.
 	char szLangDepot[MAX_PATH];
-	_snprintf(szLangDepot, MAX_PATH, "%s %s", CDR->ApplicationRecords[uAppRecord]->Name, szMountLanguage);
+	V_sprintf_safe(szLangDepot, "%s %s", CDR->ApplicationRecords[uAppRecord]->Name, szMountLanguage);
 	unsigned int uDepotId = GetAppIDFromName(szLangDepot);
 
 	if (uDepotId != UINT_MAX)
@@ -333,11 +333,11 @@ STEAM_API int SteamMountAppFilesystem(TSteamError* pError)
 			char* szGCF;
 			int i;
 
-			sprintf(szSection, "%d", g_uAppId);
+			V_sprintf_safe(szSection, "%d", g_uAppId);
 
 			for (i = 1; i < 50; i++)
 			{
-				sprintf(szKey, "GCF%d", i);
+				V_sprintf_safe(szKey, "GCF%d", i);
 				szGCF = AppIni.IniReadValue(szSection, szKey);
 
 				if (szGCF != NULL)

@@ -68,37 +68,6 @@ typedef wchar_t uchar32;
 	#define FMTFUNCTION( a, b )
 #endif
 
-#ifdef POSIX
-#define _stricmp stricmp
-#define strcmpi stricmp
-#define stricmp strcasecmp
-#define _vsnprintf vsnprintf
-#define _alloca alloca
-#ifdef _snprintf
-#undef _snprintf
-#endif
-#define _snprintf snprintf
-#define GetProcAddress dlsym
-#define _chdir chdir
-#define _strnicmp strnicmp
-#define strnicmp strncasecmp
-#define _getcwd getcwd
-#define _snwprintf swprintf
-#define swprintf_s swprintf
-#define wcsicmp _wcsicmp
-#define _wcsicmp wcscmp
-#define _finite finite
-#define _tempnam tempnam
-#define _unlink unlink
-#define _access access
-#define _mkdir(dir) mkdir( dir, S_IRWXU | S_IRWXG | S_IRWXO )
-#define _wtoi(arg) wcstol(arg, NULL, 10)
-#define _wtoi64(arg) wcstoll(arg, NULL, 10)
-
-//typedef uint32 HMODULE;
-//typedef void *HANDLE;
-#endif
-
 
 // Tag all printf style format strings with this
 #define PRINTF_FORMAT_STRING _Printf_format_string_

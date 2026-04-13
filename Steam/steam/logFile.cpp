@@ -47,7 +47,7 @@ void CLogFile::Write(char*  pszFormat, ...)
 	char	szLog[1024];
 	va_list argList;
 	va_start( argList, pszFormat );
-	vsprintf( szLog, pszFormat, argList );
+	V_vsprintf_safe( szLog, pszFormat, argList );
 	va_end( argList );
 
 	//Trancate if the file grow too large
@@ -61,11 +61,11 @@ void CLogFile::Write(char*  pszFormat, ...)
 	char szLine[1024];
 
 	// ido kijelzessel
-	sprintf(szLine, "%02d:%02d:%02d:%03d [%u\\%u]\t%s", 
+	V_sprintf_safe(szLine, "%02d:%02d:%02d:%03d [%u\\%u]\t%s", 
 		time.wHour, time.wMinute, time.wSecond, time.wMilliseconds,
 		GetCurrentProcessId(), GetCurrentThreadId(), szLog);
 
-	//sprintf(szLine, "%04d/%02d/%02d %02d:%02d:%02d:%03d \t%s", 
+	//V_sprintf_safe(szLine, "%04d/%02d/%02d %02d:%02d:%02d:%03d \t%s", 
 	//	time.wYear, time.wMonth, time.wDay,
 	//	time.wHour, time.wMinute, time.wSecond, time.wMilliseconds,
 	//	szLog);
