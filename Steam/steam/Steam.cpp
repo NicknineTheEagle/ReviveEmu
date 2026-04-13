@@ -48,7 +48,7 @@ CContentDescriptionRecord* CDR = NULL;
 
 #include "CacheSystem\CCacheSystem.h"	//Cache
 
-CCacheFileSystem *g_CacheManager;
+CCacheFileSystem *g_CacheManager = NULL;
 
 #include "SteamFilesystem.h"			//Filesystem
 #include "SteamApplication.h"			//App Functions
