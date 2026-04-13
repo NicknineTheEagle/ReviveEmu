@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include "dbghelp.h"
+#include <DbgHelp.h>
 
 typedef BOOL ( WINAPI* fnMiniDumpWriteDump )( IN HANDLE hProcess, IN DWORD ProcessId, IN HANDLE hFile, IN MINIDUMP_TYPE DumpType, IN CONST PMINIDUMP_EXCEPTION_INFORMATION ExceptionParam, OPTIONAL IN CONST PMINIDUMP_USER_STREAM_INFORMATION UserStreamParam, OPTIONAL IN CONST PMINIDUMP_CALLBACK_INFORMATION CallbackParam OPTIONAL );
 

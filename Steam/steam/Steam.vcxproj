@@ -288,7 +288,6 @@
     <ClInclude Include="CacheSystem\Cache\CCacheManifest.h" />
     <ClInclude Include="CacheSystem\Cache\CCacheSectors.h" />
     <ClInclude Include="CacheSystem\CCacheSystem.h" />
-    <ClInclude Include="dbghelp.h" />
     <ClInclude Include="IniFile.h" />
     <ClInclude Include="ISteamInterface001.h" />
     <ClInclude Include="ISteamInterface003.h" />

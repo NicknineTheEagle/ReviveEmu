@@ -138,9 +138,6 @@
     <None Include="revApps.ini" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="dbghelp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="IniFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
