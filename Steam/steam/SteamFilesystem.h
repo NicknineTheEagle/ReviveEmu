@@ -229,9 +229,9 @@ SteamHandle_t SteamOpenFile2(const char* cszFileName, const char* cszMode, int n
 
 STEAM_API int SteamMountFilesystem(unsigned int uAppId, const char* szMountPath, TSteamError* pError)
 {
-	if (bLogging) Logger->Write("SteamMountFilesystem (%u, %s)\n", uAppId, szMountPath);
-
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
+
+	if (bLogging) Logger->Write("SteamMountFilesystem (%u, %s)\n", uAppId, szMountPath);
 
 	if (CDR)
 	{
@@ -305,6 +305,8 @@ STEAM_API int SteamUnmountFilesystem(unsigned int uAppID, TSteamError* pError)
 
 STEAM_API int SteamMountAppFilesystem(TSteamError* pError)
 {
+	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
+
 	if (bLogging) Logger->Write("SteamMountAppFilesystem\n");
 
 	SteamClearError(pError);
