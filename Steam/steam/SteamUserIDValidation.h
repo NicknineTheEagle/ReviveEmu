@@ -20,8 +20,8 @@ struct TRevUserValidationHandle
 	ERevClientType eClientType;
 	TSteamGlobalUserID Steam2ID;
 	CSteamID Steam3ID;
-	unsigned int uClientIP;
-	unsigned int uClientLocalIP;
+	unsigned int uIP;
+	unsigned int uTicketIP;
 	SteamUserIDTicketValidationHandle_t LegitHandle;
 	ESteamError eReturnCode;
 };
@@ -60,16 +60,23 @@ STEAM_API ESteamError STEAM_CALL SteamGetEncryptedUserIDTicket(const void *pEncr
 		Logger->Write("\tTicket Size Address: 0x%p\n", pReceiveSizeOfEncryptedTicket);
 		Logger->Write("\tError Address: 0x%p\n", pError);
 	}
-	if (bLogging && bLogUserId) Logger->Write("\t---\n");
-	if (bLogging && bLogUserId) Logger->Write("\tSteamID: %llu\n", g_SteamID.ConvertToUint64());
 
-	struct TRevTicket sGetRevTicket;
-	sGetRevTicket.uSignature = REVTICKET_SIGNATURE;
-	sGetRevTicket.uVersion = REVTICKET_VERSION;
-	sGetRevTicket.ulSteamID = g_SteamID.ConvertToUint64();
-	sGetRevTicket.uLocalIP = 0; // TODO: Maybe set this?
-	memcpy(pOutputBuffer, &sGetRevTicket, sizeof(TRevTicket));
-	*pReceiveSizeOfEncryptedTicket = sizeof(TRevTicket);
+	TSteamGlobalUserID Steam2ID;
+	g_SteamID.ConvertToSteam2(&Steam2ID);
+	if (bLogging && bLogUserId) Logger->Write("\t---\n");
+	if (bLogging && bLogUserId) Logger->Write("\tSteamID: %s\n", GetUserIDString(Steam2ID));
+
+	uint32 uSignature = REVTICKET_SIGNATURE;
+	uint32 uVersion = REVTICKET_VERSION;
+	uint64 ulSteamID = g_SteamID.ConvertToUint64();
+	uint32 uIP = 0; // TODO: Maybe set this?
+
+	char* pBuf = (char*)pOutputBuffer;
+	memcpy(pBuf + 0x00, &uSignature, sizeof(uSignature));
+	memcpy(pBuf + 0x04, &uVersion, sizeof(uVersion));
+	memcpy(pBuf + 0x08, &ulSteamID, sizeof(ulSteamID));
+	memcpy(pBuf + 0x10, &uIP, sizeof(uIP));
+	*pReceiveSizeOfEncryptedTicket = REVTICKET_SIZE;
 
 	SteamClearError(pError);
 	return eSteamErrorNone;
@@ -178,23 +185,33 @@ STEAM_API ESteamError STEAM_CALL SteamStartValidatingUserIDTicket(void *pEncrypt
 
 	TRevUserValidationHandle* hRevHandle = new TRevUserValidationHandle();
 	memset(hRevHandle, 0, sizeof(TRevUserValidationHandle));
-	hRevHandle->uClientIP = ObservedClientIPAddr;
+	hRevHandle->uIP = ObservedClientIPAddr;
 
-	uint32 uCheckTicket = *(uint32*)pEncryptedUserIDTicketFromClient;
+	uint32 uCheckTicket;
+	memcpy(&uCheckTicket, pEncryptedUserIDTicketFromClient, sizeof(uCheckTicket));
+
 	if (uCheckTicket == REVTICKET_SIGNATURE)
 	{
 		// This is our auth ticket format.
 		if (bLogging && bLogUserId) Logger->Write("\t Client using REVive emulator.\n");
 
 		hRevHandle->eClientType = eClientRev;
-		const TRevTicket* pRevTicket = (TRevTicket*)pEncryptedUserIDTicketFromClient;
 
-		if (pRevTicket->uVersion == REVTICKET_VERSION)
+		char* pBuf = (char*)pEncryptedUserIDTicketFromClient;
+		uint32 uVersion;
+		memcpy(&uVersion, pBuf + 0x04, sizeof(uVersion));
+
+		if (uVersion == REVTICKET_VERSION)
 		{
-			if (uSizeOfEncryptedUserIDTicketFromClient == sizeof(TRevTicket))
+			if (uSizeOfEncryptedUserIDTicketFromClient == REVTICKET_SIZE)
 			{
-				hRevHandle->Steam3ID = pRevTicket->ulSteamID;
-				hRevHandle->uClientLocalIP = pRevTicket->uLocalIP;
+				uint64 uSteamID;
+				uint32 uIP;
+				memcpy(&uSteamID, pBuf + 0x08, sizeof(uSteamID));
+				memcpy(&uIP, pBuf + 0x10, sizeof(uIP));
+
+				hRevHandle->Steam3ID = uSteamID;
+				hRevHandle->uTicketIP = uIP;
 				hRevHandle->eReturnCode = eSteamErrorNone;
 			}
 			else
@@ -205,7 +222,7 @@ STEAM_API ESteamError STEAM_CALL SteamStartValidatingUserIDTicket(void *pEncrypt
 		}
 		else
 		{
-			if (bLogging && bLogUserId) Logger->Write("\t REVive auth ticket version %u not supported.\n", pRevTicket->uVersion);
+			if (bLogging && bLogUserId) Logger->Write("\t REVive auth ticket version %u not supported.\n", uVersion);
 			hRevHandle->eReturnCode = eSteamErrorInvalidUserIDTicket;
 		}
 	}
@@ -215,13 +232,39 @@ STEAM_API ESteamError STEAM_CALL SteamStartValidatingUserIDTicket(void *pEncrypt
 		if (bLogging && bLogUserId) Logger->Write("\t Client using legitimate Steam account.\n");
 
 		hRevHandle->eClientType = eClientLegitWrapper;
-		static_assert(sizeof(TSteam2WrapperTicket) == 32, "Size of steam2wrapper ticket is not 32 bytes");
-		const TSteam2WrapperTicket* pTicket = (TSteam2WrapperTicket*)pEncryptedUserIDTicketFromClient;
 
-		if (uSizeOfEncryptedUserIDTicketFromClient == sizeof(TSteam2WrapperTicket))
+		// Wrapper's ticker is stored as a C struct, and C structs are not at all guaranteed to be packed the same way
+		// across different platforms. So here's our portable way of unpacking it.
+		if (uSizeOfEncryptedUserIDTicketFromClient == STEAMTICKET_SIZE_WIN)
 		{
-			hRevHandle->Steam2ID = pTicket->SteamID;
-			hRevHandle->uClientLocalIP = pTicket->uLocalIP;
+			// Windows version.
+			char* pBuf = (char*)pEncryptedUserIDTicketFromClient;
+			uint16 uInstanceID;
+			uint64 uAccountID;
+			uint32 uIP;
+			memcpy(&uInstanceID, pBuf + 0x08, sizeof(uInstanceID));
+			memcpy(&uAccountID, pBuf + 0x10, sizeof(uAccountID));
+			memcpy(&uIP, pBuf + 0x18, sizeof(uIP));
+
+			hRevHandle->Steam2ID.m_SteamInstanceID = uInstanceID;
+			hRevHandle->Steam2ID.m_SteamLocalUserID.As64bits = uAccountID;
+			hRevHandle->uTicketIP = uIP;
+			hRevHandle->eReturnCode = eSteamErrorNone;
+		}
+		else if (uSizeOfEncryptedUserIDTicketFromClient == STEAMTICKET_SIZE_LINUX)
+		{
+			// Linux version. There are no Linux clients to ever send this but just in case.
+			char* pBuf = (char*)pEncryptedUserIDTicketFromClient;
+			uint16 uInstanceID;
+			uint64 uAccountID;
+			uint32 uIP;
+			memcpy(&uInstanceID, pBuf + 0x04, sizeof(uInstanceID));
+			memcpy(&uAccountID, pBuf + 0x08, sizeof(uAccountID));
+			memcpy(&uIP, pBuf + 0x10, sizeof(uIP));
+
+			hRevHandle->Steam2ID.m_SteamInstanceID = uInstanceID;
+			hRevHandle->Steam2ID.m_SteamLocalUserID.As64bits = uAccountID;
+			hRevHandle->uTicketIP = uIP;
 			hRevHandle->eReturnCode = eSteamErrorNone;
 		}
 		else
@@ -237,7 +280,7 @@ STEAM_API ESteamError STEAM_CALL SteamStartValidatingUserIDTicket(void *pEncrypt
 
 		hRevHandle->eClientType = eClientUnknown;
 		hRevHandle->Steam3ID.Set(ObservedClientIPAddr, k_EUniversePublic, k_EAccountTypeIndividual);
-		hRevHandle->uClientLocalIP = 0;
+		hRevHandle->uTicketIP = 0;
 		hRevHandle->eReturnCode = g_bAllowNonRev ? eSteamErrorNone : eSteamErrorInvalidUserIDTicket;
 	}
 
@@ -326,12 +369,12 @@ STEAM_API ESteamError STEAM_CALL SteamProcessOngoingUserIDTicketValidation(Steam
 		hRevHandle->Steam3ID.ConvertToSteam2(pReceiveValidSteamGlobalUserID);
 
 		if (bLogging && bLogUserId) Logger->Write("\t Received IP: %u -> %s\n",
-			hRevHandle->uClientIP,
+			hRevHandle->uIP,
 			GetUserIDString(*pReceiveValidSteamGlobalUserID));
 	}
 
 	if (pReceiveClientLocalIPAddr)
-		*pReceiveClientLocalIPAddr = hRevHandle->uClientLocalIP;
+		*pReceiveClientLocalIPAddr = hRevHandle->uTicketIP;
 
 	if (pOptionalReceiveSizeOfProofOfAuthenticationToken)
 		*pOptionalReceiveSizeOfProofOfAuthenticationToken = 0;
@@ -359,7 +402,8 @@ STEAM_API void STEAM_CALL SteamAbortOngoingUserIDTicketValidation(SteamUserIDTic
 	}
 
 	auto it = std::find(g_RevUserValidations.begin(), g_RevUserValidations.end(), hRevHandle);
-	if (it != g_RevUserValidations.end()) {
+	if (it != g_RevUserValidations.end())
+	{
 		delete hRevHandle;
 		g_RevUserValidations.erase(it);
 	}

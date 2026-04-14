@@ -44,38 +44,22 @@ static const unsigned char g_TicketKey[160] = {
 };
 
 // Auth ticket structures
-#pragma pack(push, 8)
+#define REVTICKET_SIGNATURE			0x52455646 // "REVF"
+#define REVTICKET_VERSION			3
+#define REVTICKET_SIZE				(4 + 4 + 8 + 4)
 
-#define REVTICKET_SIGNATURE     0x52455646 // "REVF"
-#define REVTICKET_VERSION       2
+#define STEAMTICKET_SIGNATURE		0x63845768
+#define STEAMTICKET_SIZE_WIN		0x20
+#define STEAMTICKET_SIZE_LINUX		0x18
 
-struct TRevTicket
+// For reference only
+struct Steam2WrapperTicket_s
 {
-	uint32 uSignature;
-	uint32 uVersion;
-	uint64 ulSteamID;
-	uint32 uLocalIP;
+	uint32 m_VersionID;
+	TSteamGlobalUserID m_UserID;
+	uint32 m_unPublicIP;
+	SteamUserIDTicketValidationHandle_t m_Handle;
 };
-
-struct TRevTicketV1
-{
-	uint32 uSignature;
-	uint32 uVersion;
-	uint32 uAccountID;
-	uint32 uLocalIP;
-};
-
-#define STEAMTICKET_SIGNATURE 0x63845768
-
-struct TSteam2WrapperTicket
-{
-	uint32 uSignature;
-	TSteamGlobalUserID SteamID;
-	uint32 uLocalIP;
-	uint32 uHandle;
-};
-
-#pragma pack(pop)
 
 enum ERevCompatMode
 {
@@ -83,7 +67,7 @@ enum ERevCompatMode
 	REV_COMPAT_NONE,
 };
 
-template <class T>
+template<class T>
 T min(T a, T b)
 {
 	return a < b ? a : b;
