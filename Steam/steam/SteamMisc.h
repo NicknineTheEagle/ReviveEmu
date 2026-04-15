@@ -144,7 +144,7 @@ STEAM_API int STEAM_CALL SteamFindServersIterateServer(ESteamServerType eSteamSe
 		int retval = 1;
 		strcpy(szServerAddress, "empty");
 		int (*fptr)(int, int, char*, unsigned int);
-		*(void **)(&fptr) = GetProcAddress(GetModuleHandleA(g_szOrigSteamDll), "SteamFindServersIterateServer");
+		*(void **)(&fptr) = GetProcAddress(g_hOrigSteamDll, "SteamFindServersIterateServer");
 		retval = (*fptr)(eSteamServerType, uIndex, szServerAddress, iServerAddressChars);
 		if (bLogging) Logger->Write("\t (%u, %u, %s, %u) %u\n", eSteamServerType, uIndex, szServerAddress, iServerAddressChars, retval);
 		return retval;
@@ -190,7 +190,7 @@ STEAM_API int STEAM_CALL SteamFindServersNumServers(ESteamServerType eSteamServe
 	{
 		int retval = 1;
 		int (*fptr)(unsigned int);
-		*(void **)(&fptr) = GetProcAddress(GetModuleHandleA(g_szOrigSteamDll), "SteamFindServersNumServers");
+		*(void **)(&fptr) = GetProcAddress(g_hOrigSteamDll, "SteamFindServersNumServers");
 		retval = (*fptr)(eSteamServerType);
 		if (bLogging) Logger->Write("\t (%u) %u\n", eSteamServerType, retval);
 		return retval;

@@ -9,7 +9,6 @@ CSteamID g_SteamID;
 unsigned int g_uAppId = 0;
 unsigned int g_uRootAppId = 0;
 bool g_bSteamDll = false;
-char g_szOrigSteamDll[MAX_PATH];
 bool g_bSteamClient = false;
 bool g_bAllowNonRev = true;
 ERevCompatMode g_eCompatMode = REV_COMPAT_NONE;
@@ -35,6 +34,7 @@ char g_szBlobFile[MAX_PATH];
 char g_szAppIni[MAX_PATH];
 
 HMODULE g_hModule;
+HMODULE g_hOrigSteamDll;
 
 std::recursive_mutex g_GlobalMutex;
 
@@ -145,6 +145,7 @@ void InitGlobalVariables()
 	char chIniFile[MAX_PATH];
 	char chClientPath[MAX_PATH];
 	char szSteamDLLPath[MAX_PATH];
+	char szOrigSteamDLLPath[MAX_PATH];
 
 	if (GetModuleFileNameA(g_hModule, szSteamDLLPath, MAX_PATH))
 	{
@@ -374,7 +375,7 @@ void InitGlobalVariables()
 
 		if (char* SteamDll = Ini->IniReadValue("Emulator", "SteamDll"))
 		{
-			strcpy(g_szOrigSteamDll, SteamDll);
+			strcpy(szOrigSteamDLLPath, SteamDll);
 			g_bSteamDll = true;
 			delete[] SteamDll;
 		}
@@ -389,17 +390,15 @@ void InitGlobalVariables()
 		}
 		if (g_bSteamDll) // is Original Steam DLL set ?
 		{
-			char buffer[255];
-			V_sprintf_safe(buffer, "%p", LoadLibraryA(g_szOrigSteamDll));
-			if (!atoi(buffer))
+			g_hOrigSteamDll = LoadLibraryA(szOrigSteamDLLPath);
+			if (!g_hOrigSteamDll)
 			{
-				char szErrMsg[255] = "Unable to load ";
-				strcat(szErrMsg, g_szOrigSteamDll);
-				strcat(szErrMsg, ". \nPlease edit or comment out SteamDll value in rev.ini");
+				char szErrMsg[255];
+				V_sprintf_safe(szErrMsg, "Unable to load %s\nPlease edit or comment out SteamDll value in rev.ini", szOrigSteamDLLPath);
 				MessageBoxA(0, szErrMsg, "Error", 0);
 				ExitProcess(1);
 			}
-			if (bLogging) Logger->Write("-- Original Steam.dll set: %s (0x%s)\n", g_szOrigSteamDll, buffer);
+			if (bLogging) Logger->Write("-- Original Steam.dll set: %s (0x%p)\n", szOrigSteamDLLPath, g_hOrigSteamDll);
 		}
 
 		if (char* CompatMode = Ini->IniReadValue("Emulator", "CompatibilityMode"))

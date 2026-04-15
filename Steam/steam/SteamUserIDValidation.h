@@ -5,7 +5,6 @@ extern bool bLogging;
 extern bool bLogUserId;
 extern bool g_bSteamDll;
 extern bool g_bAllowNonRev;
-extern char g_szOrigSteamDll[MAX_PATH];
 
 extern void InitGlobalVariables();
 
@@ -84,7 +83,6 @@ STEAM_API ESteamError STEAM_CALL SteamGetEncryptedUserIDTicket(const void *pEncr
 	return eSteamErrorNone;
 }
 
-
 STEAM_API ESteamError STEAM_CALL SteamInitializeUserIDTicketValidator(const char * pszOptionalPublicEncryptionKeyFilename, const char *	pszOptionalPrivateDecryptionKeyFilename, unsigned int ClientClockSkewToleranceInSeconds, unsigned int ServerClockSkewToleranceInSeconds, unsigned int MaxNumLoginsWithinClientClockSkewTolerancePerClient, unsigned int	HintPeakSimultaneousValidations, unsigned int AbortValidationAfterStallingForNProcessSteps)
 {
 // #ifdef DEBUG
@@ -97,7 +95,7 @@ STEAM_API ESteamError STEAM_CALL SteamInitializeUserIDTicketValidator(const char
 	{
 		ESteamError retval = eSteamErrorNone;
 		SteamInitializeUserIDTicketValidatorCall CallSteamInitializeUserIDTicketValidator;
-		CallSteamInitializeUserIDTicketValidator = (SteamInitializeUserIDTicketValidatorCall) GetProcAddress(GetModuleHandleA(g_szOrigSteamDll), "SteamInitializeUserIDTicketValidator");
+		CallSteamInitializeUserIDTicketValidator = (SteamInitializeUserIDTicketValidatorCall) GetProcAddress(g_hOrigSteamDll, "SteamInitializeUserIDTicketValidator");
 		retval = CallSteamInitializeUserIDTicketValidator(pszOptionalPublicEncryptionKeyFilename, pszOptionalPrivateDecryptionKeyFilename, ClientClockSkewToleranceInSeconds, ServerClockSkewToleranceInSeconds, MaxNumLoginsWithinClientClockSkewTolerancePerClient, HintPeakSimultaneousValidations, AbortValidationAfterStallingForNProcessSteps);
 		if (bLogging && bLogUserId) Logger->Write("\t %u\n", (int)retval);
 		return retval;
@@ -122,7 +120,7 @@ STEAM_API ESteamError STEAM_CALL SteamShutdownUserIDTicketValidator()
 	{
 		ESteamError retval = eSteamErrorNone;
 		ESteamError (*fptr)();
-		*(void **)(&fptr) = GetProcAddress(GetModuleHandleA(g_szOrigSteamDll), "SteamShutdownUserIDTicketValidator");
+		*(void **)(&fptr) = GetProcAddress(g_hOrigSteamDll, "SteamShutdownUserIDTicketValidator");
 		retval = (*fptr)();
 		if (bLogging && bLogUserId) Logger->Write("\t %u\n", (int)retval);
 		return retval;
@@ -141,7 +139,7 @@ STEAM_API const unsigned char* STEAM_CALL SteamGetEncryptionKeyToSendToNewClient
 	{
 		const unsigned char* retval;
 		const unsigned char* (*fptr)(unsigned int*);
-		*(void **)(&fptr) = GetProcAddress(GetModuleHandleA(g_szOrigSteamDll), "SteamGetEncryptionKeyToSendToNewClient");
+		*(void **)(&fptr) = GetProcAddress(g_hOrigSteamDll, "SteamGetEncryptionKeyToSendToNewClient");
 		retval = (*fptr)(pReceiveSizeOfEncryptionKey);
 		if (bLogging && bLogUserId) Logger->Write("\t 0x%p\n", retval);
 		return retval;
@@ -161,7 +159,7 @@ STEAM_API ESteamError STEAM_CALL SteamStartValidatingUserIDTicket(void *pEncrypt
 	{
 		SteamStartValidatingUserIDTicketCall StartValidating;
 		ESteamError retval = eSteamErrorNone;
-		StartValidating = (SteamStartValidatingUserIDTicketCall) GetProcAddress(GetModuleHandleA(g_szOrigSteamDll), "SteamStartValidatingUserIDTicket");
+		StartValidating = (SteamStartValidatingUserIDTicketCall) GetProcAddress(g_hOrigSteamDll, "SteamStartValidatingUserIDTicket");
 		retval = StartValidating(pEncryptedUserIDTicketFromClient, uSizeOfEncryptedUserIDTicketFromClient, ObservedClientIPAddr, pReceiveHandle);
 		if (bLogging && bLogUserId) Logger->Write("\t %u\n", (int)retval);
 
@@ -306,7 +304,7 @@ STEAM_API ESteamError STEAM_CALL SteamStartValidatingNewValveCDKey(void *pEncryp
 	{
 		ESteamError retval = eSteamErrorNone;
 		ESteamError (*fptr)(void*, unsigned int, unsigned int, struct sockaddr*, struct sockaddr*, SteamUserIDTicketValidationHandle_t*);
-		*(void **)(&fptr) = GetProcAddress(GetModuleHandleA(g_szOrigSteamDll), "SteamStartValidatingNewValveCDKey");
+		*(void **)(&fptr) = GetProcAddress(g_hOrigSteamDll, "SteamStartValidatingNewValveCDKey");
 		retval = (*fptr)(pEncryptedNewValveCDKeyFromClient, uSizeOfEncryptedNewValveCDKeyFromClient, ObservedClientIPAddr, pPrimaryValidateNewCDKeyServerSockAddr, pSecondaryValidateNewCDKeyServerSockAddr, pReceiveHandle);
 		if (bLogging && bLogUserId) Logger->Write("\t 0x%08X\n", (int)retval);
 
@@ -345,7 +343,7 @@ STEAM_API ESteamError STEAM_CALL SteamProcessOngoingUserIDTicketValidation(Steam
 	{
 		ESteamError retval = eSteamErrorNone;
 		ESteamError (*fptr)(SteamUserIDTicketValidationHandle_t, TSteamGlobalUserID*, unsigned int*, unsigned char*, size_t, size_t*);
-		*(void **)(&fptr) = GetProcAddress(GetModuleHandleA(g_szOrigSteamDll), "SteamProcessOngoingUserIDTicketValidation");
+		*(void **)(&fptr) = GetProcAddress(g_hOrigSteamDll, "SteamProcessOngoingUserIDTicketValidation");
 		retval = (*fptr)(hRevHandle->LegitHandle, pReceiveValidSteamGlobalUserID, pReceiveClientLocalIPAddr, pOptionalReceiveProofOfAuthenticationToken, SizeOfOptionalAreaToReceiveProofOfAuthenticationToken, pOptionalReceiveSizeOfProofOfAuthenticationToken);
 		if (bLogging && bLogUserId) Logger->Write("\t 0x%08X\n", (int)retval);
 		return retval;
@@ -400,7 +398,7 @@ STEAM_API void STEAM_CALL SteamAbortOngoingUserIDTicketValidation(SteamUserIDTic
 	if (g_bSteamDll && hRevHandle->eClientType == eClientLegit)
 	{
 		void (*fptr)(SteamUserIDTicketValidationHandle_t);
-		*(void **)(&fptr) = GetProcAddress(GetModuleHandleA(g_szOrigSteamDll), "SteamAbortOngoingUserIDTicketValidation");
+		*(void **)(&fptr) = GetProcAddress(g_hOrigSteamDll, "SteamAbortOngoingUserIDTicketValidation");
 		(*fptr)(hRevHandle->LegitHandle);
 		if (bLogging && bLogUserId) Logger->Write("\t returned.\n");
 	}
@@ -422,7 +420,7 @@ STEAM_API ESteamError STEAM_CALL SteamOptionalCleanUpAfterClientHasDisconnected(
 	{
 		ESteamError retval = eSteamErrorNone;
 		ESteamError (*fptr)(unsigned int, unsigned int);
-		*(void **)(&fptr) = GetProcAddress(GetModuleHandleA(g_szOrigSteamDll), "SteamOptionalCleanUpAfterClientHasDisconnected");
+		*(void **)(&fptr) = GetProcAddress(g_hOrigSteamDll, "SteamOptionalCleanUpAfterClientHasDisconnected");
 		retval = (*fptr)(ObservedClientIPAddr, ClientLocalIPAddr);
 		if (bLogging && bLogUserId) Logger->Write("\t %u\n", (int)retval);
 		return retval;
