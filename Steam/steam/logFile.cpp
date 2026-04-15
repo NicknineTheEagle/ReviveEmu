@@ -12,7 +12,7 @@
 #include "stdafx.h"
 
 //	Constructor, open the logfile
-CLogFile::CLogFile(char* strFile)
+CLogFile::CLogFile(const char* strFile)
 {
 	//AllocConsole();
 	strcpy(m_filename, strFile);
@@ -31,7 +31,7 @@ CLogFile::~CLogFile()
 }
 
 //	Write log info into the logfile, with printf like parameters support
-void CLogFile::Write(char*  pszFormat, ...)
+void CLogFile::Write(const char* pszFormat, ...)
 {
 	std::lock_guard<std::mutex> lock(m_LogMutex);
 
@@ -40,7 +40,7 @@ void CLogFile::Write(char*  pszFormat, ...)
 		return;
 
 	//write the formated log string to szLog
-	char	szLog[1024];
+	char szLog[1024];
 	va_list argList;
 	va_start( argList, pszFormat );
 	V_vsprintf_safe( szLog, pszFormat, argList );
@@ -52,7 +52,7 @@ void CLogFile::Write(char*  pszFormat, ...)
 	//			rewind(m_pLogFile);
 
 	//Get current time
-	SYSTEMTIME	time;
+	SYSTEMTIME time;
 	GetLocalTime(&time);
 	char szLine[1024];
 
@@ -71,6 +71,7 @@ void CLogFile::Write(char*  pszFormat, ...)
 	fclose(m_pLogFile);
 	//_cprintf(szLog);
 }
+
 void CLogFile::Clear()
 {
 	m_pLogFile = fopen(m_filename, "w");

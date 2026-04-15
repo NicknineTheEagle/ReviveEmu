@@ -8,9 +8,9 @@ private:
 	std::mutex m_LogMutex;
 
 public:
-	CLogFile(char* strFile);
+	CLogFile(const char* strFile);
 	~CLogFile();
 
-	void Write(char*  pszFormat, ...);
+	void Write(const char* pszFormat, ...);
 	void Clear();
 };
