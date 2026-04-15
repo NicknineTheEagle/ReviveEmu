@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "SteamCommon.h"
+#include "annotations.h"
 
 #ifdef _WIN64
 #define str_size unsigned int
@@ -44,66 +44,13 @@ typedef unsigned short uchar16;
 typedef wchar_t uchar32;
 #endif
 
-
 #if defined(_MSC_VER)
-	#define SELECTANY __declspec(selectany)
-	#define RESTRICT __restrict
-	#define RESTRICT_FUNC __declspec(restrict)
-	#define FMTFUNCTION( a, b )
+#define FMTFUNCTION( a, b )
 #elif defined(GNUC)
-	#define SELECTANY __attribute__((weak))
-	#if defined(LINUX) && !defined(DEDICATED)
-		#define RESTRICT
-	#else
-		#define RESTRICT __restrict
-	#endif
-	#define RESTRICT_FUNC
-	// squirrel.h does a #define printf DevMsg which leads to warnings when we try
-	// to use printf as the prototype format function. Using __printf__ instead.
-	#define FMTFUNCTION( fmtargnumber, firstvarargnumber ) __attribute__ (( format( __printf__, fmtargnumber, firstvarargnumber )))
+#define FMTFUNCTION( fmtargnumber, firstvarargnumber ) __attribute__ (( format( __printf__, fmtargnumber, firstvarargnumber )))
 #else
-	#define SELECTANY static
-	#define RESTRICT
-	#define RESTRICT_FUNC
-	#define FMTFUNCTION( a, b )
+#define FMTFUNCTION( a, b )
 #endif
-
-
-// Tag all printf style format strings with this
-#define PRINTF_FORMAT_STRING _Printf_format_string_
-#define SCANF_FORMAT_STRING _Scanf_format_string_impl_
-// Various macros for specifying the capacity of the buffer pointed
-// to by a function parameter. Variations include in/out/inout,
-// CAP (elements) versus BYTECAP (bytes), and null termination or
-// not (_Z).
-#define IN_Z _In_z_
-#define IN_CAP(x) _In_count_(x)
-#define IN_BYTECAP(x) _In_bytecount_(x)
-#define OUT_Z_CAP(x) _Out_z_cap_(x)
-#define OUT_CAP(x) _Out_cap_(x)
-#define OUT_CAP_C(x) _Out_cap_c_(x) // Output buffer with specified *constant* capacity in elements
-#define OUT_BYTECAP(x) _Out_bytecap_(x)
-#define OUT_Z_BYTECAP(x) _Out_z_bytecap_(x)
-#define INOUT_BYTECAP(x) _Inout_bytecap_(x)
-#define INOUT_Z_CAP(x) _Inout_z_cap_(x)
-#define INOUT_Z_BYTECAP(x) _Inout_z_bytecap_(x)
-// These macros are use for annotating array reference parameters, typically used in functions
-// such as V_strcpy_safe. Because they are array references the capacity is already known.
-#if _MSC_VER >= 1700
-#define IN_Z_ARRAY _Pre_z_
-#define OUT_Z_ARRAY _Post_z_
-#define INOUT_Z_ARRAY _Prepost_z_
-#else
-#define IN_Z_ARRAY _Deref_pre_z_
-#define OUT_Z_ARRAY _Deref_post_z_
-#define INOUT_Z_ARRAY _Deref_prepost_z_
-#endif // _MSC_VER >= 1700
-// Used for annotating functions to describe their return types.
-#define MUST_CHECK_RETURN _Check_return_
-// Use the macros above to annotate string functions that fill buffers as shown here,
-// in order to give VS's /analyze more opportunities to find bugs.
-// void V_wcsncpy( OUT_Z_BYTECAP(maxLenInBytes) wchar_t *pDest, wchar_t const *pSrc, int maxLenInBytes );
-// int V_snwprintf( OUT_Z_CAP(maxLenInCharacters) wchar_t *pDest, int maxLenInCharacters, PRINTF_FORMAT_STRING const wchar_t *pFormat, ... );
 
 //-----------------------------------------------------------------------------
 // Portable versions of standard string functions
@@ -211,8 +158,10 @@ const char*	V_strnistr( const char* pStr, const char* pSearch, int n );
 const char*	V_strnchr( const char* pStr, char c, int n );
 inline int V_strcasecmp (const char *s1, const char *s2) { return V_stricmp(s1, s2); }
 inline int V_strncasecmp (const char *s1, const char *s2, int n) { return V_strnicmp(s1, s2, n); }
+#ifdef _MSC_VER // TODO
 void		V_qsort_s( void *base, size_t num, size_t width, int ( __cdecl *compare )(void *, const void *,
 const void *), void *context );
+#endif
 
 
 // returns string immediately following prefix, (ie str+strlen(prefix)) or NULL if prefix not found

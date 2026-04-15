@@ -104,9 +104,9 @@
 #define AssertMsg(_exp, _msg, ...) ((void)0)
 #define AssertMsgOnce(_exp, _msg) ((void)0)
 
-FORCEINLINE void AssertValidReadPtr(const void* ptr, int count = 1) {}
-FORCEINLINE void AssertValidWritePtr(const void* ptr, int count = 1) {}
-FORCEINLINE void AssertValidReadWritePtr(const void* ptr, int count = 1) {}
+inline void AssertValidReadPtr(const void* ptr, int count = 1) {}
+inline void AssertValidWritePtr(const void* ptr, int count = 1) {}
+inline void AssertValidReadWritePtr(const void* ptr, int count = 1) {}
 #define AssertValidStringPtr AssertValidReadPtr
 
 static int FastToLower( char c )
@@ -2037,7 +2037,7 @@ bool V_ExtractFilePath (const char *path, char *dest, int destSize )
 //-----------------------------------------------------------------------------
 void V_ExtractFileExtension( const char *path, char *dest, int destSize )
 {
-	*dest = NULL;
+	*dest = '\0';
 	const char * extension = V_GetFileExtension( path );
 	if ( NULL != extension )
 		V_strncpy( dest, extension, destSize );
@@ -2845,6 +2845,7 @@ size_t Q_URLDecodeRaw( char *pchDecodeDest, int nDecodeDestLen, const char *pchE
 	return Q_URLDecodeInternal( pchDecodeDest, nDecodeDestLen, pchEncodedSource, nEncodedSourceLen, false );
 }
 
+#ifdef _MSC_VER // TODO
 #if defined( LINUX ) || defined( _PS3 )
 extern "C" void qsort_s( void *base, size_t num, size_t width, int (*compare )(void *, const void *, const void *), void * context );
 #endif
@@ -2858,6 +2859,7 @@ void V_qsort_s( void *base, size_t num, size_t width, int ( __cdecl *compare )(v
 	return qsort_s( base, num, width, compare, context );
 #endif
 }
+#endif
 
 //-----------------------------------------------------------------------------
 // Purpose: format the time and/or date with the user's current locale
