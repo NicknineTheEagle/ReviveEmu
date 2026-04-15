@@ -14,9 +14,11 @@
 #include <cstdio>
 #include <cstring>
 #include <cstdint>
+#include <cstdarg>
 #include <vector>
 #include <map>
 #include <mutex>
+#include <algorithm>
 
 #include <io.h>
 #include <direct.h>
@@ -26,5 +28,5 @@
 #define INCLUDED_STEAM2_USERID_STRUCTS
 #include "Steam3ID.h"
 #include "strtools.h"
-#include "iniFile.h"
+#include "IniFile.h"
 #include "logFile.h"
