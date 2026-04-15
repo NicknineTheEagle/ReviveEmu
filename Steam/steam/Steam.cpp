@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 
+bool g_bConfigLoaded = false;
 bool g_bSteamStartup = false;
 CSteamID g_SteamID;
 unsigned int g_uAppId = 0;
@@ -74,47 +75,34 @@ static bool inArgs(LPWSTR szArg, LPWSTR* cszArgList, int nArgs)
 	return false;
 }
 
-void InitGlobalVaribles();
-
-BOOL APIENTRY DllMain( HMODULE hModule,
-					   DWORD  ul_reason_for_call,
-					   LPVOID lpReserved
-					 )
+BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID /*lpvReserved*/)
 {
-	switch (ul_reason_for_call)
+	switch (fdwReason)
 	{
-		case DLL_PROCESS_ATTACH:
-			strcpy(g_szOLDLanguage,"unset");
-			getRegistryU("Software\\Valve\\Steam","Language",g_szOLDLanguage,MAX_PATH); 
-			V_strlower(g_szOLDLanguage);
-			g_hModule = hModule;
-			InitGlobalVaribles();
-			if (bLogging)Logger->Write("DllMain: DLL_PROCESS_ATTACH\n");
-			break;
+	case DLL_PROCESS_ATTACH:
+		g_hModule = hinstDLL;
+		break;
 
-		case DLL_THREAD_ATTACH:
-		
-			if (bLogging)Logger->Write("DllMain: DLL_THREAD_ATTACH\n");
-			break;
-	
-		case DLL_THREAD_DETACH:
-		
-			if (bLogging)Logger->Write("DllMain: DLL_THREAD_DETACH\n");
-			break;
-	
-		case DLL_PROCESS_DETACH:
-		
-			if (bLogging)Logger->Write("DllMain: DLL_PROCESS_DETACH\n");
-			setRegistry("Software\\Valve\\Steam","Language",g_szOLDLanguage); 
-			g_hModule = NULL;
-			break;
-	
+	case DLL_THREAD_ATTACH:
+		break;
+
+	case DLL_THREAD_DETACH:
+		break;
+
+	case DLL_PROCESS_DETACH:
+		g_hModule = NULL;
+		break;
 	}
 	return TRUE;
 }
 
-void InitGlobalVaribles()
+void InitGlobalVariables()
 {
+	if (g_bConfigLoaded)
+		return;
+
+	g_bConfigLoaded = true;
+
 	int nArgs;
 	LPWSTR* szArgList = CommandLineToArgvW(GetCommandLineW(), &nArgs);
 
@@ -267,6 +255,10 @@ void InitGlobalVaribles()
 		SetEnvironmentVariableA("SteamUser", g_szSteamUser);
 		if (bLogging) Logger->Write("Steam User set to %s\n", g_szSteamUser);
 
+		strcpy(g_szOLDLanguage, "unset");
+		getRegistryU("Software\\Valve\\Steam", "Language", g_szOLDLanguage, MAX_PATH);
+		V_strlower(g_szOLDLanguage);
+
 		if (char* CheckLang = Ini->IniReadValue("Emulator", "Language"))
 		{
 			strcpy(g_szLanguage, CheckLang);
@@ -291,8 +283,6 @@ void InitGlobalVaribles()
 		}
 
 		V_strlower(g_szLanguage);
-
-		setRegistry("Software\\Valve\\Steam", "Language", g_szLanguage);
 
 		if (bLogging) Logger->Write("Steam language initialized (%s)\n", g_szLanguage);
 

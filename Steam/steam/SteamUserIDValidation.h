@@ -7,6 +7,8 @@ extern bool g_bSteamDll;
 extern bool g_bAllowNonRev;
 extern char g_szOrigSteamDll[MAX_PATH];
 
+extern void InitGlobalVariables();
+
 enum ERevClientType
 {
 	eClientRev = 0,
@@ -88,6 +90,8 @@ STEAM_API ESteamError STEAM_CALL SteamInitializeUserIDTicketValidator(const char
 // #ifdef DEBUG
 	if (bLogging && bLogUserId) Logger->Write("SteamInitializeUserIDTicketValidator\n");
 // #endif
+
+	InitGlobalVariables();
 
 	if (g_bSteamDll)
 	{

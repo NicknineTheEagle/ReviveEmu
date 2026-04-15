@@ -10,6 +10,8 @@
 extern CLogFile* Logger;
 extern bool bLogging;
 
+extern void InitGlobalVariables();
+
 STEAM_API void* STEAM_CALL CreateInterface(const char* cszSteamDLLAppsystemInterfaceVersion, int* pReturnCode)
 {
 	if(bLogging) Logger->Write("CreateInterface(%s)\n", cszSteamDLLAppsystemInterfaceVersion); 
@@ -32,6 +34,8 @@ STEAM_API void* STEAM_CALL CreateInterface(const char* cszSteamDLLAppsystemInter
 
 STEAM_API void* STEAM_CALL _f(const char* cszSteamInterfaceVersion)
 {
+	InitGlobalVariables();
+
 	if(cszSteamInterfaceVersion != NULL)
 	{
 		if(bLogging) Logger->Write("Using Interface %s\n", cszSteamInterfaceVersion);

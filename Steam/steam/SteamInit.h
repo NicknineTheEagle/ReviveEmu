@@ -1,8 +1,12 @@
 #pragma once
 
+#include "registry.h"
+
 extern CLogFile* Logger;
 extern bool bLogging;
 extern bool g_bSteamStartup;
+
+extern void InitGlobalVariables();
 
 /*
 ** Initialization
@@ -24,39 +28,39 @@ STEAM_API int STEAM_CALL SteamStartup(unsigned int uUsingMask, TSteamError *pErr
 
 	if (!g_bSteamStartup)
 	{
-		if (uUsingMask & STEAM_USING_FILESYSTEM)
+		g_bSteamStartup = true;
+
+		InitGlobalVariables();
+		setRegistry("Software\\Valve\\Steam", "Language", g_szLanguage);
+
+		if (g_bSteamFileSystem)
 		{
-			g_bSteamStartup = true;
+			g_CacheManager = new CCacheFileSystem();
 
-			if (g_bSteamFileSystem)
+			if (g_bSteamBlobSystem)
 			{
-				g_CacheManager = new CCacheFileSystem();
-
-				if (g_bSteamBlobSystem)
+				if (g_bRawCDR)
 				{
-					if (g_bRawCDR)
+					CDR = CContentDescriptionRecord::LoadFromFile(g_szCDRFile);
+				}
+				else
+				{
+					CBlobFileSystem ClientRegistryBlob;
+					if (ClientRegistryBlob.Open(g_szBlobFile))
 					{
-						CDR = CContentDescriptionRecord::LoadFromFile(g_szCDRFile);
-					}
-					else
-					{
-						CBlobFileSystem ClientRegistryBlob;
-						if (ClientRegistryBlob.Open(g_szBlobFile))
+						CBlobNode* CDRNode = ClientRegistryBlob.GetNodeByPath("ContentDescriptionRecord");
+						if (CDRNode)
 						{
-							CBlobNode* CDRNode = ClientRegistryBlob.GetNodeByPath("ContentDescriptionRecord");
-							if (CDRNode)
-							{
-								CDR = new CContentDescriptionRecord(CDRNode->KeyValue->Value);
-							}
+							CDR = new CContentDescriptionRecord(CDRNode->KeyValue->Value);
 						}
 					}
+				}
 
-					if (!CDR)
-					{
-						if (bLogging) Logger->Write("	Error Locating CDR ... Advanced Steam Functions Disabled!\n");
-						if (bLogging) Logger->Write("	GCF Support from Ini file only!\n");
-						g_bSteamBlobSystem = false;
-					}
+				if (!CDR)
+				{
+					if (bLogging) Logger->Write("	Error Locating CDR ... Advanced Steam Functions Disabled!\n");
+					if (bLogging) Logger->Write("	GCF Support from Ini file only!\n");
+					g_bSteamBlobSystem = false;
 				}
 			}
 		}
@@ -72,22 +76,27 @@ STEAM_API int STEAM_CALL SteamCleanup(TSteamError *pError)
 // #endif
 	SteamClearError(pError);
 
-	if (g_bSteamFileSystem)
+	if (g_bSteamStartup)
 	{
-		if (g_CacheManager)
+		if (g_bSteamFileSystem)
 		{
-			delete g_CacheManager;
-			g_CacheManager = NULL;
+			if (g_CacheManager)
+			{
+				delete g_CacheManager;
+				g_CacheManager = NULL;
+			}
+
+			if (CDR)
+			{
+				delete CDR;
+				CDR = NULL;
+			}
 		}
 
-		if (CDR)
-		{
-			delete CDR;
-			CDR = NULL;
-		}
+		setRegistry("Software\\Valve\\Steam", "Language", g_szOLDLanguage);
+
+		g_bSteamStartup = false;
 	}
-
-	g_bSteamStartup = false;
 
 	return 1;
 }
