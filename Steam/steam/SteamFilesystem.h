@@ -89,11 +89,8 @@ void MountFileSystemByID(unsigned int uId, const char* szExtraMount)
 	V_strlower(szGCF);
 	strcat(szGCF, ".gcf");
 
-	for (const char* cszLocation : g_CacheLocations)
-	{
-		V_ComposeFileName(cszLocation, szGCF, szPath, MAX_PATH);
-		g_CacheManager->MountCache(szPath, szExtraMount);
-	}
+	V_ComposeFileName(g_szGCFPath, szGCF, szPath, MAX_PATH);
+	g_CacheManager->MountCache(szPath, szExtraMount);
 }
 
 void MountFileSystemByName(const char* szPath)
@@ -342,11 +339,8 @@ STEAM_API int SteamMountAppFilesystem(TSteamError* pError)
 
 				if (szGCF != NULL)
 				{
-					for (const char* cszLocation : g_CacheLocations)
-					{
-						V_ComposeFileName(cszLocation, szGCF, szPath, MAX_PATH);
-						MountFileSystemByName(szPath);
-					}
+					V_ComposeFileName(g_szGCFPath, szGCF, szPath, MAX_PATH);
+					MountFileSystemByName(szPath);
 
 					delete[] szGCF;
 				}

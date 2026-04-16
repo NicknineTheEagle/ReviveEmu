@@ -23,8 +23,7 @@ CLogFile* Logger;
 bool g_bSteamFileSystem = false;
 bool g_bSteamBlobSystem = false;
 bool g_bRawCDR = false;
-char g_szGCFPath[MAX_PATH * 5];
-std::vector<const char*> g_CacheLocations;
+char g_szGCFPath[MAX_PATH];
 
 char g_szLanguage[MAX_PATH];
 char g_szSteamUser[MAX_PATH];
@@ -345,24 +344,10 @@ void InitGlobalVariables()
 					}
 				}
 
-				if (g_bSteamFileSystem == true)
+				if (g_bSteamFileSystem == true && g_szGCFPath[0] == '\0')
 				{
-					char* pch = strtok(g_szGCFPath, " ");
-					while (pch != NULL)
-					{
-						g_CacheLocations.push_back(pch);
-						pch = strtok(NULL, " ");
-					}
-
-					if (g_CacheLocations.size() > 0)
-					{
-						if (bLogging) Logger->Write("-- Multiple cache locations detected\n");
-					}
-					else
-					{
-						g_bSteamFileSystem = false;
-						if (bLogging) Logger->Write("Cache support was not enabled as no valid GCF path was specified! Using extracted content only!\n");
-					}
+					g_bSteamFileSystem = false;
+					if (bLogging) Logger->Write("Cache support was not enabled as no valid GCF path was specified! Using extracted content only!\n");
 				}
 			}
 			else

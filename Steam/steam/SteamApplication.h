@@ -242,27 +242,24 @@ STEAM_API SteamCallHandle_t SteamRefreshMinimumFootprintFiles(unsigned int uAppI
 
 			while (x > -1)
 			{
-				for (unsigned int uIndex = 0; uIndex < g_CacheLocations.size(); uIndex++)
-				{
-					strcpy(szPath, g_CacheLocations[uIndex]);
-					strcpy(szGCF, GetNameById(CDR->ApplicationRecords[uAppRecord]->FilesystemsRecord[x]->AppId));
-					strcat(szGCF, ".gcf");
+				strcpy(szPath, g_szGCFPath);
+				strcpy(szGCF, GetNameById(CDR->ApplicationRecords[uAppRecord]->FilesystemsRecord[x]->AppId));
+				strcat(szGCF, ".gcf");
 
-					//GetCurrentDirectoryA(MAX_PATH, szDestination);
-					strcpy(szDestination, g_CacheLocations[0]);
-					strcat(szDestination, "\\");
-					strcat(szDestination, g_szSteamUser);
-					strcat(szDestination, "\\");
-					strcat(szDestination, CDR->ApplicationRecords[uAppRecord]->InstallDirName);
-					strcat(szDestination, "\\");
+				//GetCurrentDirectoryA(MAX_PATH, szDestination);
+				strcpy(szDestination, g_szGCFPath);
+				strcat(szDestination, "\\");
+				strcat(szDestination, g_szSteamUser);
+				strcat(szDestination, "\\");
+				strcat(szDestination, CDR->ApplicationRecords[uAppRecord]->InstallDirName);
+				strcat(szDestination, "\\");
 
-					//strcat(szDestination,CDR->ApplicationRecords[i]->FilesystemsRecord[x]->MountName);
-					V_FixSlashes(szDestination);
+				//strcat(szDestination,CDR->ApplicationRecords[i]->FilesystemsRecord[x]->MountName);
+				V_FixSlashes(szDestination);
 
-					V_ComposeFileName(szPath, szGCF, szPath, MAX_PATH);
+				V_ComposeFileName(szPath, szGCF, szPath, MAX_PATH);
 
-					int retval = GetFiles(szPath, szDestination, 2, CDR->ApplicationRecords[uAppRecord]->FilesystemsRecord[x]->MountName, false);
-				}
+				int retval = GetFiles(szPath, szDestination, 2, CDR->ApplicationRecords[uAppRecord]->FilesystemsRecord[x]->MountName, false);
 
 				x--;
 			}
@@ -288,7 +285,7 @@ STEAM_API SteamCallHandle_t SteamLaunchApp(unsigned int uAppId, unsigned int uLa
 
 	char szLaunchString[MAX_PATH * 2];
 
-	strcpy(szLaunchString, g_CacheLocations[0]);
+	strcpy(szLaunchString, g_szGCFPath);
 	strcat(szLaunchString, "\\");
 	strcat(szLaunchString, g_szSteamUser);
 	strcat(szLaunchString, "\\");
@@ -858,7 +855,7 @@ STEAM_API int SteamGetCacheDefaultDirectory(char* szPath, TSteamError* pError)
 		return 0;
 	}
 
-	strcpy(szPath, g_CacheLocations[0]);
+	strcpy(szPath, g_szGCFPath);
 	return 1;
 }
 
