@@ -2,64 +2,69 @@
 #include "Steam.h"
 #include "Win32MiniDump.h"
 
-CWin32MiniDump::CWin32MiniDump( const char* cszName, _se_translator_function fnSETranslatorFunction )
+CWin32MiniDump::CWin32MiniDump(const char* cszName, _se_translator_function fnSETranslatorFunction)
 {
 	strncpy(m_szName, cszName, MAX_PATH);
-	this->m_hDbgHelp = NULL;
-	this->m_fnMiniDumpWriteDump = NULL;
+	m_hDbgHelp = NULL;
+	m_fnMiniDumpWriteDump = NULL;
 
-	this->m_hDbgHelp = LoadLibraryA("DbgHelp.dll");
-	if( this->m_hDbgHelp )
+	m_hDbgHelp = LoadLibraryA("DbgHelp.dll");
+	if (m_hDbgHelp)
 	{
-		FARPROC fpMiniDumpWriteDump = GetProcAddress( this->m_hDbgHelp, "MiniDumpWriteDump" );
+		FARPROC fpMiniDumpWriteDump = GetProcAddress(m_hDbgHelp, "MiniDumpWriteDump");
 
-		if(fpMiniDumpWriteDump)
+		if (fpMiniDumpWriteDump)
 		{
-			this->m_fnMiniDumpWriteDump = fnMiniDumpWriteDump( fpMiniDumpWriteDump );
-			_set_se_translator( fnSETranslatorFunction );
+			m_fnMiniDumpWriteDump = fnMiniDumpWriteDump(fpMiniDumpWriteDump);
+			_set_se_translator(fnSETranslatorFunction);
 		}
 		else
 		{
-			FreeLibrary( this->m_hDbgHelp );
-			this->m_hDbgHelp = NULL;
+			FreeLibrary(m_hDbgHelp);
+			m_hDbgHelp = NULL;
 		}
 	}
 }
 
 CWin32MiniDump::~CWin32MiniDump()
 {
-	if( this->m_hDbgHelp )
-		FreeLibrary( this->m_hDbgHelp );
+	if (m_hDbgHelp)
+		FreeLibrary(m_hDbgHelp);
 
-	this->ClearComments();
+	ClearComments();
 }
 
-void CWin32MiniDump::SetComment( const char* cszComment )
+void CWin32MiniDump::SetComment(const char* cszComment)
 {
+	return;
 }
 
-void CWin32MiniDump::AddComment( const char* cszComment )
+void CWin32MiniDump::AddComment(const char* cszComment)
 {
+	return;
 }
 
 void CWin32MiniDump::ClearComments()
 {
+	return;
 }
 
-void CWin32MiniDump::WriteUsingExceptionInfo( DWORD dwExceptionCode, _EXCEPTION_POINTERS* pStructuredExceptionPointers )
+void CWin32MiniDump::WriteUsingExceptionInfo(DWORD dwExceptionCode, _EXCEPTION_POINTERS* pStructuredExceptionPointers)
 {
-	if( !this->m_fnMiniDumpWriteDump )
+	if (!m_fnMiniDumpWriteDump)
 		return;
 
 	SYSTEMTIME systemtime;
-	GetSystemTime( &systemtime );
+	GetSystemTime(&systemtime);
 
 	char szFileName[1024];
-	sprintf( szFileName, "%s_%04u_%02u_%02u__%02u_%02u_%02u_%03u.mdmp", m_szName, systemtime.wYear, systemtime.wMonth, systemtime.wDay, systemtime.wHour, systemtime.wMinute, systemtime.wSecond, systemtime.wMilliseconds );
+	sprintf(szFileName, "%s_%04u_%02u_%02u__%02u_%02u_%02u_%03u.mdmp", m_szName,
+		systemtime.wYear, systemtime.wMonth, systemtime.wDay, systemtime.wHour,
+		systemtime.wMinute, systemtime.wSecond, systemtime.wMilliseconds);
 
-	HANDLE hMiniDumpFile = CreateFileA( szFileName, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	HANDLE hMiniDumpFile = CreateFileA(szFileName, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
-	if( hMiniDumpFile == INVALID_HANDLE_VALUE )
+	if (hMiniDumpFile == INVALID_HANDLE_VALUE)
 		return;
 
 	__try
@@ -71,11 +76,13 @@ void CWin32MiniDump::WriteUsingExceptionInfo( DWORD dwExceptionCode, _EXCEPTION_
 
 		//AddComments as User Stream!
 
-		this->m_fnMiniDumpWriteDump( GetCurrentProcess(), GetCurrentProcessId(), hMiniDumpFile, (_MINIDUMP_TYPE)(MiniDumpNormal | MiniDumpWithHandleData | MiniDumpWithProcessThreadData), &mdmpExceptionInfo, NULL, NULL );
+		m_fnMiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hMiniDumpFile,
+			(_MINIDUMP_TYPE)(MiniDumpNormal | MiniDumpWithHandleData | MiniDumpWithProcessThreadData),
+			&mdmpExceptionInfo, NULL, NULL);
 	}
-	__except( EXCEPTION_EXECUTE_HANDLER )
+	__except (EXCEPTION_EXECUTE_HANDLER)
 	{
 	}
 
-	CloseHandle( hMiniDumpFile );
+	CloseHandle(hMiniDumpFile);
 }

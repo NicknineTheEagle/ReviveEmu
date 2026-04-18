@@ -27,7 +27,7 @@ extern void CloseSteamFindFileHandle(SteamHandle_t hSteamHandle);
 
 class CCacheFileSystem
 {
-  public:
+public:
 	std::vector<TCacheHandle*> Caches;
 
 	std::vector<TGlobalDirectory> GlobalDirectoryTable;
@@ -524,7 +524,7 @@ class CCacheFileSystem
 		return -1;
 	}
 
-  private:
+private:
 	TManifestEntriesInCache* FindItem(unsigned int StartIndex, const char* cszPattern, unsigned int *pItemIndex = NULL)
 	{
 		if (strpbrk(cszPattern, "?*"))
