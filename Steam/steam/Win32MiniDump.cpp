@@ -4,7 +4,7 @@
 
 CWin32MiniDump::CWin32MiniDump( const char* cszName, _se_translator_function fnSETranslatorFunction )
 {
-	this->m_sName.assign( cszName );
+	strncpy(m_szName, cszName, MAX_PATH);
 	this->m_hDbgHelp = NULL;
 	this->m_fnMiniDumpWriteDump = NULL;
 
@@ -36,17 +36,14 @@ CWin32MiniDump::~CWin32MiniDump()
 
 void CWin32MiniDump::SetComment( const char* cszComment )
 {
-	this->m_sComment.assign( cszComment );
 }
 
 void CWin32MiniDump::AddComment( const char* cszComment )
 {
-	this->m_vecComments.push_back( std::string( cszComment ) );
 }
 
 void CWin32MiniDump::ClearComments()
 {
-	this->m_vecComments.clear();
 }
 
 void CWin32MiniDump::WriteUsingExceptionInfo( DWORD dwExceptionCode, _EXCEPTION_POINTERS* pStructuredExceptionPointers )
@@ -58,7 +55,7 @@ void CWin32MiniDump::WriteUsingExceptionInfo( DWORD dwExceptionCode, _EXCEPTION_
 	GetSystemTime( &systemtime );
 
 	char szFileName[1024];
-	sprintf( szFileName, "%s_%04u_%02u_%02u__%02u_%02u_%02u_%03u.mdmp", this->m_sName.c_str(), systemtime.wYear, systemtime.wMonth, systemtime.wDay, systemtime.wHour, systemtime.wMinute, systemtime.wSecond, systemtime.wMilliseconds );
+	sprintf( szFileName, "%s_%04u_%02u_%02u__%02u_%02u_%02u_%03u.mdmp", m_szName, systemtime.wYear, systemtime.wMonth, systemtime.wDay, systemtime.wHour, systemtime.wMinute, systemtime.wSecond, systemtime.wMilliseconds );
 
 	HANDLE hMiniDumpFile = CreateFileA( szFileName, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
