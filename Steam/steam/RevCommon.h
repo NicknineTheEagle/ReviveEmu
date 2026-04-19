@@ -24,6 +24,12 @@ typedef unsigned long long uint64;
 
 #endif // _MSC_VER
 
+#if !defined(_WIN32)
+#define GetProcAddress dlsym
+typedef void* HMODULE;
+#define MAX_PATH PATH_MAX
+#endif
+
 // Key used to encrypt auth ticket
 static const unsigned char g_TicketKey[160] = {
 		0x30, 0x81, 0x9D, 0x30, 0x0D, 0x06, 0x09, 0x2A, 0x86, 0x48, 0x86,

@@ -1,14 +1,3 @@
-/////////////////////////////////////////////////////////////////
-//features:	not depends on MFC ore ATL.
-//			file name could use absolute path or just the name, in which case the 
-//			file will be created at the same place with the binary module, no concern 
-//			with curret directory, which always bring me truble.
-//			every log line has a time stamp attached, with million seconds.
-//			uses printf like format to write log lines
-//			uses a preprocessor definition _DEBUG_LOG to switch if write log file
-//			multi thread safe, finally added:)
-
-////////////////////////////////////////////////////
 #include "stdafx.h"
 
 //	Constructor, open the logfile
@@ -51,12 +40,13 @@ void CLogFile::Write(const char* pszFormat, ...)
 	//		if (lLength > m_lTruncate)
 	//			rewind(m_pLogFile);
 
+	char szLine[1024];
+
+#ifdef _WIN32
 	//Get current time
 	SYSTEMTIME time;
 	GetLocalTime(&time);
-	char szLine[1024];
 
-	// ido kijelzessel
 	V_sprintf_safe(szLine, "%02d:%02d:%02d:%03d [%u\\%u]\t%s", 
 		time.wHour, time.wMinute, time.wSecond, time.wMilliseconds,
 		GetCurrentProcessId(), GetCurrentThreadId(), szLog);
@@ -65,6 +55,18 @@ void CLogFile::Write(const char* pszFormat, ...)
 	//	time.wYear, time.wMonth, time.wDay,
 	//	time.wHour, time.wMinute, time.wSecond, time.wMilliseconds,
 	//	szLog);
+#else
+	//Get current time
+	struct timespec ts;
+	clock_gettime(CLOCK_REALTIME, &ts);
+
+	struct tm tm;
+	localtime_r(&ts.tv_sec, &tm);
+
+	V_sprintf_safe(szLine, "%02d:%02d:%02d:%03d [%d\\%lu]\t%s", 
+		tm.tm_hour, tm.tm_min, tm.tm_sec, (int)(ts.tv_nsec / 1000000),
+		(int)getpid(), (unsigned long)pthread_self(), szLog);
+#endif
 
 	fputs(szLine, m_pLogFile);
 	fflush(m_pLogFile);

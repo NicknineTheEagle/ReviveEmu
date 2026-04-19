@@ -49,6 +49,7 @@ const char* GetUserIDString(const TSteamGlobalUserID& steamid)
 	return idstr;
 }
 
+#ifndef VALIDATOR_DLL
 STEAM_API ESteamError STEAM_CALL SteamGetEncryptedUserIDTicket(const void *pEncryptionKeyReceivedFromAppServer, unsigned int uEncryptionKeyLength, void *pOutputBuffer, unsigned int uSizeOfOutputBuffer, unsigned int *pReceiveSizeOfEncryptedTicket, TSteamError *pError)
 {
 	if (bLogging && bLogUserId)
@@ -82,6 +83,7 @@ STEAM_API ESteamError STEAM_CALL SteamGetEncryptedUserIDTicket(const void *pEncr
 	SteamClearError(pError);
 	return eSteamErrorNone;
 }
+#endif
 
 STEAM_API ESteamError STEAM_CALL SteamInitializeUserIDTicketValidator(const char * pszOptionalPublicEncryptionKeyFilename, const char *	pszOptionalPrivateDecryptionKeyFilename, unsigned int ClientClockSkewToleranceInSeconds, unsigned int ServerClockSkewToleranceInSeconds, unsigned int MaxNumLoginsWithinClientClockSkewTolerancePerClient, unsigned int	HintPeakSimultaneousValidations, unsigned int AbortValidationAfterStallingForNProcessSteps)
 {

@@ -182,6 +182,7 @@ STEAM_API int					STEAM_CALL	SteamInsertAppDependency();
 STEAM_API int					STEAM_CALL	SteamNumAppsRunning(TSteamError *pError);
 STEAM_API int					STEAM_CALL	SteamFindApp();
 
+#ifdef _WIN32
 /*
 ** Minidump
 */
@@ -190,6 +191,7 @@ STEAM_API int					STEAM_CALL	SteamWriteMiniDumpFromAssert();
 STEAM_API int					STEAM_CALL	SteamWriteMiniDumpSetComment(const char *cszComment);
 STEAM_API void					STEAM_CALL	SteamWriteMiniDumpUsingExceptionInfo( DWORD dwExceptionCode, _EXCEPTION_POINTERS* pStructuredExceptionPointers );
 STEAM_API void					STEAM_CALL	SteamWriteMiniDumpUsingExceptionInfoWithBuildId( DWORD dwExceptionCode, _EXCEPTION_POINTERS* pStructuredExceptionPointers, unsigned int uSourceControlID );
+#endif
 
 /*
 ** User ID functions
