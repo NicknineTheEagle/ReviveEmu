@@ -36,6 +36,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <linux/limits.h>
+#include <sys/stat.h>
 #endif
 
 #include "SteamCommon.h"

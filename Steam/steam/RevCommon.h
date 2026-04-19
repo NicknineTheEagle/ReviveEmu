@@ -26,6 +26,8 @@ typedef unsigned long long uint64;
 
 #if !defined(_WIN32)
 #define GetProcAddress dlsym
+#define LoadLibraryA(x) dlopen(x, RTLD_NOW)
+#define _stat stat
 typedef void* HMODULE;
 #define MAX_PATH PATH_MAX
 #endif

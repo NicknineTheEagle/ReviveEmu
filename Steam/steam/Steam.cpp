@@ -49,7 +49,7 @@ CContentDescriptionRecord* CDR = NULL;
 
 #include "CacheSystem\CCacheSystem.h"	//Cache
 
-CCacheFileSystem *g_CacheManager = NULL;
+CCacheFileSystem* g_CacheManager = NULL;
 
 #include "SteamFilesystem.h"			//Filesystem
 #include "SteamApplication.h"			//App Functions
@@ -96,47 +96,23 @@ void InitGlobalVariables()
 
 	g_bConfigLoaded = true;
 
-#ifdef VALIDATOR_DLL
-	char szRunFromPath[MAX_PATH];
-	V_GetCurrentDirectory(szRunFromPath, MAX_PATH);
-
-	const char* cszLogVar = getenv("REV_LOGGING");
-	if (cszLogVar && atoi(cszLogVar))
-	{
-		bLogging = true;
-
-		char szExePath[MAX_PATH];
-		memset(szExePath, 0, sizeof(szExePath));
-		ssize_t len = readlink("/proc/self/exe", szExePath, MAX_PATH - 1);
-		if (len != -1)
-		{
-			const char* chProcName = V_GetFileName(szExePath);
-
-			char chLogFile[MAX_PATH];
-			strcpy(chLogFile, chProcName);
-			strcat(chLogFile, "_REVive.log");
-			Logger = new CLogFile(chLogFile);
-			Logger->Clear();
-			Logger->Write("Logging initialized.\n");
-			Logger->Write("Run path initialized to %s\n", szRunFromPath);
-			//Logger->Write("Command line: %s\n", chCmdLine);
-
-			bLogUserId = true;
-			if (bLogging) Logger->Write("UserID logging initialized.\n");
-		}
-	}
-#else
-	int nArgs;
-	LPWSTR* szArgList = CommandLineToArgvW(GetCommandLineW(), &nArgs);
-
 	char szRunFromPath[MAX_PATH];
 	V_GetCurrentDirectory(szRunFromPath, MAX_PATH);
 
 	g_uAppId = 0;
 
 	char szEnvBuffer[128];
-	int envBufferLen = GetEnvironmentVariableA("SteamAppId", szEnvBuffer, sizeof(szEnvBuffer));
-	if (envBufferLen && envBufferLen < sizeof(szEnvBuffer))
+	const char* cszAppEnvVar = NULL;
+#ifdef _WIN32
+	if (GetEnvironmentVariableA("SteamAppId", szEnvBuffer, sizeof(szEnvBuffer)))
+	{
+		cszAppEnvVar = szEnvBuffer;
+	}
+#else
+	cszAppEnvVar = getenv("SteamAppId");
+#endif
+
+	if (cszAppEnvVar)
 	{
 		g_uAppId = strtol(szEnvBuffer, NULL, 10);
 	}
@@ -150,8 +126,12 @@ void InitGlobalVariables()
 
 		fclose(fp);
 	}
+#ifdef _WIN32
 	else
 	{
+		int nArgs;
+		LPWSTR* szArgList = CommandLineToArgvW(GetCommandLineW(), &nArgs);
+
 		for (int i = 0; i < nArgs; i++)
 		{
 			if (_wcsicmp(szArgList[i], L"-appid") == 0 && i + 1 < nArgs)
@@ -160,73 +140,78 @@ void InitGlobalVariables()
 				break;
 			}
 		}
+
+		LocalFree(szArgList);
 	}
+#endif
 
 	if (g_uAppId != 0) {
 		V_sprintf_safe(szEnvBuffer, "%u", g_uAppId);
+#ifdef _WIN32
 		SetEnvironmentVariableA("SteamAppId", szEnvBuffer);
+#else
+		setenv("SteamAppId", szEnvBuffer, 1);
+#endif
 	}
 
 	char szSteamDLLPath[MAX_PATH];
-	if (GetModuleFileNameA(g_hModule, szSteamDLLPath, MAX_PATH) == 0) {
-		ExitProcess(0);
+#ifdef _WIN32
+	if (GetModuleFileNameA(g_hModule, szSteamDLLPath, MAX_PATH) == 0)
+	{
+		ExitProcess(1);
 		return;
 	}
-
-	char szRelDLLPath[MAX_PATH];
-	bool bGotRelPath = V_MakeRelativePath(szSteamDLLPath, szRunFromPath, szRelDLLPath, MAX_PATH);
-
-	// HACK: If Steam.dll is in "bin" subdirectory, use the working dir for our config files.
-	if (bGotRelPath && V_stricmp(szRelDLLPath, "bin\\steam.dll") == 0)
+#else
+	Dl_info dlinfo;
+	if (!dladdr((void*)InitGlobalVariables, &dlinfo))
 	{
-		strcpy(szSteamDLLPath, szRunFromPath);
+		_exit(1);
+		return;
 	}
-	else
+	strcpy(szSteamDLLPath, dlinfo.dli_fname);
+#endif
+
+	V_StripFilename(szSteamDLLPath);
+
+	// Attempt to load rev.ini from dll dir first.
+	char szIniFile[MAX_PATH];
+	V_ComposeFileName(szSteamDLLPath, "rev.ini", szIniFile, MAX_PATH);
+	struct _stat filestat;
+	if (_stat(szIniFile, &filestat) != 0)
 	{
-		V_StripFilename(szSteamDLLPath);
-	}
-
-	V_AppendSlash(szSteamDLLPath, MAX_PATH);
-
-	char chIniFile[MAX_PATH];
-	strcpy(chIniFile, szSteamDLLPath);
-	strcat(chIniFile, "rev.ini");
-	strcpy(g_szAppIni, szSteamDLLPath);
-	strcat(g_szAppIni, "revApps.ini");
-
-	char chCmdLine[MAX_PATH];
-	strcpy(chCmdLine, "");
-	for (int i = 0; i < nArgs; i++)
-	{
-		char temp[MAX_PATH];
-		wcstombs(temp, szArgList[i], 255);
-		strcat(temp, " ");
-		strcat(chCmdLine, temp);
+		// Then try the current dir.
+		V_ComposeFileName(szRunFromPath, "rev.ini", szIniFile, MAX_PATH);
 	}
 
-	LocalFree(szArgList);
+	char szIniDir[MAX_PATH];
+	V_ExtractFilePath(szIniFile, szIniDir, MAX_PATH);
+	V_ComposeFileName(szIniDir, "revApps.ini", g_szAppIni, MAX_PATH);
 
 	//
 	// Initialize and parse the INI file
 	//
 	CSimpleIniA Ini;
-	Ini.LoadFile(chIniFile);
+	Ini.LoadFile(szIniFile);
 
 	if (bLogging = Ini.GetBoolValue("Emulator", "Logging")) // Is logging enabled ?
 	{
 		char szExePath[MAX_PATH];
+#ifdef _WIN32
 		GetModuleFileNameA(NULL, szExePath, MAX_PATH);
+#else
+		memset(szExePath, 0, sizeof(szExePath));
+		ssize_t len = readlink("/proc/self/exe", szExePath, MAX_PATH - 1);
+#endif
 		const char* chProcName = V_GetFileName(szExePath);
 
 		char chLogFile[MAX_PATH];
-		strcpy(chLogFile, szSteamDLLPath);
-		strcat(chLogFile, chProcName);
+		V_ComposeFileName(szIniDir, chProcName, chLogFile, MAX_PATH);
 		strcat(chLogFile, "_REVive.log");
 		Logger = new CLogFile(chLogFile);
 		Logger->Clear();
 		Logger->Write("Logging initialized.\n");
 		Logger->Write("Run path initialized to %s\n", szRunFromPath);
-		Logger->Write("Command line: %s\n", chCmdLine);
+		//Logger->Write("Command line: %s\n", chCmdLine);
 	}
 	if (bLogging)
 	{
@@ -244,6 +229,7 @@ void InitGlobalVariables()
 		}
 	}
 
+#ifndef VALIDATOR_DLL
 	strcpy(g_szSteamUser, Ini.GetValue("Emulator", "SteamUser", "RevUser"));
 	SetEnvironmentVariableA("SteamUser", g_szSteamUser);
 	if (bLogging) Logger->Write("Steam User set to %s\n", g_szSteamUser);
@@ -276,20 +262,18 @@ void InitGlobalVariables()
 	V_strlower(g_szLanguage);
 
 	if (bLogging) Logger->Write("Steam language initialized (%s)\n", g_szLanguage);
+#endif
 
+#ifndef VALIDATOR_DLL
 	if (g_bSteamFileSystem = Ini.GetBoolValue("Emulator", "CacheEnabled"))
 	{
 		strcpy(g_szGCFPath, Ini.GetValue("Emulator", "CachePath", ""));
 
-		char szDefaultCDRFile[MAX_PATH];
-		strcpy(szDefaultCDRFile, szSteamDLLPath);
-		strcat(szDefaultCDRFile, "cdr.bin");
-		strcpy(g_szCDRFile, Ini.GetValue("Emulator", "CDRPath", szDefaultCDRFile));
+		V_ComposeFileName(szIniDir, "cdr.bin", g_szCDRFile, MAX_PATH);
+		strcpy(g_szCDRFile, Ini.GetValue("Emulator", "CDRPath", g_szCDRFile));
 
-		strcpy(g_szBlobFile, szSteamDLLPath);
-		strcat(g_szBlobFile, "ClientRegistry.blob");
+		V_ComposeFileName(szIniDir, "ClientRegistry.blob", g_szBlobFile, MAX_PATH);
 
-		struct _stat filestat;
 		if (_stat(g_szCDRFile, &filestat) == 0)
 		{
 			if (bLogging) Logger->Write("Cache support initialized via %s\n", g_szCDRFile);
@@ -329,6 +313,7 @@ void InitGlobalVariables()
 	{
 		if (bLogging) Logger->Write("Cache support was not enabled. Using extracted content only!\n");
 	}
+#endif
 
 	char szOrigSteamDLLPath[MAX_PATH] = "";
 	if (const char* SteamDll = Ini.GetValue("Emulator", "SteamDll"))
@@ -347,9 +332,14 @@ void InitGlobalVariables()
 		if (!g_hOrigSteamDll)
 		{
 			char szErrMsg[255];
-			V_sprintf_safe(szErrMsg, "Unable to load %s\nPlease edit or comment out SteamDll value in rev.ini", szOrigSteamDLLPath);
+#ifdef _WIN32
+			V_sprintf_safe(szErrMsg, "Unable to load %s\nPlease edit or comment out SteamDll value in rev.ini.", szOrigSteamDLLPath);
 			MessageBoxA(0, szErrMsg, "Error", 0);
 			ExitProcess(1);
+#else
+			printf("Unable to load %s! Please edit or comment out SteamDll value in rev.ini.\n", szOrigSteamDLLPath);
+			_exit(1);
+#endif
 		}
 		if (bLogging) Logger->Write("-- Original Steam.dll set: %s (0x%p)\n", szOrigSteamDLLPath, g_hOrigSteamDll);
 	}
@@ -362,13 +352,14 @@ void InitGlobalVariables()
 		}
 	}
 
+#ifdef _WIN32
 	//
 	// Set the registry values required for steamclient.dll to be loaded
 	//
 	if (g_bSteamClient = Ini.GetBoolValue("Emulator", "SteamClient")) // Should we enable steamclient loading ?
 	{
 		char chClientPath[MAX_PATH];
-		strcpy(chClientPath, szSteamDLLPath);
+		strcpy(chClientPath, szRunFromPath);
 
 		char szExePath[MAX_PATH];
 		GetModuleFileNameA(NULL, szExePath, MAX_PATH);
@@ -385,7 +376,10 @@ void InitGlobalVariables()
 		setRegistry("Software\\Valve\\Steam\\ActiveProcess", "pid", GetCurrentProcessId());
 		setRegistry("Software\\Valve\\Steam\\ActiveProcess", "SteamClientDll", chClientPath);
 	}
-
+#endif
+	
+	// TODO: Linux solution
+#ifndef VALIDATOR_DLL
 	//
 	// Initialize the unique User ID used to authenticate with game server
 	//
