@@ -1,6 +1,6 @@
 # github workflow to automate builds
 
-name: Windows build
+name: ReviveEmu build
 
 # Controls when the action will run.
 on: [push, pull_request, workflow_dispatch]
@@ -8,7 +8,7 @@ on: [push, pull_request, workflow_dispatch]
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  build:
+  build-windows:
     name: ${{ matrix.name }}
 
     # The type of runner that the job will run on
@@ -17,11 +17,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: "32-bit"
+          - name: "Windows 32-bit"
             arch: "Win32"
             bindir: "Release"
             outname: "ReviveEmu-Win32"
-          - name: "64-bit"
+          - name: "Windows 64-bit"
             arch: "x64"
             bindir: "x64\\Release"
             outname: "ReviveEmu-Win64"
@@ -53,9 +53,46 @@ jobs:
           name: ${{ matrix.outname }}
           path: artifacts
           if-no-files-found: error
+  build-linux:
+    name: Linux
+
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install 32-bit toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-multilib g++-multilib libc6-dev-i386
+
+      - name: Run CMake
+        shell: bash
+        working-directory: Steam/steam
+        run: cmake -B ./build -DCMAKE_CXX_FLAGS="-m32"
+
+      - name: Build
+        shell: bash
+        working-directory: Steam/steam
+        run: cmake --build ./build
+
+      - name: Prepare files for packaging
+        shell: bash
+        run: |
+          mkdir ./artifacts
+          cp ./Steam/steam/build/libsteamvalidateuseridtickets.so ./artifacts/libsteamvalidateuseridtickets.so
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReviveEmu-Linux
+          path: artifacts
+          if-no-files-found: error
   create-release:
     name: Create release
-    needs: [build]
+    needs: [build-windows, build-linux]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
