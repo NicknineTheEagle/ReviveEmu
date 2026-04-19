@@ -43,5 +43,6 @@
 #define INCLUDED_STEAM2_USERID_STRUCTS
 #include "Steam3ID.h"
 #include "strtools.h"
-#include "IniFile.h"
+#define SI_NO_CONVERSION
+#include "simpleini/SimpleIni.h"
 #include "logFile.h"

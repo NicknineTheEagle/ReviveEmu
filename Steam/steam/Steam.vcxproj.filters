@@ -43,11 +43,11 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
+    <Filter Include="Header Files\simpleini">
+      <UniqueIdentifier>{94a21824-cc2a-4b11-ab59-2a98d182e07f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="IniFile.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="logFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -138,9 +138,6 @@
     <None Include="revApps.ini" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="IniFile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="logFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -332,6 +329,9 @@
     </ClInclude>
     <ClInclude Include="annotations.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="simpleini\SimpleIni.h">
+      <Filter>Header Files\simpleini</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

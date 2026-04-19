@@ -161,7 +161,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="IniFile.cpp" />
     <ClCompile Include="logFile.cpp" />
     <ClCompile Include="MurmurHash.cpp" />
     <ClCompile Include="registry.cpp" />
@@ -287,7 +286,6 @@
     <ClInclude Include="CacheSystem\Cache\CCacheManifest.h" />
     <ClInclude Include="CacheSystem\Cache\CCacheSectors.h" />
     <ClInclude Include="CacheSystem\CCacheSystem.h" />
-    <ClInclude Include="IniFile.h" />
     <ClInclude Include="ISteamInterface001.h" />
     <ClInclude Include="ISteamInterface003.h" />
     <ClInclude Include="ISteamInterface004.h" />
@@ -297,6 +295,7 @@
     <ClInclude Include="MurmurHash.h" />
     <ClInclude Include="registry.h" />
     <ClInclude Include="RevCommon.h" />
+    <ClInclude Include="simpleini\SimpleIni.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Steam.h" />
     <ClInclude Include="Steam3ID.h" />

@@ -323,11 +323,11 @@ STEAM_API int SteamMountAppFilesystem(TSteamError* pError)
 		}
 		else
 		{
-			CIniFile AppIni(g_szAppIni);
+			CSimpleIniA AppIni;
+			AppIni.LoadFile(g_szAppIni);
 			char szSection[64];
 			char szKey[64];
 			char szPath[MAX_PATH];
-			char* szGCF;
 			int i;
 
 			V_sprintf_safe(szSection, "%d", g_uAppId);
@@ -335,14 +335,10 @@ STEAM_API int SteamMountAppFilesystem(TSteamError* pError)
 			for (i = 1; i < 50; i++)
 			{
 				V_sprintf_safe(szKey, "GCF%d", i);
-				szGCF = AppIni.IniReadValue(szSection, szKey);
-
-				if (szGCF != NULL)
+				if (const char* cszGCF = AppIni.GetValue(szSection, szKey))
 				{
-					V_ComposeFileName(g_szGCFPath, szGCF, szPath, MAX_PATH);
+					V_ComposeFileName(g_szGCFPath, cszGCF, szPath, MAX_PATH);
 					MountFileSystemByName(szPath);
-
-					delete[] szGCF;
 				}
 			}
 		}
