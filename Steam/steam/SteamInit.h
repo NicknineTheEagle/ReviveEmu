@@ -6,7 +6,7 @@ extern CLogFile* Logger;
 extern bool bLogging;
 extern bool g_bSteamStartup;
 
-extern void InitGlobalVariables();
+extern void InitGlobalVariables(const char* cszInitSource);
 
 /*
 ** Initialization
@@ -30,7 +30,7 @@ STEAM_API int STEAM_CALL SteamStartup(unsigned int uUsingMask, TSteamError *pErr
 	{
 		g_bSteamStartup = true;
 
-		InitGlobalVariables();
+		InitGlobalVariables("SteamStartup");
 		setRegistry("Software\\Valve\\Steam", "Language", g_szLanguage);
 
 		if (g_bSteamFileSystem)

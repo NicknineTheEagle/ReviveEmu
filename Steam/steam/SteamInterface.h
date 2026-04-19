@@ -10,7 +10,7 @@
 extern CLogFile* Logger;
 extern bool bLogging;
 
-extern void InitGlobalVariables();
+extern void InitGlobalVariables(const char* cszInitSource);
 
 STEAM_API void* STEAM_CALL CreateInterface(const char* cszSteamDLLAppsystemInterfaceVersion, int* pReturnCode)
 {
@@ -34,7 +34,7 @@ STEAM_API void* STEAM_CALL CreateInterface(const char* cszSteamDLLAppsystemInter
 
 STEAM_API void* STEAM_CALL _f(const char* cszSteamInterfaceVersion)
 {
-	InitGlobalVariables();
+	InitGlobalVariables("_f");
 
 	if(cszSteamInterfaceVersion != NULL)
 	{

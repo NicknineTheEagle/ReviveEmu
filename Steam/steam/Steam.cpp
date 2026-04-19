@@ -89,7 +89,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID /*lpvReserved*/)
 }
 #endif
 
-void InitGlobalVariables()
+void InitGlobalVariables(const char* cszInitSource)
 {
 	if (g_bConfigLoaded)
 		return;
@@ -104,7 +104,8 @@ void InitGlobalVariables()
 	char szEnvBuffer[128];
 	const char* cszAppEnvVar = NULL;
 #ifdef _WIN32
-	if (GetEnvironmentVariableA("SteamAppId", szEnvBuffer, sizeof(szEnvBuffer)))
+	DWORD dwEnvBufferLen = GetEnvironmentVariableA("SteamAppId", szEnvBuffer, sizeof(szEnvBuffer));
+	if (dwEnvBufferLen != 0 && dwEnvBufferLen <= sizeof(szEnvBuffer))
 	{
 		cszAppEnvVar = szEnvBuffer;
 	}
@@ -114,7 +115,7 @@ void InitGlobalVariables()
 
 	if (cszAppEnvVar)
 	{
-		g_uAppId = strtol(szEnvBuffer, NULL, 10);
+		g_uAppId = strtol(cszAppEnvVar, NULL, 10);
 	}
 	else if (FILE* fp = fopen("steam_appid.txt", "rb"))
 	{
@@ -210,6 +211,7 @@ void InitGlobalVariables()
 		Logger = new CLogFile(chLogFile);
 		Logger->Clear();
 		Logger->Write("Logging initialized.\n");
+		Logger->Write("DLL initialized from %s\n", cszInitSource);
 		Logger->Write("Run path initialized to %s\n", szRunFromPath);
 		//Logger->Write("Command line: %s\n", chCmdLine);
 	}
