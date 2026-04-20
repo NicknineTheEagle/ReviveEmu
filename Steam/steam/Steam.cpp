@@ -43,11 +43,11 @@ std::recursive_mutex g_GlobalMutex;
 #else
 #include "Steam.h"
 
-#include "BlobSystem\CBlobSystem.h"		//Blob
+#include "BlobSystem/CBlobSystem.h"		//Blob
 
 CContentDescriptionRecord* CDR = NULL;
 
-#include "CacheSystem\CCacheSystem.h"	//Cache
+#include "CacheSystem/CCacheSystem.h"	//Cache
 
 CCacheFileSystem* g_CacheManager = NULL;
 

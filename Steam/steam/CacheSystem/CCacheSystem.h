@@ -1,8 +1,8 @@
-#include "CacheSystem\CacheSystemCommon.h"
-#include "CacheSystem\Cache\CCache.h"
+#include "CacheSystemCommon.h"
+#include "Cache/CCache.h"
 
-#include "MurmurHash.h"
-#include "strtools.h"
+#include "../MurmurHash.h"
+#include "../strtools.h"
 
 #define MURMUR_SEED 0x44444444
 

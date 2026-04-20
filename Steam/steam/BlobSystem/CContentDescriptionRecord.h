@@ -1,6 +1,6 @@
-#include "ContentDescriptionRecord\CAppRecord.h"
-#include "ContentDescriptionRecord\CSubscriptionRecord.h"
-#include "zlib/zlib.h"
+#include "ContentDescriptionRecord/CAppRecord.h"
+#include "ContentDescriptionRecord/CSubscriptionRecord.h"
+#include "../zlib/zlib.h"
 
 #pragma once
 
