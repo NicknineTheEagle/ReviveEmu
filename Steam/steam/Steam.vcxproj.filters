@@ -87,6 +87,9 @@
     <ClCompile Include="SteamDLLAppsystem.cpp">
       <Filter>Source Files\SteamDLLAppsystem</Filter>
     </ClCompile>
+    <ClCompile Include="Win32MiniDump.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="zlib\adler32.c">
       <Filter>Source Files\zlib</Filter>
     </ClCompile>
@@ -99,7 +102,16 @@
     <ClCompile Include="zlib\deflate.c">
       <Filter>Source Files\zlib</Filter>
     </ClCompile>
-    <ClCompile Include="zlib\gzio.c">
+    <ClCompile Include="zlib\gzclose.c">
+      <Filter>Source Files\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="zlib\gzlib.c">
+      <Filter>Source Files\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="zlib\gzread.c">
+      <Filter>Source Files\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="zlib\gzwrite.c">
       <Filter>Source Files\zlib</Filter>
     </ClCompile>
     <ClCompile Include="zlib\infback.c">
@@ -114,9 +126,6 @@
     <ClCompile Include="zlib\inftrees.c">
       <Filter>Source Files\zlib</Filter>
     </ClCompile>
-    <ClCompile Include="zlib\minigzip.c">
-      <Filter>Source Files\zlib</Filter>
-    </ClCompile>
     <ClCompile Include="zlib\trees.c">
       <Filter>Source Files\zlib</Filter>
     </ClCompile>
@@ -125,9 +134,6 @@
     </ClCompile>
     <ClCompile Include="zlib\zutil.c">
       <Filter>Source Files\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="Win32MiniDump.cpp">
-      <Filter>Header Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -288,10 +294,25 @@
     <ClInclude Include="CacheSystem\Cache\CCacheSectors.h">
       <Filter>Header Files\CacheSystem\Cache</Filter>
     </ClInclude>
+    <ClInclude Include="RevCommon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Steam3ID.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="annotations.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="simpleini\SimpleIni.h">
+      <Filter>Header Files\simpleini</Filter>
+    </ClInclude>
     <ClInclude Include="zlib\crc32.h">
       <Filter>Header Files\zlib</Filter>
     </ClInclude>
     <ClInclude Include="zlib\deflate.h">
+      <Filter>Header Files\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="zlib\gzguts.h">
       <Filter>Header Files\zlib</Filter>
     </ClInclude>
     <ClInclude Include="zlib\inffast.h">
@@ -312,26 +333,11 @@
     <ClInclude Include="zlib\zconf.h">
       <Filter>Header Files\zlib</Filter>
     </ClInclude>
-    <ClInclude Include="zlib\zconf.in.h">
-      <Filter>Header Files\zlib</Filter>
-    </ClInclude>
     <ClInclude Include="zlib\zlib.h">
       <Filter>Header Files\zlib</Filter>
     </ClInclude>
     <ClInclude Include="zlib\zutil.h">
       <Filter>Header Files\zlib</Filter>
-    </ClInclude>
-    <ClInclude Include="RevCommon.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Steam3ID.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="annotations.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="simpleini\SimpleIni.h">
-      <Filter>Header Files\simpleini</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
