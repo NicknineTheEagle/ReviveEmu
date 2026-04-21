@@ -196,19 +196,9 @@ void InitGlobalVariables(const char* cszInitSource)
 
 	if (bLogging = Ini.GetBoolValue("Emulator", "Logging")) // Is logging enabled ?
 	{
-		char szExePath[MAX_PATH];
-#ifdef _WIN32
-		GetModuleFileNameA(NULL, szExePath, MAX_PATH);
-#else
-		memset(szExePath, 0, sizeof(szExePath));
-		ssize_t len = readlink("/proc/self/exe", szExePath, MAX_PATH - 1);
-#endif
-		const char* chProcName = V_GetFileName(szExePath);
-
-		char chLogFile[MAX_PATH];
-		V_ComposeFileName(szIniDir, chProcName, chLogFile, MAX_PATH);
-		strcat(chLogFile, "_REVive.log");
-		Logger = new CLogFile(chLogFile);
+		char szLogPath[MAX_PATH];
+		V_ComposeFileName(szRunFromPath, "rev.log", szLogPath, MAX_PATH);
+		Logger = new CLogFile(szLogPath);
 		Logger->Clear();
 		Logger->Write("Logging initialized.\n");
 		Logger->Write("DLL initialized from %s\n", cszInitSource);
