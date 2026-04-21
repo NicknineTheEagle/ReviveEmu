@@ -89,7 +89,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID /*lpvReserved*/)
 }
 #endif
 
-void InitGlobalVariables(const char* cszInitSource)
+void RevInitialize(const char* cszInitSource)
 {
 	if (g_bConfigLoaded)
 		return;
@@ -164,7 +164,7 @@ void InitGlobalVariables(const char* cszInitSource)
 	}
 #else
 	Dl_info dlinfo;
-	if (!dladdr((void*)InitGlobalVariables, &dlinfo))
+	if (!dladdr((void*)RevInitialize, &dlinfo))
 	{
 		_exit(1);
 		return;

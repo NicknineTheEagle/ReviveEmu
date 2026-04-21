@@ -6,7 +6,7 @@ extern bool bLogUserId;
 extern bool g_bSteamDll;
 extern bool g_bAllowNonRev;
 
-extern void InitGlobalVariables(const char* cszInitSource);
+extern void RevInitialize(const char* cszInitSource);
 
 enum ERevClientType
 {
@@ -91,7 +91,7 @@ STEAM_API ESteamError STEAM_CALL SteamInitializeUserIDTicketValidator(const char
 	if (bLogging && bLogUserId) Logger->Write("SteamInitializeUserIDTicketValidator\n");
 // #endif
 
-	InitGlobalVariables("SteamInitializeUserIDTicketValidator");
+	RevInitialize("SteamInitializeUserIDTicketValidator");
 
 	if (g_bSteamDll)
 	{
