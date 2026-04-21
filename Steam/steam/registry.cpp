@@ -21,7 +21,7 @@ void initStringArray(char ** array, int size)
 	}
 }
 
-int getRegistry(char * key, char * name, DWORD * value)
+int getRegistry(const char * key, const char * name, DWORD * value)
 {
 	HKEY root;
 	DWORD dwDisp;
@@ -40,7 +40,7 @@ int getRegistry(char * key, char * name, DWORD * value)
 	return result;
 }
 
-int getRegistry(char * key, char * name, char * value, DWORD maxLength)
+int getRegistry(const char * key, const char * name, char * value, DWORD maxLength)
 {
 	HKEY root;
 	DWORD dwDisp;
@@ -61,7 +61,7 @@ int getRegistry(char * key, char * name, char * value, DWORD maxLength)
 	return result;
 }
 
-int getRegistryU(char * key, char * name, char * value, DWORD maxLength)
+int getRegistryU(const char * key, const char * name, char * value, DWORD maxLength)
 {
 	HKEY root;
 	DWORD dwDisp;
@@ -82,7 +82,7 @@ int getRegistryU(char * key, char * name, char * value, DWORD maxLength)
 	return result;
 }
 
-int getRegistry(char * key, char * name, char ** values,int * nbValues)
+int getRegistry(const char * key, const char * name, char ** values, int * nbValues)
 {
 	HKEY root;
 	DWORD dwDisp;
@@ -118,7 +118,7 @@ int getRegistry(char * key, char * name, char ** values,int * nbValues)
 	return result;
 }
 
-void setRegistry(char * key, char * name, DWORD value)
+void setRegistry(const char * key, const char * name, DWORD value)
 {
 	HKEY root;
 	DWORD dwDisp;
@@ -134,7 +134,7 @@ void setRegistry(char * key, char * name, DWORD value)
 	RegCloseKey(root);
 }
 
-void setRegistry(char * key, char * name, char * value)
+void setRegistry(const char * key, const char * name, const char * value)
 {
 	HKEY root;
 	DWORD dwDisp;
@@ -151,7 +151,7 @@ void setRegistry(char * key, char * name, char * value)
 	RegCloseKey(root);
 }
 
-void setRegistry(char * key, char * name, char ** values,int nbValues)
+void setRegistry(const char * key, const char * name, const char ** values,int nbValues)
 {
 	HKEY root;
 	DWORD dwDisp;
