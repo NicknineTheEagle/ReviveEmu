@@ -237,7 +237,7 @@ STEAM_API ESteamError STEAM_CALL SteamStartValidatingUserIDTicket(void *pEncrypt
 
 		hRevHandle->eClientType = eClientLegitWrapper;
 
-		// Wrapper's ticker is stored as a C struct, and C structs are not at all guaranteed to be packed the same way
+		// Wrapper's ticket is stored as a C struct, and C structs are not at all guaranteed to be packed the same way
 		// across different platforms. So here's our portable way of unpacking it.
 		if (uSizeOfEncryptedUserIDTicketFromClient == STEAMTICKET_SIZE_WIN)
 		{

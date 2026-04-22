@@ -39,10 +39,10 @@ public:
 
 			if(NodeHeaderCompressed->magic == NodeMagicNumCompressed)
 			{
-				WORD header=*(WORD*)CDRBinary;
-				DWORD compressedSize=*(DWORD*)(CDRBinary+0x02);
-				DWORD uncompressedSize=*(DWORD*)(CDRBinary+0x0A);
-				WORD unknown2=*(WORD*)(CDRBinary+0x12);
+				uint16 header = *(uint16*)CDRBinary;
+				uLong compressedSize = *(uint32*)(CDRBinary + 0x02);
+				uLong uncompressedSize = *(uint32*)(CDRBinary + 0x0A);
+				uint16 unknown2 = *(uint16*)(CDRBinary + 0x12);
 				Bytef* zData=(Bytef*)(CDRBinary+0x14);
 				zBuffer=new Bytef[uncompressedSize];
    
@@ -53,8 +53,7 @@ public:
 			}
 			else
 			{
-				MessageBoxA(NULL, "Encountered invalid CDR blob!", "REVive - Bad CDR", 0);
-				ExitProcess(0xffffffff);
+				RevError("Encountered invalid CDR blob!");
 			}
 		}
 		else

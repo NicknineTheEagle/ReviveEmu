@@ -24,12 +24,14 @@ typedef unsigned long long uint64;
 
 #endif // _MSC_VER
 
-#if !defined(_WIN32)
+#if defined(POSIX)
 #define GetProcAddress dlsym
 #define LoadLibraryA(x) dlopen(x, RTLD_NOW)
 #define _stat stat
+#define ARRAYSIZE(a) (sizeof(a) / sizeof((a)[0]))
+
 typedef void* HMODULE;
-#define MAX_PATH PATH_MAX
+#define MAX_PATH 260
 #endif
 
 // Key used to encrypt auth ticket
@@ -88,3 +90,4 @@ T max(T a, T b)
 };
 
 extern SteamHandle_t NewSteamHandle();
+extern void RevError(const char* cszError);

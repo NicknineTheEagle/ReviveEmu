@@ -56,7 +56,7 @@ public:
 			if (strcmp(CheckCacheFile->Name, cszCacheName) == 0)
 			{
 				if (bLogging && bLogFS) Logger->Write("	Cache is already mounted: %s\n", cszFileName);
-				return NULL;
+				return 0;
 			}
 		}
 
@@ -80,7 +80,7 @@ public:
 
 		if (bLogging && bLogFS) Logger->Write("	Failed to Mount %s\n", cszFileName);
 
-		return NULL;
+		return 0;
 	}
 
 	bool UnmountCache(CacheHandle hCacheToMount)
@@ -279,11 +279,16 @@ public:
 		if (hFile->Position + uSize > hFileInCache->Size)
 			uSize = hFileInCache->Size - hFile->Position;
 
-		__int64 lReadPosition = (__int64)hCacheFile->Sectors->Header->FirstSectorOffset +
-		                        (__int64)(hFileInCache->Sectors[iSectorIndex]) * (__int64)(hCacheFile->Sectors->Header->PhysicalSectorSize) +
-		                        (__int64)uOffset;
+		int64 lReadPosition = (int64)hCacheFile->Sectors->Header->FirstSectorOffset +
+		                      (int64)(hFileInCache->Sectors[iSectorIndex]) * (int64)(hCacheFile->Sectors->Header->PhysicalSectorSize) +
+		                      (int64)uOffset;
+#ifdef _WIN32		
 		if (_fseeki64(fCacheFile, lReadPosition, SEEK_SET))
 			return 0;
+#else
+		if (fseeko(fCacheFile, lReadPosition, SEEK_SET))
+			return 0;
+#endif
 
 		return fread(pvBuff, 1, uSize, fCacheFile);
 	}
@@ -293,10 +298,9 @@ public:
 		CCache* hCacheFile = (CCache*)hFile->FileInCache->pCache;
 		TManifestEntriesInCache* hFileInCache = hFile->FileInCache;
 
-		void* BufferedSector = new char[hCacheFile->Sectors->Header->PhysicalSectorSize];
+		char* BufferedSector = new char[hCacheFile->Sectors->Header->PhysicalSectorSize];
 		unsigned int BufferedSectorIndex = UINT_MAX;
 
-		char* szBuff = (char*)BufferedSector;
 		char* szBuffOut = (char*)pBuf;
 		unsigned int uReadedDataAmount = 0;
 		unsigned int uReadedCharactersAmount = 0;
@@ -332,7 +336,7 @@ public:
 
 				do
 				{
-					char ucChar = szBuff[uOffset + uReadedData];
+					char ucChar = BufferedSector[uOffset + uReadedData];
 					if (ucChar != '\r')
 					{
 						szBuffOut[uReadedCharactersAmount + uReadedCharacters] = ucChar;
@@ -359,10 +363,15 @@ public:
 		FILE* fCacheFile = hCacheFile->fCacheFile;
 		TManifestEntriesInCache* hFileInCache = hFile->FileInCache;
 
-		__int64 lReadPosition = (__int64)hCacheFile->Sectors->Header->FirstSectorOffset +
-		                        (__int64)(hFileInCache->Sectors[iSectorIndex]) * (__int64)(hCacheFile->Sectors->Header->PhysicalSectorSize);
+		int64 lReadPosition = (int64)hCacheFile->Sectors->Header->FirstSectorOffset +
+		                      (int64)(hFileInCache->Sectors[iSectorIndex]) * (int64)(hCacheFile->Sectors->Header->PhysicalSectorSize);
+#ifdef _WIN32		
 		if (_fseeki64(fCacheFile, lReadPosition, SEEK_SET))
 			return 0;
+#else
+		if (fseeko(fCacheFile, lReadPosition, SEEK_SET))
+			return 0;
+#endif
 
 		return fread(pvBuff, 1, uSize, fCacheFile);
 	}

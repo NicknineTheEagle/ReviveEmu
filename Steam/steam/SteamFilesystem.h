@@ -156,6 +156,147 @@ void MountExtraLanguageCaches(unsigned int uAppId, const char* szMountLanguage, 
 	}
 }
 
+#ifdef POSIX
+// Case insensitive file lookup for POSIX.
+bool GetFileCaseless(const char* cszPath, char* szOut, unsigned int nOutSize)
+{
+	char szFindDir[MAX_PATH];
+	V_ExtractFilePath(cszPath, szFindDir, MAX_PATH);
+	const char* cszFileName = V_GetFileName(cszPath);
+
+	DIR* pDir = opendir(szFindDir);
+	if (!pDir)
+		return false;
+
+	dirent* pEnt;
+	while (pEnt = readdir(pDir))
+	{
+		if (V_stricmp(cszFileName, pEnt->d_name) == 0)
+		{
+			V_ComposeFileName(szFindDir, pEnt->d_name, szOut, nOutSize);
+			break;
+		}
+	}
+
+	closedir(pDir);
+	return (pEnt != NULL);
+}
+
+// Re-implementation of _findfirst/_findnext/_findclose for POSIX.
+struct TRevPosixFindHandle
+{
+	char szFindDir[MAX_PATH];
+	dirent** ppFiles;
+	int nFiles;
+	int iCurFile;
+};
+
+#define _A_NORMAL 0x00 // Normal file - No read/write restrictions
+#define _A_RDONLY 0x01 // Read only file
+#define _A_HIDDEN 0x02 // Hidden file
+#define _A_SYSTEM 0x04 // System file
+#define _A_SUBDIR 0x10 // Subdirectory
+#define _A_ARCH 0x20 // Archive file
+
+struct _finddata_t
+{
+	uint32 attrib;
+	time_t time_create; // -1 for FAT file systems
+	time_t time_access; // -1 for FAT file systems
+	time_t time_write;
+	off_t size;
+	char name[260];
+};
+
+int _findnext(intptr_t handle, struct _finddata_t* fileinfo)
+{
+	TRevPosixFindHandle* hFind = (TRevPosixFindHandle*)handle;
+
+	while (hFind->iCurFile < hFind->nFiles)
+	{
+		dirent* pEnt = hFind->ppFiles[hFind->iCurFile++];
+
+		char szFilePath[MAX_PATH];
+		V_ComposeFileName(hFind->szFindDir, pEnt->d_name, szFilePath, MAX_PATH);
+
+		struct stat filedata;
+		if (stat(szFilePath, &filedata) != 0)
+		{
+			free(pEnt);
+			continue;
+		}
+
+		fileinfo->attrib = ((filedata.st_mode & S_IFMT) == S_IFDIR) ? _A_SUBDIR : _A_NORMAL;
+		fileinfo->time_create = filedata.st_ctime;
+		fileinfo->time_write = filedata.st_mtime;
+		fileinfo->time_access = filedata.st_atime;
+		fileinfo->size = filedata.st_size;
+		strcpy(fileinfo->name, pEnt->d_name);
+		free(pEnt);
+
+		return 0;
+	}
+
+	return -1;
+}
+
+const char* g_cszFindMask;
+bool g_bFindWildcard;
+
+// Case insensitive comparison.
+#ifdef _OSX
+int FindFileSelect(struct dirent* pEnt)
+#else
+int FindFileSelect(const struct dirent* pEnt)
+#endif
+{
+	if (strcmp(pEnt->d_name, ".") == 0 || strcmp(pEnt->d_name, "..") == 0)
+		return 0;
+
+	if (g_bFindWildcard)
+	{
+		if (strcmp(g_cszFindMask, "*.*") == 0)
+			return 1;
+
+		return (fnmatch(g_cszFindMask, pEnt->d_name, FNM_CASEFOLD) == 0) ? 1 : 0;
+	}
+
+	return (V_stricmp(g_cszFindMask, pEnt->d_name) == 0) ? 1 : 0;
+}
+
+intptr_t _findfirst(const char* filespec, struct _finddata_t* fileinfo)
+{
+	TRevPosixFindHandle* hFind = new TRevPosixFindHandle();
+	V_ExtractFilePath(filespec, hFind->szFindDir, MAX_PATH);
+
+	g_cszFindMask = V_GetFileName(filespec);
+	g_bFindWildcard = (strpbrk(g_cszFindMask, "?*") != NULL);
+
+	hFind->nFiles = scandir(hFind->szFindDir, &hFind->ppFiles, FindFileSelect, alphasort);
+	hFind->iCurFile = 0;
+
+	if (_findnext((intptr_t)hFind, fileinfo) != 0)
+	{
+		delete hFind;
+		return -1;
+	}
+
+	return (intptr_t)hFind;
+}
+
+int _findclose(intptr_t handle)
+{
+	TRevPosixFindHandle* hFind = (TRevPosixFindHandle*)handle;
+	for (int i = hFind->iCurFile; i < hFind->nFiles; i++)
+	{
+		free(hFind->ppFiles[i]);
+	}
+	free(hFind->ppFiles);
+	delete hFind;
+	return 0;
+}
+#endif
+
 SteamHandle_t SteamOpenFile2(const char* cszFileName, const char* cszMode, int nFlags, unsigned int* puFileSize, int* pbLocal, TSteamError* pError)
 {
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
@@ -178,6 +319,17 @@ SteamHandle_t SteamOpenFile2(const char* cszFileName, const char* cszMode, int n
 	TFileInCacheHandle* hCacheFile = NULL;
 	SteamHandle_t retval = STEAM_INVALID_HANDLE;
 	FILE* pFile = fopen(szFullPath, cszMode);
+
+#ifdef POSIX
+	if (!pFile)
+	{
+		char szFixedName[MAX_PATH];
+		if (GetFileCaseless(szFullPath, szFixedName, MAX_PATH))
+		{
+			pFile = fopen(szFixedName, cszMode);
+		}
+	}
+#endif
 
 	if (pFile)
 	{
@@ -248,9 +400,9 @@ STEAM_API int SteamMountFilesystem(unsigned int uAppId, const char* szMountPath,
 					// Don't mount depots from other operating systems.
 #if defined(_WIN32)
 					const char* cszHostOS = "windows";
-#elif defined(__APPLE__)
+#elif defined(_OSX)
 					const char* cszHostOS = "macos";
-#elif defined(__linux__)
+#elif defined(_LINUX)
 					const char* cszHostOS = "linux";
 #endif
 					if (pFSRecord->OS && strcmp(pFSRecord->OS, cszHostOS) != 0)
@@ -312,9 +464,7 @@ STEAM_API int SteamMountAppFilesystem(TSteamError* pError)
 	{
 		if (!g_uAppId)
 		{
-			MessageBoxA(NULL, "You are trying to launch an unknown App ID, please specify -appid on the command line or write App ID into steam_appid.txt.",
-						"REVive - AppID?", 0);
-			ExitProcess(0xffffffff);
+			RevError("You are trying to launch an unknown App ID, please specify -appid on the command line or write App ID into steam_appid.txt.");
 		}
 
 		if (g_bSteamBlobSystem == true && CDR)
@@ -636,6 +786,18 @@ STEAM_API int SteamStat(const char* cszFileName, TSteamElemInfo* pInfo, TSteamEr
 
 	struct _stat buf;
 	int retval = _stat(cszFileName, &buf);
+
+#ifdef POSIX
+	if (retval != 0)
+	{
+		char szFixedName[MAX_PATH];
+		if (GetFileCaseless(cszFileName, szFixedName, MAX_PATH))
+		{
+			retval = _stat(szFixedName, &buf);
+		}
+	}
+#endif
+
 	if (retval == 0)
 	{
 		pInfo->bIsDir = ((buf.st_mode & S_IFMT) == S_IFDIR);
@@ -894,6 +1056,8 @@ STEAM_API int SteamGetLocalFileCopy(const char* cszFileName, TSteamError* pError
 
 	SteamClearError(pError);
 
+#ifdef _WIN32
+	// FIXME: Is this necessary?
 	if (!V_IsAbsolutePath(cszFileName))
 	{
 		char pathbuffer[MAX_PATH];
@@ -904,15 +1068,26 @@ STEAM_API int SteamGetLocalFileCopy(const char* cszFileName, TSteamError* pError
 			return 1;
 		}
 	}
-	else
+#endif
+
+	struct _stat buf;
+	int retval = _stat(cszFileName, &buf);
+
+#ifdef POSIX
+	if (retval != 0)
 	{
-		struct _stat buf;
-		int retval = _stat(cszFileName, &buf);
-		if (retval == 0 && (buf.st_mode & _S_IFREG))
+		char szFixedName[MAX_PATH];
+		if (GetFileCaseless(cszFileName, szFixedName, MAX_PATH))
 		{
-			if (bLogging && bLogFS) Logger->Write("\tFound Local (%s)\n", cszFileName);
-			return 1;
+			retval = _stat(szFixedName, &buf);
 		}
+	}
+#endif
+
+	if (retval == 0 && (buf.st_mode & S_IFREG))
+	{
+		if (bLogging && bLogFS) Logger->Write("\tFound Local (%s)\n", cszFileName);
+		return 1;
 	}
 
 	//Changed to always try cache if others fail - for dedicated server to work

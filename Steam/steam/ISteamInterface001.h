@@ -7,7 +7,7 @@
 class ISteamInterface001
 {
 public:
-	virtual ~ISteamInterface001() = 0{}
+	virtual ~ISteamInterface001() {}
 
 	virtual int StartEngine(TSteamError *pError) = 0;
 	virtual int ShutdownEngine(TSteamError *pError) = 0;

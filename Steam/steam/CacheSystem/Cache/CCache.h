@@ -31,9 +31,11 @@ public:
 	{
 		if (DirectoryTable)
 		{
+			delete [] DirectoryTable[0].FullName;
+
 			for (unsigned int x = 1; x < Manifest->Header->ItemCount ; x++)
 			{
-				delete [] DirectoryTable[x].FullName; 
+				delete [] DirectoryTable[x].FullName;
 				delete [] DirectoryTable[x].Name;
 
 				if (DirectoryTable[x].numofsectors != 0)
@@ -90,7 +92,7 @@ public:
 
 		DirectoryTable[0].pCache = this;
 		//if (bLogging) Logger->Write("\tTHIS = 0x%08X\n", (unsigned int)this);
-		DirectoryTable[0].FullName = "\\";
+		DirectoryTable[0].FullName = V_strdup("\\");
 		DirectoryTable[0].Size = Manifest->Entries[0].ItemSize;
 		DirectoryTable[0].FirstIndex = Manifest->Entries[0].FirstIndex;
 		DirectoryTable[0].NextIndex = Manifest->Entries[0].NextIndex;

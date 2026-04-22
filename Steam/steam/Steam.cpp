@@ -32,6 +32,11 @@ char g_szCDRFile[MAX_PATH];
 char g_szBlobFile[MAX_PATH];
 char g_szAppIni[MAX_PATH];
 
+#define REV_MAX_ARGS 256
+
+char* g_argv[REV_MAX_ARGS];
+int g_argc = 0;
+
 HMODULE g_hModule;
 HMODULE g_hOrigSteamDll;
 
@@ -59,11 +64,10 @@ CCacheFileSystem* g_CacheManager = NULL;
 #include "SteamLogging.h"				//Logging
 #include "SteamAccount.h"				//Account
 #include "SteamUserIDValidation.h"		//User ID validation
+#ifdef _WIN32
 #include "SteamMiniDump.h"				//Minidump
+#endif
 #include "SteamMisc.h"					//Misc
-
-#include <shellapi.h>
-#include "registry.h"
 #endif
 
 #ifdef _WIN32
@@ -89,6 +93,141 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID /*lpvReserved*/)
 }
 #endif
 
+SteamHandle_t NewSteamHandle()
+{
+	static uint32 retval = 0;
+	retval++;
+	if (retval == 0) retval++;
+	return retval;
+}
+
+void RevError(const char* cszError)
+{
+#ifdef _WIN32
+	MessageBoxA(NULL, "REVive Error", cszError, MB_OK);
+	ExitProcess(1);
+#else
+	printf("%s\n", cszError);
+	_exit(1);
+#endif
+}
+
+bool RevGetEnvVar(const char* cszVar, char* szOut, unsigned int nOutSize)
+{
+#ifdef _WIN32
+	DWORD dwBufferLen = GetEnvironmentVariableA(cszVar, szOut, nOutSize);
+	if (dwBufferLen != 0 && dwBufferLen <= nOutSize)
+	{
+		return true;
+	}
+#else
+	const char* cszValue = getenv(cszVar);
+	if (cszValue)
+	{
+		cszValue = strncpy(szOut, cszValue, nOutSize);
+		return true;
+	}
+#endif
+
+	return false;
+}
+
+void RevSetEnvVar(const char* cszVar, const char* cszValue)
+{
+#ifdef _WIN32
+	SetEnvironmentVariableA(cszVar, cszValue);
+#else
+	setenv(cszVar, cszValue, 1);
+#endif
+}
+
+#ifdef _OSX
+// Forward declare this rather than including crt_externs.h as not all SDKs provide it.
+extern "C" char*** _NSGetArgv(void);
+extern "C" int* _NSGetArgc(void);
+#endif
+
+void RevCreateCmdLine()
+{
+	memset(g_argv, 0, sizeof(g_argv));
+	g_argc = 0;
+
+#if defined(_WIN32)
+	int nArgs;
+	LPWSTR* szArgList = CommandLineToArgvW(GetCommandLineW(), &nArgs);
+	int i;
+	for (i = 0; i < nArgs && i < REV_MAX_ARGS; i++)
+	{
+		int len = WideCharToMultiByte(CP_UTF8, 0, szArgList[i], -1, NULL, 0, NULL, NULL);
+		if (!len)
+		{
+			g_argv[i] = V_strdup("");
+			continue;
+		}
+		g_argv[i] = new char[len];
+		WideCharToMultiByte(CP_UTF8, 0, szArgList[i], -1, g_argv[i], len, NULL, NULL);
+	}
+	g_argc = i;
+	LocalFree(szArgList);
+#elif defined(_OSX)
+	char** argv = *_NSGetArgv();
+	int argc = *_NSGetArgc();
+	int i;
+	for (i = 0; i < argc && i < REV_MAX_ARGS; i++)
+	{
+		g_argv[i] = V_strdup(argv[i]);
+	}
+	g_argc = i;
+#elif defined(_LINUX)
+	FILE* f = fopen("/proc/self/cmdline", "rb");
+	if (!f)
+		return;
+
+	char buf[4096];
+	size_t filelen = fread(buf, 1, sizeof(buf), f);
+	fclose(f);
+
+	size_t pos = 0;
+	while (pos < filelen && g_argc < REV_MAX_ARGS)
+	{
+		char* szArg = &buf[pos];
+		g_argv[g_argc] = V_strdup(szArg);
+		pos += strlen(szArg) + 1;
+		g_argc++;
+	}
+#endif
+}
+
+void RevDestroyCmdLine()
+{
+	for (int i = 0; i < g_argc; i++)
+	{
+		delete[] g_argv[i];
+		g_argv[i] = NULL;
+	}
+	g_argc = 0;
+}
+
+bool RevGetDllPath(char* szOut, unsigned int nOutSize)
+{
+#ifdef _WIN32
+	DWORD dwBufferLen = GetModuleFileNameA(g_hModule, szOut, nOutSize);
+	if (dwBufferLen != 0 && dwBufferLen <= nOutSize)
+	{
+		return true;
+	}
+#else
+	Dl_info dlinfo;
+	if (dladdr((void*)RevGetDllPath, &dlinfo))
+	{
+		strncpy(szOut, dlinfo.dli_fname, nOutSize);
+		return true;
+	}
+#endif
+
+	return false;
+}
+
 void RevInitialize(const char* cszInitSource)
 {
 	if (g_bConfigLoaded)
@@ -99,23 +238,14 @@ void RevInitialize(const char* cszInitSource)
 	char szRunFromPath[MAX_PATH];
 	V_GetCurrentDirectory(szRunFromPath, MAX_PATH);
 
+	RevCreateCmdLine();
+
 	g_uAppId = 0;
 
 	char szEnvBuffer[128];
-	const char* cszAppEnvVar = NULL;
-#ifdef _WIN32
-	DWORD dwEnvBufferLen = GetEnvironmentVariableA("SteamAppId", szEnvBuffer, sizeof(szEnvBuffer));
-	if (dwEnvBufferLen != 0 && dwEnvBufferLen <= sizeof(szEnvBuffer))
+	if (RevGetEnvVar("SteamAppId", szEnvBuffer, sizeof(szEnvBuffer)))
 	{
-		cszAppEnvVar = szEnvBuffer;
-	}
-#else
-	cszAppEnvVar = getenv("SteamAppId");
-#endif
-
-	if (cszAppEnvVar)
-	{
-		g_uAppId = strtol(cszAppEnvVar, NULL, 10);
+		g_uAppId = strtol(szEnvBuffer, NULL, 10);
 	}
 	else if (FILE* fp = fopen("steam_appid.txt", "rb"))
 	{
@@ -127,50 +257,28 @@ void RevInitialize(const char* cszInitSource)
 
 		fclose(fp);
 	}
-#ifdef _WIN32
 	else
 	{
-		int nArgs;
-		LPWSTR* szArgList = CommandLineToArgvW(GetCommandLineW(), &nArgs);
-
-		for (int i = 0; i < nArgs; i++)
+		for (int i = 0; i < g_argc; i++)
 		{
-			if (_wcsicmp(szArgList[i], L"-appid") == 0 && i + 1 < nArgs)
+			if (V_stricmp(g_argv[i], "-appid") == 0 && i + 1 < g_argc)
 			{
-				g_uAppId = wcstol(szArgList[i + 1], NULL, 10);
+				g_uAppId = strtol(g_argv[i + 1], NULL, 10);
 				break;
 			}
 		}
-
-		LocalFree(szArgList);
 	}
-#endif
 
 	if (g_uAppId != 0) {
 		V_sprintf_safe(szEnvBuffer, "%u", g_uAppId);
-#ifdef _WIN32
-		SetEnvironmentVariableA("SteamAppId", szEnvBuffer);
-#else
-		setenv("SteamAppId", szEnvBuffer, 1);
-#endif
+		RevSetEnvVar("SteamAppId", szEnvBuffer);
 	}
 
 	char szSteamDLLPath[MAX_PATH];
-#ifdef _WIN32
-	if (GetModuleFileNameA(g_hModule, szSteamDLLPath, MAX_PATH) == 0)
+	if (!RevGetDllPath(szSteamDLLPath, MAX_PATH))
 	{
-		ExitProcess(1);
-		return;
+		RevError("Unable to get REVive library path.");
 	}
-#else
-	Dl_info dlinfo;
-	if (!dladdr((void*)RevInitialize, &dlinfo))
-	{
-		_exit(1);
-		return;
-	}
-	strcpy(szSteamDLLPath, dlinfo.dli_fname);
-#endif
 
 	V_StripFilename(szSteamDLLPath);
 
@@ -188,9 +296,7 @@ void RevInitialize(const char* cszInitSource)
 	V_ExtractFilePath(szIniFile, szIniDir, MAX_PATH);
 	V_ComposeFileName(szIniDir, "revApps.ini", g_szAppIni, MAX_PATH);
 
-	//
 	// Initialize and parse the INI file
-	//
 	CSimpleIniA Ini;
 	Ini.LoadFile(szIniFile);
 
@@ -203,7 +309,18 @@ void RevInitialize(const char* cszInitSource)
 		Logger->Write("Logging initialized.\n");
 		Logger->Write("DLL initialized from %s\n", cszInitSource);
 		Logger->Write("Run path initialized to %s\n", szRunFromPath);
-		//Logger->Write("Command line: %s\n", chCmdLine);
+
+		char szCmdLine[1024] = "";
+		for (int i = 0; i < g_argc; i++)
+		{
+			strcat(szCmdLine, g_argv[i]);
+			if (i + 1 < g_argc)
+			{
+				strcat(szCmdLine, " ");
+			}
+		}
+
+		Logger->Write("Command line: %s\n", szCmdLine);
 	}
 	if (bLogging)
 	{
@@ -223,9 +340,10 @@ void RevInitialize(const char* cszInitSource)
 
 #ifndef VALIDATOR_DLL
 	strcpy(g_szSteamUser, Ini.GetValue("Emulator", "SteamUser", "RevUser"));
-	SetEnvironmentVariableA("SteamUser", g_szSteamUser);
+	RevSetEnvVar("SteamUser", g_szSteamUser);
 	if (bLogging) Logger->Write("Steam User set to %s\n", g_szSteamUser);
 
+#ifdef _WIN32
 	strcpy(g_szOLDLanguage, "unset");
 	getRegistryU("Software\\Valve\\Steam", "Language", g_szOLDLanguage, MAX_PATH);
 	V_strlower(g_szOLDLanguage);
@@ -252,11 +370,15 @@ void RevInitialize(const char* cszInitSource)
 	}
 
 	V_strlower(g_szLanguage);
-
-	if (bLogging) Logger->Write("Steam language initialized (%s)\n", g_szLanguage);
+#else
+	// When Valve ported Source to Mac, they've also made it so it doesn't get the language from the registry anymore,
+	// so we can simplify this whole thing.
+	strcpy(g_szLanguage, Ini.GetValue("Emulator", "Language", "English"));
+	V_strlower(g_szLanguage);
 #endif
 
-#ifndef VALIDATOR_DLL
+	if (bLogging) Logger->Write("Steam language initialized (%s)\n", g_szLanguage);
+
 	if (g_bSteamFileSystem = Ini.GetBoolValue("Emulator", "CacheEnabled"))
 	{
 		strcpy(g_szGCFPath, Ini.GetValue("Emulator", "CachePath", ""));
@@ -323,15 +445,9 @@ void RevInitialize(const char* cszInitSource)
 		g_hOrigSteamDll = LoadLibraryA(szOrigSteamDLLPath);
 		if (!g_hOrigSteamDll)
 		{
-			char szErrMsg[255];
-#ifdef _WIN32
-			V_sprintf_safe(szErrMsg, "Unable to load %s\nPlease edit or comment out SteamDll value in rev.ini.", szOrigSteamDLLPath);
-			MessageBoxA(0, szErrMsg, "Error", 0);
-			ExitProcess(1);
-#else
-			printf("Unable to load %s! Please edit or comment out SteamDll value in rev.ini.\n", szOrigSteamDLLPath);
-			_exit(1);
-#endif
+			char szErrMsg[512];
+			V_sprintf_safe(szErrMsg, "Unable to load %s! Please edit or comment out SteamDll value in rev.ini.", szOrigSteamDLLPath);
+			RevError(szErrMsg);
 		}
 		if (bLogging) Logger->Write("-- Original Steam.dll set: %s (0x%p)\n", szOrigSteamDLLPath, g_hOrigSteamDll);
 	}
@@ -345,9 +461,7 @@ void RevInitialize(const char* cszInitSource)
 	}
 
 #ifdef _WIN32
-	//
 	// Set the registry values required for steamclient.dll to be loaded
-	//
 	if (g_bSteamClient = Ini.GetBoolValue("Emulator", "SteamClient")) // Should we enable steamclient loading ?
 	{
 		char chClientPath[MAX_PATH];
@@ -370,21 +484,17 @@ void RevInitialize(const char* cszInitSource)
 	}
 #endif
 	
-	// TODO: Linux solution
 #ifndef VALIDATOR_DLL
-	//
 	// Initialize the unique User ID used to authenticate with game server
-	//
+#ifdef _WIN32
 	DWORD serialNumber;
 	GetVolumeInformationA(NULL, NULL, NULL, &serialNumber, NULL, NULL, NULL, NULL);
 	g_SteamID.Set(serialNumber, k_EUniversePublic, k_EAccountTypeIndividual);
+#else
+	// There are no Linux or Mac clients that actually use Steam2 auth, so there's no need to set this.
+	g_SteamID.Clear();
 #endif
-}
+#endif
 
-SteamHandle_t NewSteamHandle()
-{
-	static uint32 retval = 0;
-	retval++;
-	if (retval == 0) retval++;
-	return retval;
+	RevDestroyCmdLine();
 }

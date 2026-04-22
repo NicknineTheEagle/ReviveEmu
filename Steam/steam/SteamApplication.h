@@ -73,10 +73,7 @@ int GetFiles(const char* szSource, const char* szDest, int mode, const char* szM
 					{
 						if (OverwriteConfigFiles == false)
 						{
-							strcpy(szFileName, szCWD);
-							strcat(szFileName, "//");
-							strcpy(szFileName, TestFile->FullName);
-							V_FixSlashes(szFileName);
+							V_ComposeFileName(szCWD, TestFile->FullName, szFileName, MAX_PATH);
 
 							struct _stat buf;
 							retval = _stat(szFileName, &buf);
@@ -134,9 +131,11 @@ STEAM_API int SteamEnumerateApp(unsigned int uAppID, TSteamApp* pApp, TSteamErro
 
 			pApp->uId = CDR->ApplicationRecords[uAppRecord]->AppId;
 
-			_itoa(CDR->ApplicationRecords[uAppRecord]->CurrentVersionId, pApp->szLatestVersionLabel, 10);
+			V_snprintf(pApp->szLatestVersionLabel, pApp->uMaxLatestVersionLabelChars, "%u",
+				CDR->ApplicationRecords[uAppRecord]->CurrentVersionId);
 
-			_itoa(CDR->ApplicationRecords[uAppRecord]->CurrentVersionId, pApp->szCurrentVersionLabel, 10);
+			V_snprintf(pApp->szCurrentVersionLabel, pApp->uMaxCurrentVersionLabelChars, "%u",
+				CDR->ApplicationRecords[uAppRecord]->CurrentVersionId);
 
 			pApp->uMinCacheFileSizeMB = CDR->ApplicationRecords[uAppRecord]->MinCacheFileSizeMB;
 
@@ -244,18 +243,18 @@ STEAM_API SteamCallHandle_t SteamRefreshMinimumFootprintFiles(unsigned int uAppI
 			{
 				strcpy(szPath, g_szGCFPath);
 				strcpy(szGCF, GetNameById(CDR->ApplicationRecords[uAppRecord]->FilesystemsRecord[x]->AppId));
+				V_strlower(szGCF);
 				strcat(szGCF, ".gcf");
 
 				//GetCurrentDirectoryA(MAX_PATH, szDestination);
 				strcpy(szDestination, g_szGCFPath);
-				strcat(szDestination, "\\");
+				strcat(szDestination, CORRECT_PATH_SEPARATOR_S);
 				strcat(szDestination, g_szSteamUser);
-				strcat(szDestination, "\\");
+				strcat(szDestination, CORRECT_PATH_SEPARATOR_S);
 				strcat(szDestination, CDR->ApplicationRecords[uAppRecord]->InstallDirName);
-				strcat(szDestination, "\\");
+				strcat(szDestination, CORRECT_PATH_SEPARATOR_S);
 
 				//strcat(szDestination,CDR->ApplicationRecords[i]->FilesystemsRecord[x]->MountName);
-				V_FixSlashes(szDestination);
 
 				V_ComposeFileName(szPath, szGCF, szPath, MAX_PATH);
 
@@ -276,6 +275,7 @@ STEAM_API SteamCallHandle_t SteamLaunchApp(unsigned int uAppId, unsigned int uLa
 
 	int retval = 0;
 
+#ifdef _WIN32
 	//Launch the process by launchoption - add args if specified
 
 	TSteamAppLaunchOption* LaunchOption = new TSteamAppLaunchOption;
@@ -375,6 +375,7 @@ STEAM_API SteamCallHandle_t SteamLaunchApp(unsigned int uAppId, unsigned int uLa
 	delete[] LaunchOption->szCmdLine;
 	delete[] LaunchOption->szDesc;
 	delete LaunchOption;
+#endif
 
 	return retval;
 }
