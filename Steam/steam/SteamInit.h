@@ -1,7 +1,5 @@
 #pragma once
 
-#include "registry.h"
-
 extern CLogFile* Logger;
 extern bool bLogging;
 extern bool g_bSteamStartup;
@@ -31,7 +29,9 @@ STEAM_API int STEAM_CALL SteamStartup(unsigned int uUsingMask, TSteamError *pErr
 		g_bSteamStartup = true;
 
 		RevInitialize("SteamStartup");
+#ifdef _WIN32
 		setRegistry("Software\\Valve\\Steam", "Language", g_szLanguage);
+#endif
 
 		if (g_bSteamFileSystem)
 		{
@@ -93,7 +93,9 @@ STEAM_API int STEAM_CALL SteamCleanup(TSteamError *pError)
 			}
 		}
 
+#ifdef _WIN32
 		setRegistry("Software\\Valve\\Steam", "Language", g_szOLDLanguage);
+#endif
 
 		g_bSteamStartup = false;
 	}

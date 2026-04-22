@@ -7,7 +7,7 @@
 class ISteamInterface006
 {
 public:
-	virtual ~ISteamInterface006() = 0{}
+	virtual ~ISteamInterface006() {}
 
 	virtual SteamCallHandle_t ChangePassword(const char* cszCurrentPassphrase, const char* cszNewPassphrase, TSteamError* pError) = 0;
 	virtual int GetCurrentEmailAddress(char* szEmailaddress, unsigned int uBufSize, unsigned int* puEmailaddressChars, TSteamError* pError) = 0;

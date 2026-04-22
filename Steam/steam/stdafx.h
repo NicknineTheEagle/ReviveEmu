@@ -9,19 +9,14 @@
 #include "targetver.h"
 
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
-
 #include <windows.h>
-#elif defined(__linux__)
-#define LINUX 1
-#define _LINUX 1
-#define POSIX 1
-#define GNUC 1
 #endif
 
 #include <cstdio>
 #include <cstring>
 #include <cstdint>
 #include <cstdarg>
+#include <climits>
 #include <vector>
 #include <map>
 #include <mutex>
@@ -30,13 +25,19 @@
 #if defined(_WIN32)
 #include <io.h>
 #include <direct.h>
+#include <shellapi.h>
 #else
+#include <ctime>
 #include <dlfcn.h>
-#include <time.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <linux/limits.h>
 #include <sys/stat.h>
+#include <sys/time.h>
+#include <dirent.h>
+#include <fnmatch.h>
+#if defined(_LINUX)
+#include <sys/syscall.h>
+#endif
 #endif
 
 #include "SteamCommon.h"
@@ -47,3 +48,7 @@
 #define SI_NO_CONVERSION
 #include "simpleini/SimpleIni.h"
 #include "logFile.h"
+
+#if defined(_WIN32)
+#include "registry.h"
+#endif

@@ -40,9 +40,9 @@ void CLogFile::Write(const char* pszFormat, ...)
 	//		if (lLength > m_lTruncate)
 	//			rewind(m_pLogFile);
 
-	char szLine[1024];
+	char szLine[1024] = "";
 
-#ifdef _WIN32
+#if defined (_WIN32)
 	//Get current time
 	SYSTEMTIME time;
 	GetLocalTime(&time);
@@ -55,6 +55,20 @@ void CLogFile::Write(const char* pszFormat, ...)
 	//	time.wYear, time.wMonth, time.wDay,
 	//	time.wHour, time.wMinute, time.wSecond, time.wMilliseconds,
 	//	szLog);
+#elif defined(_OSX)
+	//Get current time
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+
+	struct tm tm;
+	localtime_r(&tv.tv_sec, &tm);
+
+	uint64 tid;
+	pthread_threadid_np(NULL, &tid);
+
+	V_sprintf_safe(szLine, "%02d:%02d:%02d:%03d [%d\\%llu]\t%s", 
+		tm.tm_hour, tm.tm_min, tm.tm_sec, (int)(tv.tv_usec / 1000),
+		(int)getpid(), tid, szLog);
 #else
 	//Get current time
 	struct timespec ts;
@@ -63,9 +77,9 @@ void CLogFile::Write(const char* pszFormat, ...)
 	struct tm tm;
 	localtime_r(&ts.tv_sec, &tm);
 
-	V_sprintf_safe(szLine, "%02d:%02d:%02d:%03d [%d\\%lu]\t%s", 
+	V_sprintf_safe(szLine, "%02d:%02d:%02d:%03d [%d\\%d]\t%s", 
 		tm.tm_hour, tm.tm_min, tm.tm_sec, (int)(ts.tv_nsec / 1000000),
-		(int)getpid(), (unsigned long)pthread_self(), szLog);
+		(int)getpid(), (int)syscall(SYS_gettid), szLog);
 #endif
 
 	fputs(szLine, m_pLogFile);
