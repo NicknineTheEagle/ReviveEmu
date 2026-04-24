@@ -124,7 +124,7 @@ bool RevGetEnvVar(const char* cszVar, char* szOut, unsigned int nOutSize)
 	const char* cszValue = getenv(cszVar);
 	if (cszValue)
 	{
-		strncpy(szOut, cszValue, nOutSize);
+		V_strncpy(szOut, cszValue, nOutSize);
 		return true;
 	}
 #endif
@@ -220,7 +220,7 @@ bool RevGetDllPath(char* szOut, unsigned int nOutSize)
 	Dl_info dlinfo;
 	if (dladdr((void*)RevGetDllPath, &dlinfo))
 	{
-		strncpy(szOut, dlinfo.dli_fname, nOutSize);
+		V_strncpy(szOut, dlinfo.dli_fname, nOutSize);
 		return true;
 	}
 #endif
@@ -312,10 +312,10 @@ void RevInitialize(const char* cszInitSource)
 		char szCmdLine[1024] = "";
 		for (int i = 0; i < g_argc; i++)
 		{
-			strcat(szCmdLine, g_argv[i]);
+			V_strcat_safe(szCmdLine, g_argv[i]);
 			if (i + 1 < g_argc)
 			{
-				strcat(szCmdLine, " ");
+				V_strcat_safe(szCmdLine, " ");
 			}
 		}
 
@@ -338,33 +338,33 @@ void RevInitialize(const char* cszInitSource)
 	}
 
 #ifndef VALIDATOR_DLL
-	strcpy(g_szSteamUser, Ini.GetValue("Emulator", "SteamUser", "RevUser"));
+	V_strcpy_safe(g_szSteamUser, Ini.GetValue("Emulator", "SteamUser", "RevUser"));
 	RevSetEnvVar("SteamUser", g_szSteamUser);
 	if (bLogging) Logger->Write("Steam User set to %s\n", g_szSteamUser);
 
 #ifdef _WIN32
-	strcpy(g_szOLDLanguage, "unset");
+	V_strcpy_safe(g_szOLDLanguage, "unset");
 	getRegistryU("Software\\Valve\\Steam", "Language", g_szOLDLanguage, MAX_PATH);
 	V_strlower(g_szOLDLanguage);
 
 	if (const char* CheckLang = Ini.GetValue("Emulator", "Language"))
 	{
-		strcpy(g_szLanguage, CheckLang);
-		if (strcmp(g_szOLDLanguage, "unset") == 0)
+		V_strcpy_safe(g_szLanguage, CheckLang);
+		if (V_strcmp(g_szOLDLanguage, "unset") == 0)
 		{
-			strcpy(g_szOLDLanguage, "English");
+			V_strcpy_safe(g_szOLDLanguage, "English");
 		}
 	}
 	else
 	{
-		if (strcmp(g_szOLDLanguage, "unset") == 0)
+		if (V_strcmp(g_szOLDLanguage, "unset") == 0)
 		{
-			strcpy(g_szOLDLanguage, "English");
-			strcpy(g_szLanguage, g_szOLDLanguage);
+			V_strcpy_safe(g_szOLDLanguage, "English");
+			V_strcpy_safe(g_szLanguage, g_szOLDLanguage);
 		}
 		else
 		{
-			strcpy(g_szLanguage, g_szOLDLanguage);
+			V_strcpy_safe(g_szLanguage, g_szOLDLanguage);
 		}
 	}
 
@@ -372,7 +372,7 @@ void RevInitialize(const char* cszInitSource)
 #else
 	// When Valve ported Source to Mac, they've also made it so it doesn't get the language from the registry anymore,
 	// so we can simplify this whole thing.
-	strcpy(g_szLanguage, Ini.GetValue("Emulator", "Language", "English"));
+	V_strcpy_safe(g_szLanguage, Ini.GetValue("Emulator", "Language", "English"));
 	V_strlower(g_szLanguage);
 #endif
 
@@ -380,10 +380,10 @@ void RevInitialize(const char* cszInitSource)
 
 	if (g_bSteamFileSystem = Ini.GetBoolValue("Emulator", "CacheEnabled"))
 	{
-		strcpy(g_szGCFPath, Ini.GetValue("Emulator", "CachePath", ""));
+		V_strcpy_safe(g_szGCFPath, Ini.GetValue("Emulator", "CachePath", ""));
 
 		V_ComposeFileName(szIniDir, "cdr.bin", g_szCDRFile, MAX_PATH);
-		strcpy(g_szCDRFile, Ini.GetValue("Emulator", "CDRPath", g_szCDRFile));
+		V_strcpy_safe(g_szCDRFile, Ini.GetValue("Emulator", "CDRPath", g_szCDRFile));
 
 		V_ComposeFileName(szIniDir, "ClientRegistry.blob", g_szBlobFile, MAX_PATH);
 
@@ -431,7 +431,7 @@ void RevInitialize(const char* cszInitSource)
 	char szOrigSteamDLLPath[MAX_PATH] = "";
 	if (const char* SteamDll = Ini.GetValue("Emulator", "SteamDll"))
 	{
-		strcpy(szOrigSteamDLLPath, SteamDll);
+		V_strcpy_safe(szOrigSteamDLLPath, SteamDll);
 		g_bSteamDll = true;
 	}
 	if (bool ForceRevClient = Ini.GetBoolValue("Emulator", "ForceRevClient")) // Is other client emu allowed ?
@@ -464,18 +464,18 @@ void RevInitialize(const char* cszInitSource)
 	if (g_bSteamClient = Ini.GetBoolValue("Emulator", "SteamClient")) // Should we enable steamclient loading ?
 	{
 		char chClientPath[MAX_PATH];
-		strcpy(chClientPath, szRunFromPath);
+		V_strcpy_safe(chClientPath, szRunFromPath);
 
 		char szExePath[MAX_PATH];
 		GetModuleFileNameA(NULL, szExePath, MAX_PATH);
 		const char* chProcName = V_GetFileName(szExePath);
 
 		if (!V_stricmp(chProcName, "hlds.exe") || !V_stricmp(chProcName, "hl.exe"))
-			strcat(chClientPath, "steamclient.dll");
+			V_strcat_safe(chClientPath, "steamclient.dll");
 		else if (!V_stricmp(chProcName, "srcds.exe") || !V_stricmp(chProcName, "hl2.exe") || !V_stricmp(chProcName, "sdklauncher.exe"))
-			strcat(chClientPath, "bin\\steamclient.dll");
+			V_strcat_safe(chClientPath, "bin\\steamclient.dll");
 		else
-			strcat(chClientPath, "steamclient.dll");
+			V_strcat_safe(chClientPath, "steamclient.dll");
 
 		if (bLogging) Logger->Write("-- Using Steam Client: %s\n", chClientPath);
 		setRegistry("Software\\Valve\\Steam\\ActiveProcess", "pid", GetCurrentProcessId());
