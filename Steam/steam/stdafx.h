@@ -26,6 +26,8 @@
 #include <io.h>
 #include <direct.h>
 #include <shellapi.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #else
 #include <ctime>
 #include <dlfcn.h>
