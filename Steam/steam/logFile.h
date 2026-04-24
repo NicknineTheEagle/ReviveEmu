@@ -4,13 +4,11 @@ class CLogFile
 {
 private:
 	FILE* m_pLogFile;
-	char m_filename[MAX_PATH];
 	std::mutex m_LogMutex;
 
 public:
-	CLogFile(const char* strFile);
+	CLogFile(const char* cszFileName);
 	~CLogFile();
 
-	void Write(const char* pszFormat, ...);
-	void Clear();
+	void Write(const char* cszFormat, ...);
 };
