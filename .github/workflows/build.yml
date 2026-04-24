@@ -82,7 +82,10 @@ jobs:
         shell: bash
         run: |
           mkdir ./artifacts
+          cp ./Steam/steam/build/libsteam.so ./artifacts/libsteam.so
           cp ./Steam/steam/build/libsteamvalidateuseridtickets.so ./artifacts/libsteamvalidateuseridtickets.so
+          cp ./Steam/steam/rev.ini ./artifacts/rev.ini
+          cp ./Steam/steam/revApps.ini ./artifacts/revApps.ini
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

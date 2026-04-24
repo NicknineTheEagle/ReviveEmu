@@ -124,7 +124,7 @@ bool RevGetEnvVar(const char* cszVar, char* szOut, unsigned int nOutSize)
 	const char* cszValue = getenv(cszVar);
 	if (cszValue)
 	{
-		cszValue = strncpy(szOut, cszValue, nOutSize);
+		strncpy(szOut, cszValue, nOutSize);
 		return true;
 	}
 #endif
