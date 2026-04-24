@@ -115,7 +115,7 @@ public:
 
 	TFileInCacheHandle* CacheOpenFileEx(const char* cszFileName, const char* cszMode, unsigned int* puSize)
 	{
-		if (strpbrk(cszMode, "wa"))
+		if (strpbrk(cszMode, "wa+"))
 			return NULL;
 
 		if (TManifestEntriesInCache* FileToOpen = CacheFindFile(cszFileName))
