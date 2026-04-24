@@ -65,27 +65,29 @@ unsigned int GetAppIDFromName(char* szName)
 	return UINT_MAX;
 }
 
-unsigned int GetAppRecordID(unsigned int uAppID)
+CAppRecord* GetAppRecord(unsigned int uAppId)
 {
-	for (unsigned int i = 0; i < CDR->ApplicationRecords.size(); i++)
+	for (CAppRecord* pRecord : CDR->ApplicationRecords)
 	{
-		if (uAppID == CDR->ApplicationRecords[i]->AppId)
+		if (uAppId == pRecord->AppId)
 		{
-			return i;
+			return pRecord;
 		}
 	}
-	return UINT_MAX;
+
+	return NULL;
 }
 
-void MountFileSystemByID(unsigned int uId, const char* szExtraMount)
+void MountFileSystemByID(unsigned int uAppId, const char* szExtraMount)
 {
 	char szPath[MAX_PATH];
 	char szGCF[MAX_PATH];
 
-	if (uId >= CDR->ApplicationRecords.size())
+	CAppRecord* pRecord = GetAppRecord(uAppId);
+	if (!pRecord)
 		return;
 
-	strcpy(szGCF, CDR->ApplicationRecords[uId]->InstallDirName);
+	strcpy(szGCF, pRecord->InstallDirName);
 	V_strlower(szGCF);
 	strcat(szGCF, ".gcf");
 
@@ -98,34 +100,34 @@ void MountFileSystemByName(const char* szPath)
 	g_CacheManager->MountCache(szPath, "");
 }
 
-void MountExtraCaches(unsigned int uAppID)
+void MountExtraCaches(unsigned int uAppId)
 {
 	// half-life high definition.gcf
-	if ((uAppID == 20) || (uAppID == 50) || (uAppID == 70) || (uAppID == 130))
+	if ((uAppId == 20) || (uAppId == 50) || (uAppId == 70) || (uAppId == 130))
 	{
-		if (bLogging && bLogFS) Logger->Write("Loading Optional Cache Requirements for AppID(%u)\n", uAppID);
-		MountFileSystemByID(GetAppRecordID(96), "");
+		if (bLogging && bLogFS) Logger->Write("Loading Optional Cache Requirements for AppID(%u)\n", uAppId);
+		MountFileSystemByID(96, "");
 	}
 
 #if _M_X64
 	// source engine 64-bit.gcf
-	if ((uAppID == 220) || (uAppID == 340))
+	if ((uAppId == 220) || (uAppId == 340))
 	{
-		if (bLogging && bLogFS) Logger->Write("Loading Optional 64-bit Requirements for AppID(%u)\n", uAppID);
-		MountFileSystemByID(GetAppRecordID(201), "");
+		if (bLogging && bLogFS) Logger->Write("Loading Optional 64-bit Requirements for AppID(%u)\n", uAppId);
+		MountFileSystemByID(201, "");
 	}
 #endif
 }
 
 void MountExtraLanguageCaches(unsigned int uAppId, const char* szMountLanguage, bool bCheckDependency)
 {
-	unsigned int uAppRecord = GetAppRecordID(uAppId);
-	if (uAppRecord == UINT_MAX)
+	CAppRecord* pRecord = GetAppRecord(uAppId);
+	if (!pRecord)
 		return;
 
 	// Mount localization depot for the app if it exists.
 	char szLangDepot[MAX_PATH];
-	V_sprintf_safe(szLangDepot, "%s %s", CDR->ApplicationRecords[uAppRecord]->Name, szMountLanguage);
+	V_sprintf_safe(szLangDepot, "%s %s", pRecord->Name, szMountLanguage);
 	unsigned int uDepotId = GetAppIDFromName(szLangDepot);
 
 	if (uDepotId != UINT_MAX)
@@ -134,12 +136,12 @@ void MountExtraLanguageCaches(unsigned int uAppId, const char* szMountLanguage, 
 		if (uDepotId == 232)
 		{
 			if (bLogging && bLogFS) Logger->Write("Loading Localized Cache Requirements for AppID(%u) Language(%s)\n", 235, "buka russian");
-			MountFileSystemByID(GetAppRecordID(235), "");
+			MountFileSystemByID(235, "");
 		}
 
 		if (bLogging && bLogFS) Logger->Write("Loading Localized Cache Requirements for AppID(%u) Language(%s)\n", uDepotId, szMountLanguage);
 
-		MountFileSystemByID(GetAppRecordID(uDepotId), "");
+		MountFileSystemByID(uDepotId, "");
 	}
 
 	// Also recursively mount localization depots from app dependencies.
@@ -384,18 +386,18 @@ STEAM_API int SteamMountFilesystem(unsigned int uAppId, const char* szMountPath,
 
 	if (CDR)
 	{
-		unsigned int uAppRecord = GetAppRecordID(uAppId);
+		CAppRecord* pRecord = GetAppRecord(uAppId);
 
-		if (uAppRecord != UINT_MAX)
+		if (pRecord)
 		{
 			MountExtraLanguageCaches(uAppId, g_szLanguage, true);
 			MountExtraCaches(uAppId);
 
-			if (CDR->ApplicationRecords[uAppRecord]->FilesystemsRecord.size() > 0)
+			if (pRecord->FilesystemsRecord.size() > 0)
 			{
 				// Language Caches have been processed as this is a root AppID
 
-				for (CAppFilesystemRecord* pFSRecord : CDR->ApplicationRecords[uAppRecord]->FilesystemsRecord)
+				for (CAppFilesystemRecord* pFSRecord : pRecord->FilesystemsRecord)
 				{
 					// Don't mount depots from other operating systems.
 #if defined(_WIN32)
@@ -410,7 +412,7 @@ STEAM_API int SteamMountFilesystem(unsigned int uAppId, const char* szMountPath,
 
 					if (bLogging && bLogFS) Logger->Write("Loading Default Cache Requirements for AppID(%u)\n", pFSRecord->AppId);
 
-					MountFileSystemByID(GetAppRecordID(pFSRecord->AppId), pFSRecord->MountName);
+					MountFileSystemByID(pFSRecord->AppId, pFSRecord->MountName);
 				}
 			}
 			else
@@ -418,9 +420,9 @@ STEAM_API int SteamMountFilesystem(unsigned int uAppId, const char* szMountPath,
 				// Language Caches must be processed by calculating the rootAppID as some mods mount individual depots directly
 				// rootAppID was recorded on the last enumerate app call as this would populate the enumerations for the root app
 
-				unsigned int urootAppRecord = GetAppRecordID(g_uRootAppId);
+				CAppRecord* pRecord = GetAppRecord(g_uRootAppId);
 
-				if (urootAppRecord != UINT_MAX)
+				if (pRecord)
 				{
 					MountExtraLanguageCaches(g_uRootAppId, g_szLanguage, true);
 					MountExtraCaches(g_uRootAppId);
@@ -428,7 +430,7 @@ STEAM_API int SteamMountFilesystem(unsigned int uAppId, const char* szMountPath,
 
 				if (bLogging && bLogFS) Logger->Write("Loading Default Cache Requirements for AppID(%d)\n", uAppId);
 
-				MountFileSystemByID(uAppRecord, "");
+				MountFileSystemByID(uAppId, "");
 			}
 		}
 
@@ -475,18 +477,17 @@ STEAM_API int SteamMountAppFilesystem(TSteamError* pError)
 		{
 			CSimpleIniA AppIni;
 			AppIni.LoadFile(g_szAppIni);
+
 			char szSection[64];
-			char szKey[64];
-			char szPath[MAX_PATH];
-			int i;
+			V_sprintf_safe(szSection, "%u", g_uAppId);
 
-			V_sprintf_safe(szSection, "%d", g_uAppId);
-
-			for (i = 1; i < 50; i++)
+			for (int i = 1; i < 50; i++)
 			{
+				char szKey[64];
 				V_sprintf_safe(szKey, "GCF%d", i);
 				if (const char* cszGCF = AppIni.GetValue(szSection, szKey))
 				{
+					char szPath[MAX_PATH];
 					V_ComposeFileName(g_szGCFPath, cszGCF, szPath, MAX_PATH);
 					MountFileSystemByName(szPath);
 				}
