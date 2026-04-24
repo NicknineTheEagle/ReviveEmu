@@ -98,7 +98,6 @@
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
-      <ModuleDefinitionFile>Steam.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
     </Link>
@@ -117,7 +116,6 @@
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
-      <ModuleDefinitionFile>Steam.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
     </Link>
@@ -134,7 +132,6 @@
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
-      <ModuleDefinitionFile>Steam.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -153,7 +150,6 @@
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
-      <ModuleDefinitionFile>Steam.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -274,7 +270,6 @@
   <ItemGroup>
     <None Include="rev.ini" />
     <None Include="revApps.ini" />
-    <None Include="Steam.def" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="annotations.h" />

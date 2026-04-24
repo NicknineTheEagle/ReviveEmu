@@ -137,9 +137,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Steam.def">
-      <Filter>Source Files</Filter>
-    </None>
     <None Include="rev.ini" />
     <None Include="revApps.ini" />
   </ItemGroup>
