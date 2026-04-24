@@ -304,8 +304,7 @@ void RevInitialize(const char* cszInitSource)
 	{
 		char szLogPath[MAX_PATH];
 		V_ComposeFileName(szRunFromPath, "rev.log", szLogPath, MAX_PATH);
-		Logger = new CLogFile(szLogPath);
-		Logger->Clear();
+		Logger = new CLogFile(szLogPath);;
 		Logger->Write("Logging initialized.\n");
 		Logger->Write("DLL initialized from %s\n", cszInitSource);
 		Logger->Write("Run path initialized to %s\n", szRunFromPath);
