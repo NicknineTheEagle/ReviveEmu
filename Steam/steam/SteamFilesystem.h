@@ -360,7 +360,8 @@ SteamHandle_t SteamOpenFile2(const char* cszFileName, const char* cszMode, int n
 
 		char szDirPath[MAX_PATH] = "";
 		V_ExtractFilePath(szFullPath, szDirPath, MAX_PATH);
-		if (bLogging && bLogFS) Logger->Write("\tOpened 0x%08X from Local(%s) %s >> %s\n", hCacheFile->hSteamHandle, cszMode, cszFileName, szDirPath);
+		const char* cszBaseName = V_GetFileName(szFullPath);
+		if (bLogging && bLogFS) Logger->Write("\tOpened 0x%08X from Local(%s) %s >> %s\n", hCacheFile->hSteamHandle, cszMode, cszBaseName, szDirPath);
 	}
 	else
 	{
