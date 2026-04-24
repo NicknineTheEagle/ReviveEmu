@@ -5,7 +5,7 @@ typedef enum
 	eFSRAppId = 1,
 	eFSRMountName = 2,
 	eFSRIsOptional = 3,
-	eFSROS = 4
+	eFSRValidOSList = 4
 }EFileSystemFields;
 
 class CAppFilesystemRecord
@@ -15,14 +15,14 @@ public:
 	unsigned int AppId;
 	char* MountName;
 	bool IsOptional;
-	char* OS;
+	char* ValidOSList;
 
 	CAppFilesystemRecord()
 	{
 		AppId = 0;
 		MountName = NULL;
 		IsOptional = false;
-		OS = NULL;
+		ValidOSList = NULL;
 	}
 
 	~CAppFilesystemRecord()
@@ -30,8 +30,8 @@ public:
 		if (MountName)
 			delete[] MountName;
 
-		if (OS)
-			delete[] OS;
+		if (ValidOSList)
+			delete[] ValidOSList;
 	}
 
 	const char* Enumerate(const char* FSRBinary)
@@ -69,9 +69,9 @@ public:
 						FSRBinary += DNode->datalength;
 						break;
 
-					case eFSROS:
-					    this->OS = new char[DNode->datalength];
-					    memcpy(this->OS, FSRBinary, DNode->datalength);
+					case eFSRValidOSList:
+					    this->ValidOSList = new char[DNode->datalength];
+					    memcpy(this->ValidOSList, FSRBinary, DNode->datalength);
 					    FSRBinary += DNode->datalength;
 					    break;
 

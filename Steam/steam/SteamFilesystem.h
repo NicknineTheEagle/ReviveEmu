@@ -405,7 +405,7 @@ STEAM_API int SteamMountFilesystem(unsigned int uAppId, const char* szMountPath,
 #elif defined(_LINUX)
 					const char* cszHostOS = "linux";
 #endif
-					if (pFSRecord->OS && strcmp(pFSRecord->OS, cszHostOS) != 0)
+					if (pFSRecord->ValidOSList && strcmp(pFSRecord->ValidOSList, cszHostOS) != 0)
 						continue;
 
 					if (bLogging && bLogFS) Logger->Write("Loading Default Cache Requirements for AppID(%u)\n", pFSRecord->AppId);
