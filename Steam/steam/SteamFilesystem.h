@@ -102,19 +102,28 @@ void MountFileSystemByName(const char* szPath)
 
 void MountExtraCaches(unsigned int uAppId)
 {
-	// half-life high definition.gcf
-	if ((uAppId == 20) || (uAppId == 50) || (uAppId == 70) || (uAppId == 130))
+	TSteamError steamError;
+	unsigned int uPropertyValueLength;
+	char szPropertyValue[MAX_PATH];
+
+	if (SteamGetAppUserDefinedInfo(uAppId, "hdaddon", szPropertyValue, MAX_PATH, &uPropertyValueLength, &steamError))
 	{
-		if (bLogging && bLogFS) Logger->Write("Loading Optional Cache Requirements for AppID(%u)\n", uAppId);
-		MountFileSystemByID(96, "");
+		// half-life high definition.gcf
+		unsigned int uDepotId = atoi(szPropertyValue);
+		if (bLogging && bLogFS) Logger->Write("Loading Optional HD Cache Requirements for AppID(%u)\n", uDepotId);
+		MountFileSystemByID(uDepotId, "");
 	}
 
-#if _M_X64
-	// source engine 64-bit.gcf
-	if ((uAppId == 220) || (uAppId == 340))
+#ifdef _WIN64
+	if (SteamGetAppUserDefinedInfo(uAppId, "Supports64bit", szPropertyValue, MAX_PATH, &uPropertyValueLength, &steamError))
 	{
-		if (bLogging && bLogFS) Logger->Write("Loading Optional 64-bit Requirements for AppID(%u)\n", uAppId);
-		MountFileSystemByID(201, "");
+		bool bSupports64bit = !!atoi(szPropertyValue);
+		if (bSupports64bit)
+		{
+			// source engine 64-bit.gcf
+			if (bLogging && bLogFS) Logger->Write("Loading Optional 64-bit Cache Requirements for AppID(%u)\n", 201);
+			MountFileSystemByID(201, "");
+		}
 	}
 #endif
 }
@@ -140,7 +149,6 @@ void MountExtraLanguageCaches(unsigned int uAppId, const char* szMountLanguage, 
 		}
 
 		if (bLogging && bLogFS) Logger->Write("Loading Localized Cache Requirements for AppID(%u) Language(%s)\n", uDepotId, szMountLanguage);
-
 		MountFileSystemByID(uDepotId, "");
 	}
 
@@ -390,8 +398,8 @@ STEAM_API int SteamMountFilesystem(unsigned int uAppId, const char* szMountPath,
 
 		if (pRecord)
 		{
-			MountExtraLanguageCaches(uAppId, g_szLanguage, true);
 			MountExtraCaches(uAppId);
+			MountExtraLanguageCaches(uAppId, g_szLanguage, true);
 
 			if (pRecord->FilesystemsRecord.size() > 0)
 			{
@@ -424,8 +432,8 @@ STEAM_API int SteamMountFilesystem(unsigned int uAppId, const char* szMountPath,
 
 				if (pRecord)
 				{
-					MountExtraLanguageCaches(g_uRootAppId, g_szLanguage, true);
 					MountExtraCaches(g_uRootAppId);
+					MountExtraLanguageCaches(g_uRootAppId, g_szLanguage, true);
 				}
 
 				if (bLogging && bLogFS) Logger->Write("Loading Default Cache Requirements for AppID(%d)\n", uAppId);
