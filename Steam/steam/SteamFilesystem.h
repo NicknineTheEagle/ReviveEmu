@@ -416,8 +416,23 @@ STEAM_API int SteamMountFilesystem(unsigned int uAppId, const char* szMountPath,
 #elif defined(_LINUX)
 					const char* cszHostOS = "linux";
 #endif
-					if (pFSRecord->ValidOSList && strcmp(pFSRecord->ValidOSList, cszHostOS) != 0)
-						continue;
+					if (pFSRecord->ValidOSList)
+					{
+						char szOSList[64];
+						V_strcpy_safe(szOSList, pFSRecord->ValidOSList);
+						bool bValidForOS = false;
+						for (const char* cszOS = strtok(szOSList, ","); cszOS; cszOS = strtok(NULL, ","))
+						{
+							if (V_stricmp(cszOS, cszHostOS) == 0)
+							{
+								bValidForOS = true;
+								break;
+							}
+						}
+
+						if (!bValidForOS)
+							continue;
+					}
 
 					if (bLogging && bLogFS) Logger->Write("Loading Default Cache Requirements for AppID(%u)\n", pFSRecord->AppId);
 
