@@ -57,7 +57,7 @@ void CWin32MiniDump::WriteUsingExceptionInfo(DWORD dwExceptionCode, _EXCEPTION_P
 	SYSTEMTIME systemtime;
 	GetSystemTime(&systemtime);
 
-	char szFileName[1024];
+	char szFileName[MAX_PATH];
 	sprintf(szFileName, "%s_%04u_%02u_%02u__%02u_%02u_%02u_%03u.mdmp", m_szName,
 		systemtime.wYear, systemtime.wMonth, systemtime.wDay, systemtime.wHour,
 		systemtime.wMinute, systemtime.wSecond, systemtime.wMilliseconds);

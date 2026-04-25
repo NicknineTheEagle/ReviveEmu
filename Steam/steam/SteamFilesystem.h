@@ -104,9 +104,9 @@ void MountExtraCaches(unsigned int uAppId)
 {
 	TSteamError steamError;
 	unsigned int uPropertyValueLength;
-	char szPropertyValue[MAX_PATH];
+	char szPropertyValue[32];
 
-	if (SteamGetAppUserDefinedInfo(uAppId, "hdaddon", szPropertyValue, MAX_PATH, &uPropertyValueLength, &steamError))
+	if (SteamGetAppUserDefinedInfo(uAppId, "hdaddon", szPropertyValue, sizeof(szPropertyValue), &uPropertyValueLength, &steamError))
 	{
 		// half-life high definition.gcf
 		unsigned int uDepotId = atoi(szPropertyValue);
@@ -115,7 +115,7 @@ void MountExtraCaches(unsigned int uAppId)
 	}
 
 #ifdef _WIN64
-	if (SteamGetAppUserDefinedInfo(uAppId, "Supports64bit", szPropertyValue, MAX_PATH, &uPropertyValueLength, &steamError))
+	if (SteamGetAppUserDefinedInfo(uAppId, "Supports64bit", szPropertyValue, sizeof(szPropertyValue), &uPropertyValueLength, &steamError))
 	{
 		bool bSupports64bit = !!atoi(szPropertyValue);
 		if (bSupports64bit)
@@ -157,9 +157,9 @@ void MountExtraLanguageCaches(unsigned int uAppId, const char* szMountLanguage, 
 	{
 		TSteamError steamError;
 		unsigned int uPropertyValueLength;
-		char szPropertyValue[MAX_PATH];
+		char szPropertyValue[32];
 
-		if (SteamGetAppUserDefinedInfo(uAppId, "dependantOnApp", szPropertyValue, MAX_PATH, &uPropertyValueLength, &steamError))
+		if (SteamGetAppUserDefinedInfo(uAppId, "dependantOnApp", szPropertyValue, sizeof(szPropertyValue), &uPropertyValueLength, &steamError))
 		{
 			MountExtraLanguageCaches(atoi(szPropertyValue), szMountLanguage, true);
 		}
@@ -487,12 +487,12 @@ STEAM_API int SteamMountAppFilesystem(TSteamError* pError)
 			CSimpleIniA AppIni;
 			AppIni.LoadFile(g_szAppIni);
 
-			char szSection[64];
+			char szSection[32];
 			V_sprintf_safe(szSection, "%u", g_uAppId);
 
 			for (int i = 1; i < 50; i++)
 			{
-				char szKey[64];
+				char szKey[32];
 				V_sprintf_safe(szKey, "GCF%d", i);
 				if (const char* cszGCF = AppIni.GetValue(szSection, szKey))
 				{
