@@ -7,7 +7,8 @@ typedef enum
 	eLOIconIndex = 3,
 	eLONoDesktopShortcut = 4,
 	eLONoStartMenuShortcut = 5,
-	eLOLongRunningUnattended = 6
+	eLOLongRunningUnattended = 6,
+	eLOValidOSList = 7
 }ELaunchOptionFields;
 
 class CAppLaunchOptionRecord
@@ -19,6 +20,7 @@ public:
 	bool NoDesktopShortcut;
 	bool NoStartMenuShortcut;
 	bool LongRunningUnattended;
+	char* ValidOSList;
 
 	CAppLaunchOptionRecord()
 	{
@@ -28,6 +30,7 @@ public:
 		NoDesktopShortcut = false;
 		NoStartMenuShortcut = false;
 		LongRunningUnattended = false;
+		ValidOSList = NULL;
 	}
 
 	~CAppLaunchOptionRecord()
@@ -37,6 +40,9 @@ public:
 
 		if (CommandLine)
 			delete[] CommandLine;
+
+		if (ValidOSList)
+			delete[] ValidOSList;
 	}
 
 	const char* Enumerate(const char* LOBinary)
@@ -89,6 +95,12 @@ public:
 					case eLOLongRunningUnattended:
 						this->LongRunningUnattended = *(bool*)LOBinary;
 						LOBinary += DNode->datalength;
+						break;
+
+					case eLOValidOSList:
+					    this->ValidOSList = new char[DNode->datalength];
+					    memcpy(this->ValidOSList, LOBinary, DNode->datalength);
+					    LOBinary += DNode->datalength;
 						break;
 
 					default:
