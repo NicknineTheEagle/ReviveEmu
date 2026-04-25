@@ -28,6 +28,8 @@
 #include <shellapi.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <eh.h>
+#include <DbgHelp.h>
 #else
 #include <ctime>
 #include <dlfcn.h>
