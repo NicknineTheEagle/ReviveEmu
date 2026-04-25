@@ -25,9 +25,9 @@ bool g_bSteamBlobSystem = false;
 bool g_bRawCDR = false;
 char g_szGCFPath[MAX_PATH];
 
-char g_szLanguage[MAX_PATH];
-char g_szSteamUser[MAX_PATH];
-char g_szOLDLanguage[MAX_PATH];
+char g_szLanguage[32];
+char g_szSteamUser[32];
+char g_szOLDLanguage[32];
 char g_szCDRFile[MAX_PATH];
 char g_szBlobFile[MAX_PATH];
 char g_szAppIni[MAX_PATH];
@@ -344,7 +344,7 @@ void RevInitialize(const char* cszInitSource)
 
 #ifdef _WIN32
 	V_strcpy_safe(g_szOLDLanguage, "unset");
-	getRegistryU("Software\\Valve\\Steam", "Language", g_szOLDLanguage, MAX_PATH);
+	getRegistryU("Software\\Valve\\Steam", "Language", g_szOLDLanguage, sizeof(g_szOLDLanguage));
 	V_strlower(g_szOLDLanguage);
 
 	if (const char* CheckLang = Ini.GetValue("Emulator", "Language"))
