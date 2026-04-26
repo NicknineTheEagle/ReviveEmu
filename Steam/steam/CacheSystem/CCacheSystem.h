@@ -741,6 +741,10 @@ private:
 			TManifestEntriesInCache* DirectoryTable = CacheFile->DirectoryTable;
 			TManifestEntriesInCache* ActualDirEntry;
 
+			size_t uNewSize = GlobalDirectoryTable.size() + CacheFile->Manifest->Header->ItemCount - 1;
+			GlobalDirectoryTable.reserve(uNewSize);
+			HashTable.reserve(uNewSize);
+
 			for (unsigned int CacheIndex = 1; CacheIndex < CacheFile->Manifest->Header->ItemCount; CacheIndex++)
 			{
 				TGlobalDirectory FindThisItem;
