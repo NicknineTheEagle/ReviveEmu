@@ -382,29 +382,29 @@ public:
 
 		switch (esMethod)
 		{
-		case eSteamSeekMethodSet:
-			if (lOffset >= 0)
-			{
-				hFile->Position = lOffset;
-				retval = 0;
-			}
-			break;
-		case eSteamSeekMethodCur:
-			if (((long)hFile->Position + lOffset) >= 0)
-			{
-				hFile->Position += lOffset;
-				retval = 0;
-			}
-			break;
-		case eSteamSeekMethodEnd:
-			if (lOffset <= (long)hFile->FileInCache->Size)
-			{
-				hFile->Position = hFile->FileInCache->Size - lOffset;
-				retval = 0;
-			}
-			break;
-		default:
-			break;
+			case eSteamSeekMethodSet:
+				if (lOffset >= 0)
+				{
+					hFile->Position = lOffset;
+					retval = 0;
+				}
+				break;
+			case eSteamSeekMethodCur:
+				if (((long)hFile->Position + lOffset) >= 0)
+				{
+					hFile->Position += lOffset;
+					retval = 0;
+				}
+				break;
+			case eSteamSeekMethodEnd:
+				if (lOffset <= (long)hFile->FileInCache->Size)
+				{
+					hFile->Position = hFile->FileInCache->Size - lOffset;
+					retval = 0;
+				}
+				break;
+			default:
+				break;
 		}
 
 		return retval;

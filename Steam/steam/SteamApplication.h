@@ -420,20 +420,20 @@ STEAM_API int SteamIsSubscribed(unsigned int uSubscriptionId, int* pbIsSubscribe
 
 	switch (uSubscriptionId)
 	{
-	case 4: //Cyber Cafe Subscription
-		*pbIsSubscribed = 0;
-		return 1;
-	case 67: //VTT Subscription
-		*pbIsSubscribed = 0;
-		return 1;
-	case 183: // Dark Messiah Might and Magic DE
-		*pbIsSubscribed = 0;
-		return 1;
-	case 198: // Dark Messiah Might and Magic Limited Retail DE
-		*pbIsSubscribed = 0;
-		return 1;
-	default:
-		break;
+		case 4: //Cyber Cafe Subscription
+			*pbIsSubscribed = 0;
+			return 1;
+		case 67: //VTT Subscription
+			*pbIsSubscribed = 0;
+			return 1;
+		case 183: // Dark Messiah Might and Magic DE
+			*pbIsSubscribed = 0;
+			return 1;
+		case 198: // Dark Messiah Might and Magic Limited Retail DE
+			*pbIsSubscribed = 0;
+			return 1;
+		default:
+			break;
 	}
 
 	if (!CDR)
@@ -592,20 +592,21 @@ STEAM_API int SteamGetAppUpdateStats(unsigned int uAppId, ESteamAppUpdateStatsQu
 
 	switch (uStatType)
 	{
-	case ePhysicalBytesReceivedThisSession:
-		break;
-	case eAppReadyToLaunchStatus:
-		break;
-	case eAppPreloadStatus:
-		break;
-	case eAppEntireDepot:
-		break;
-	case eCacheBytesPresent: //How much left to download from the specified cache
-		pUpdateStats->uBytesTotal = 0;
-		pUpdateStats->uBytesPresent = 0;
-		break;
-	default:
-		pError->eSteamError = eSteamErrorUnknown;
+		case ePhysicalBytesReceivedThisSession:
+			break;
+		case eAppReadyToLaunchStatus:
+			break;
+		case eAppPreloadStatus:
+			break;
+		case eAppEntireDepot:
+			break;
+		case eCacheBytesPresent: //How much left to download from the specified cache
+			pUpdateStats->uBytesTotal = 0;
+			pUpdateStats->uBytesPresent = 0;
+			break;
+		default:
+			pError->eSteamError = eSteamErrorUnknown;
+			break;
 	}
 
 	return 0;

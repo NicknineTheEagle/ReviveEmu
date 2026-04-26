@@ -31,8 +31,8 @@ AlignTrailingComments: false
 InsertBraces: false
 BreakBeforeBraces: Allman
 IndentAccessModifiers: false
-IndentCaseBlocks: true
-IndentCaseLabels: false
+IndentCaseBlocks: false
+IndentCaseLabels: true
 IndentExternBlock: false
 IndentGotoLabels: false
 IndentPPDirectives: None

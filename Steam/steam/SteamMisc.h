@@ -155,20 +155,20 @@ STEAM_API int STEAM_CALL SteamFindServersIterateServer(ESteamServerType eSteamSe
 
 	switch (eSteamServerType)
 	{
-	case eSteamHalfLifeMasterServer:
-		pServers = g_aHL1MasterServers;
-		iNumServers = ARRAYSIZE(g_aHL1MasterServers);
-		break;
-	case eSteamCSERServer:
-		pServers = g_aCSERServers;
-		iNumServers = ARRAYSIZE(g_aCSERServers);
-		break;
-	case eSteamHalfLife2MasterServer:
-		pServers = g_aHL2MasterServers;
-		iNumServers = ARRAYSIZE(g_aHL2MasterServers);
-		break;
-	default:
-		break;
+		case eSteamHalfLifeMasterServer:
+			pServers = g_aHL1MasterServers;
+			iNumServers = ARRAYSIZE(g_aHL1MasterServers);
+			break;
+		case eSteamCSERServer:
+			pServers = g_aCSERServers;
+			iNumServers = ARRAYSIZE(g_aCSERServers);
+			break;
+		case eSteamHalfLife2MasterServer:
+			pServers = g_aHL2MasterServers;
+			iNumServers = ARRAYSIZE(g_aHL2MasterServers);
+			break;
+		default:
+			break;
 	}
 
 	if (pServers && uIndex < iNumServers)
@@ -198,17 +198,17 @@ STEAM_API int STEAM_CALL SteamFindServersNumServers(ESteamServerType eSteamServe
 
 	switch (eSteamServerType)
 	{
-	case eSteamHalfLifeMasterServer:
-		return ARRAYSIZE(g_aHL1MasterServers);
-		break;
-	case eSteamCSERServer:
-		return ARRAYSIZE(g_aCSERServers);
-		break;
-	case eSteamHalfLife2MasterServer:
-		return ARRAYSIZE(g_aHL2MasterServers);
-		break;
-	default:
-		break;
+		case eSteamHalfLifeMasterServer:
+			return ARRAYSIZE(g_aHL1MasterServers);
+			break;
+		case eSteamCSERServer:
+			return ARRAYSIZE(g_aCSERServers);
+			break;
+		case eSteamHalfLife2MasterServer:
+			return ARRAYSIZE(g_aHL2MasterServers);
+			break;
+		default:
+			break;
 	}
 
 	return 0;
