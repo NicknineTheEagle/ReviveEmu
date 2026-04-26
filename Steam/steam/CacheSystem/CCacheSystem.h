@@ -764,6 +764,14 @@ private:
 				}
 			}
 
+			// Sort the list alphabetically.
+			std::sort(GlobalDirectoryTable.begin(), GlobalDirectoryTable.end(),
+				[](const TGlobalDirectory& elem1, const TGlobalDirectory& elem2)
+				{
+					return (strcmp(elem1.FullName, elem2.FullName) < 0);
+				}
+			);
+
 			CacheFile->bIsMounted = true;
 		}
 	}
