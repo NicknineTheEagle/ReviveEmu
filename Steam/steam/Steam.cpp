@@ -75,19 +75,19 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID /*lpvReserved*/)
 {
 	switch (fdwReason)
 	{
-	case DLL_PROCESS_ATTACH:
-		g_hModule = hinstDLL;
-		break;
+		case DLL_PROCESS_ATTACH:
+			g_hModule = hinstDLL;
+			break;
 
-	case DLL_THREAD_ATTACH:
-		break;
+		case DLL_THREAD_ATTACH:
+			break;
 
-	case DLL_THREAD_DETACH:
-		break;
+		case DLL_THREAD_DETACH:
+			break;
 
-	case DLL_PROCESS_DETACH:
-		g_hModule = NULL;
-		break;
+		case DLL_PROCESS_DETACH:
+			g_hModule = NULL;
+			break;
 	}
 	return TRUE;
 }

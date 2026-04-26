@@ -636,8 +636,8 @@ STEAM_API SteamHandle_t SteamFindFirst(const char* cszPattern, ESteamFindFilter 
 
 	switch (eFilter)
 	{
-	case eSteamFindRemoteOnly:
-	case eSteamFindAll:
+		case eSteamFindRemoteOnly:
+		case eSteamFindAll:
 		{
 			if (g_bSteamFileSystem)
 			{
@@ -658,7 +658,7 @@ STEAM_API SteamHandle_t SteamFindFirst(const char* cszPattern, ESteamFindFilter 
 			// Fall through to local search if we find nothing in GCF or GCF support is disabled.
 		}
 
-	case eSteamFindLocalOnly:
+		case eSteamFindLocalOnly:
 		{
 			_finddata_t finddata;
 			intptr_t hLocalFind = _findfirst(cszPattern, &finddata);
@@ -687,7 +687,7 @@ STEAM_API SteamHandle_t SteamFindFirst(const char* cszPattern, ESteamFindFilter 
 
 			return hFind->hSteamHandle;
 		}
-	default:
+		default:
 		{
 			pError->eSteamError = eSteamErrorBadArg;
 			if (bLogging && bLogFS) Logger->Write("\tFile not found (%s) <BAD ARGUMENT>\n", cszPattern);
