@@ -8,7 +8,19 @@ Get the latest release here: https://github.com/NicknineTheEagle/ReviveEmu/relea
 
 ## Building
 
-With Windows SDK installed, open Steam.sln in Visual Studio 2022 and build it.
+### Windows
+
+With Windows SDK installed, open Steam.sln in Visual Studio 2022/2026 and build it. The code may compile under platform toolsets as old as v120, but it's not guaranteed.
+
+### Linux
+
+Make sure you have at least CMake 3.10 and GCC 4.8 installed and run these commands to compile the code:
+
+```sh
+cd Steam/steam
+cmake -B build -DCMAKE_C_FLAGS="-m32" -DCMAKE_CXX_FLAGS="-m32"
+cmake --build build
+```
 
 ## Usage (loose files)
 
@@ -22,14 +34,26 @@ With Windows SDK installed, open Steam.sln in Visual Studio 2022 and build it.
 
 2. In rev.ini, set CacheEnabled to True and CachePath to the path where your GCF files are.
 
-3. Put period appropriate raw CDR blob next to game exe and name it cdr.bin OR put ClientRegistry.blob with period appropriate CDR next to game exe OR extract revApps.ini next to game exe and configure it to mount the right GCF files for your game's app ID.
+3. The emulator needs a way to know which GCF files to mount. You can do one of the following:
 
-4. Run the game with -appid \<appid\> OR write your game's app ID into steam_appid.txt OR set SteamAppId environment variable to your game's app ID.
+    * Put period appropriate raw CDR blob next to game exe and name it cdr.bin.
+
+    * Put ClientRegistry.blob with period appropriate CDR next to game exe.
+
+    * Extract revApps.ini next to game exe and configure it to mount the right GCF files for your game's app ID.
+
+4. Specify the app ID in one of the following ways:
+
+    * Write your game's app ID into steam_appid.txt located next to game exe.
+
+    * Run the game with -appid \<appid\>.
+
+    * Set SteamAppId environment variable to your game's app ID.
 
 5. Play.
 
 ## Additional notes
-* Later engines use both Steam.dll and steam_api.dll - in this case, you will need to combine REVive with a steam_api.dll emulator.
+* Later versions GoldSource Engine and Source Engine use both Steam.dll and steam_api.dll - in this case, you will need to combine REVive with a steam_api.dll emulator.
 
 * The loaders that come with Goldberg and SmartSteamEmu both automatically set SteamAppId env var so you don't need to bother with step 4 when using GCF mounting.
 
