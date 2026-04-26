@@ -20,6 +20,36 @@ typedef struct
 	unsigned int Index;
 } TGlobalDirectory;
 
+class TGlobalDirectoryKey
+{
+public:
+	const char* FullName;
+
+	TGlobalDirectoryKey(const char* _FullName)
+	{
+		FullName = _FullName;
+	}
+
+	bool operator==(const TGlobalDirectoryKey& other) const
+	{
+		return (strcmp(FullName, other.FullName) == 0);
+	}
+};
+
+namespace std
+{
+template<>
+class hash<TGlobalDirectoryKey>
+{
+public:
+	size_t operator()(const TGlobalDirectoryKey& k) const
+	{
+		uint32_t EntryHash = murmur3_32((const uint8_t*)k.FullName, strlen(k.FullName), MURMUR_SEED);
+		return (size_t)EntryHash;
+	}
+};
+}
+
 extern TFileInCacheHandle* NewSteamFileHandle();
 extern void CloseSteamFileHandle(SteamHandle_t hSteamHandle);
 extern TFindHandle* NewSteamFindFileHandle();
@@ -31,7 +61,7 @@ public:
 	std::vector<TCacheHandle*> Caches;
 
 	std::vector<TGlobalDirectory> GlobalDirectoryTable;
-	std::map<uint32_t, TGlobalDirectory> HashTable;
+	std::unordered_map<TGlobalDirectoryKey, TGlobalDirectory> HashTable;
 
 	CCacheFileSystem()
 	{
@@ -40,10 +70,7 @@ public:
 	~CCacheFileSystem()
 	{
 		// Unmount everything.
-		for (TCacheHandle* hCache : Caches)
-		{
-			UnmountCache((CacheHandle)hCache);
-		}
+		UnmountAll();
 	}
 
 	CacheHandle MountCache(const char* cszFileName, const char* ExtraMountPath)
@@ -102,15 +129,15 @@ public:
 
 	void UnmountAll()
 	{
+		// Clear file tables.
+		HashTable.clear();
+		GlobalDirectoryTable.clear();
+
 		// Unmount everything.
 		for (TCacheHandle* hCache : Caches)
 		{
 			UnmountCache((CacheHandle)hCache);
 		}
-
-		// Clear file tables.
-		HashTable.clear();
-		GlobalDirectoryTable.clear();
 	}
 
 	TFileInCacheHandle* CacheOpenFileEx(const char* cszFileName, const char* cszMode, unsigned int* puSize)
@@ -554,8 +581,7 @@ private:
 		}
 		else
 		{
-			uint32_t EntryHash = murmur3_32((const uint8_t*)cszPattern, strlen(cszPattern), MURMUR_SEED);
-			auto it = HashTable.find(EntryHash);
+			auto it = HashTable.find(cszPattern);
 
 			if (it != HashTable.end())
 			{
@@ -720,15 +746,14 @@ private:
 				TGlobalDirectory FindThisItem;
 				ActualDirEntry = &DirectoryTable[CacheIndex];
 
-				uint32_t EntryHash = murmur3_32((uint8_t*)(ActualDirEntry->FullName), strlen(ActualDirEntry->FullName), MURMUR_SEED);
-
 				FindThisItem.pCache = ActualDirEntry->pCache;
 				FindThisItem.FullName = ActualDirEntry->FullName;
 				FindThisItem.Index = CacheIndex;
 
-				if (!HashTable.count(EntryHash))
+				auto result = HashTable.insert({FindThisItem.FullName, FindThisItem});
+
+				if (result.second)
 				{
-					HashTable[EntryHash] = FindThisItem;
 					GlobalDirectoryTable.push_back(FindThisItem);
 
 					//if (bLogging && bLogFS) Logger->Write("\tAdd to Global Directory: %s\n", ActualDirEntry->FullName);
