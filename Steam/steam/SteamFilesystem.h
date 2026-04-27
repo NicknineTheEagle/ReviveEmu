@@ -634,42 +634,23 @@ STEAM_API SteamHandle_t SteamFindFirst(const char* cszPattern, ESteamFindFilter 
 
 	SteamClearError(pError);
 
-	switch (eFilter)
+	if (eFilter != eSteamFindLocalOnly && eFilter != eSteamFindRemoteOnly && eFilter != eSteamFindAll)
 	{
-		case eSteamFindRemoteOnly:
-		case eSteamFindAll:
+		pError->eSteamError = eSteamErrorBadArg;
+		if (bLogging && bLogFS) Logger->Write("\tFile not found (%s) <BAD ARGUMENT>\n", cszPattern);
+		return STEAM_INVALID_HANDLE;
+	}
+
+	// Always search local files if GCF support is disabled.
+	if (!g_bSteamFileSystem || eFilter == eSteamFindLocalOnly || eFilter == eSteamFindAll)
+	{
+		_finddata_t finddata;
+		intptr_t hLocalFind = _findfirst(cszPattern, &finddata);
+
+		if (hLocalFind != -1)
 		{
-			if (g_bSteamFileSystem)
-			{
-				TFindHandle* hFind = g_CacheManager->CacheFindFirst(cszPattern, eFilter, pFindInfo);
-				if (hFind)
-				{
-					return hFind->hSteamHandle;
-				}
-
-				if (eFilter == eSteamFindRemoteOnly)
-				{
-					pError->eSteamError = eSteamErrorNotFound;
-					if (bLogging && bLogFS) Logger->Write("\tFile pattern not found in cache (%s)\n", cszPattern);
-					return STEAM_INVALID_HANDLE;
-				}
-			}
-
-			// Fall through to local search if we find nothing in GCF or GCF support is disabled.
-		}
-
-		case eSteamFindLocalOnly:
-		{
-			_finddata_t finddata;
-			intptr_t hLocalFind = _findfirst(cszPattern, &finddata);
-			if (hLocalFind == -1)
-			{
-				pError->eSteamError = eSteamErrorNotFound;
-				if (bLogging && bLogFS) Logger->Write("\tFile pattern not found (%s)\n", cszPattern);
-				return STEAM_INVALID_HANDLE;
-			}
 			pFindInfo->bIsDir = ((finddata.attrib & _A_SUBDIR) != 0);
-			pFindInfo->uSizeOrCount = finddata.size;
+			pFindInfo->uSizeOrCount = (unsigned int)finddata.size;
 			pFindInfo->bIsLocal = 1;
 			pFindInfo->lCreationTime = (long)finddata.time_create;
 			pFindInfo->lLastAccessTime = (long)finddata.time_access;
@@ -683,24 +664,37 @@ STEAM_API SteamHandle_t SteamFindFirst(const char* cszPattern, ESteamFindFilter 
 			hFind->LocalFind = hLocalFind;
 			hFind->eFilter = eFilter;
 			strcpy(hFind->szPattern, cszPattern);
-			if (bLogging && bLogFS) Logger->Write("\tFound Local file (%s) using pattern (%s)\n", finddata.name, cszPattern);
+			if (bLogging && bLogFS) Logger->Write("\tFound Local file (%s) using pattern (%s)\n", pFindInfo->cszName, cszPattern);
+			if (bLogging && bLogFS) Logger->Write("\tReturned 0x%08X\n", hFind->hSteamHandle);
 
 			return hFind->hSteamHandle;
 		}
-		default:
+
+		// Fall through to GCF search if we find nothing in local files and GCF support is enabled.
+	}
+
+	if (g_bSteamFileSystem && (eFilter == eSteamFindRemoteOnly || eFilter == eSteamFindAll))
+	{
+		TFindHandle* hFind = g_CacheManager->CacheFindFirst(cszPattern, eFilter, pFindInfo);
+
+		if (hFind)
 		{
-			pError->eSteamError = eSteamErrorBadArg;
-			if (bLogging && bLogFS) Logger->Write("\tFile not found (%s) <BAD ARGUMENT>\n", cszPattern);
-			return STEAM_INVALID_HANDLE;
+			if (bLogging && bLogFS) Logger->Write("\tFound Cache file (%s) using pattern (%s)\n", pFindInfo->cszName, cszPattern);
+			if (bLogging && bLogFS) Logger->Write("\tReturned 0x%08X\n", hFind->hSteamHandle);
+			return hFind->hSteamHandle;
 		}
 	}
+
+	pError->eSteamError = eSteamErrorNotFound;
+	if (bLogging && bLogFS) Logger->Write("\tFile pattern not found (%s)\n", cszPattern);
+	return STEAM_INVALID_HANDLE;
 }
 
 STEAM_API int SteamFindNext(SteamHandle_t hDirectory, TSteamElemInfo* pFindInfo, TSteamError* pError)
 {
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
 
-	if (bLogging && bLogFS) Logger->Write("SteamFindNext\n");
+	if (bLogging && bLogFS) Logger->Write("SteamFindNext (0x%08X)\n", hDirectory);
 
 	SteamClearError(pError);
 
@@ -711,70 +705,55 @@ STEAM_API int SteamFindNext(SteamHandle_t hDirectory, TSteamElemInfo* pFindInfo,
 		return -1;
 	}
 
-	if (!hCacheFind->IsFindLocal && (hCacheFind->eFilter == eSteamFindAll || hCacheFind->eFilter == eSteamFindRemoteOnly))
-	{
-		int retval = g_CacheManager->CacheFindNext(hCacheFind, pFindInfo);
+	int retval = -1;
 
-		if (retval == -1 && hCacheFind->eFilter == eSteamFindAll)
-		{
-			// switch to local search
-			_finddata_t finddata;
-			intptr_t hLocalFind = _findfirst(hCacheFind->szPattern, &finddata);
-
-			if (hLocalFind != -1)
-			{
-				pFindInfo->bIsDir = ((finddata.attrib & _A_SUBDIR) != 0);
-				pFindInfo->uSizeOrCount = finddata.size;
-				pFindInfo->bIsLocal = 1;
-				pFindInfo->lCreationTime = (long)finddata.time_create;
-				pFindInfo->lLastAccessTime = (long)finddata.time_access;
-				pFindInfo->lLastModificationTime = (long)finddata.time_write;
-				strcpy(pFindInfo->cszName, finddata.name);
-
-				hCacheFind->IsFindLocal = true;
-				hCacheFind->LocalFind = hLocalFind;
-
-				SteamClearError(pError);
-				if (bLogging && bLogFS) Logger->Write("\tFound Local file (%s)\n", finddata.name);
-
-				return 0;
-			}
-
-			return -1;
-		}
-
-		return retval;
-	}
-
-	if ((hCacheFind->IsFindLocal && (hCacheFind->eFilter == eSteamFindAll || hCacheFind->eFilter == eSteamFindLocalOnly)) || !g_bSteamFileSystem)
+	if (hCacheFind->IsFindLocal)
 	{
 		_finddata_t finddata;
-		int retval = _findnext(hCacheFind->LocalFind, &finddata);
+		retval = _findnext(hCacheFind->LocalFind, &finddata);
 
 		if (retval != -1)
 		{
 			pFindInfo->bIsDir = ((finddata.attrib & _A_SUBDIR) != 0);
-			pFindInfo->uSizeOrCount = finddata.size;
+			pFindInfo->uSizeOrCount = (unsigned int)finddata.size;
 			pFindInfo->bIsLocal = 1;
 			pFindInfo->lCreationTime = (long)finddata.time_create;
 			pFindInfo->lLastAccessTime = (long)finddata.time_access;
 			pFindInfo->lLastModificationTime = (long)finddata.time_write;
 			strcpy(pFindInfo->cszName, finddata.name);
 			SteamClearError(pError);
-			if (bLogging && bLogFS) Logger->Write("\tFound Local file (%s)\n", finddata.name);
+			if (bLogging && bLogFS) Logger->Write("\tFound Local file (%s) using pattern (%s)\n", pFindInfo->cszName, hCacheFind->szPattern);
 		}
+		else if (g_bSteamFileSystem && hCacheFind->eFilter == eSteamFindAll)
+		{
+			// Switch to GCF search.
+			_findclose(hCacheFind->LocalFind);
+			retval = g_CacheManager->CacheFindNextFromLocal(hCacheFind, pFindInfo);
 
-		return retval;
+			if (retval != -1)
+			{
+				if (bLogging && bLogFS) Logger->Write("\tFound Cache file (%s) using pattern (%s)\n", pFindInfo->cszName, hCacheFind->szPattern);
+			}
+		}
+	}
+	else
+	{
+		retval = g_CacheManager->CacheFindNext(hCacheFind, pFindInfo);
+
+		if (retval != -1)
+		{
+			if (bLogging && bLogFS) Logger->Write("\tFound Cache file (%s) using pattern (%s)\n", pFindInfo->cszName, hCacheFind->szPattern);
+		}
 	}
 
-	return -1;
+	return retval;
 }
 
 STEAM_API int SteamFindClose(SteamHandle_t hDirectory, TSteamError* pError)
 {
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
 
-	if (bLogging && bLogFS) Logger->Write("SteamFindClose\n");
+	if (bLogging && bLogFS) Logger->Write("SteamFindClose (0x%08X)\n", hDirectory);
 
 	SteamClearError(pError);
 
