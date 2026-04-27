@@ -493,35 +493,31 @@ public:
 		char szCachePattern[MAX_PATH];
 		strcpy(szCachePattern, cszPattern);
 
-		if (!GetFilenameInCache(szCachePattern))
+		if (!GetFilenameInCache(szCachePattern) || !szCachePattern[0])
 			return NULL;
 
-		if (szCachePattern[0])
+		unsigned int CurrentIndex = 0;
+		if (TManifestEntriesInCache* ItemFound = FindItem(0, szCachePattern, &CurrentIndex))
 		{
-			unsigned int CurrentIndex = 0;
-			if (TManifestEntriesInCache* ItemFound = FindItem(0, szCachePattern, &CurrentIndex))
-			{
-				pFindInfo->bIsDir = (ItemFound->Type == 0 ? 1 : 0);
-				pFindInfo->bIsLocal = 0;
-				strcpy(pFindInfo->cszName, ItemFound->Name);
-				pFindInfo->uSizeOrCount = ItemFound->Size;
-				pFindInfo->lCreationTime = 0x44444444;
-				pFindInfo->lLastAccessTime = 0x44444444;
-				pFindInfo->lLastModificationTime = 0x44444444;
+			pFindInfo->bIsDir = (ItemFound->Type == 0 ? 1 : 0);
+			pFindInfo->bIsLocal = 0;
+			strcpy(pFindInfo->cszName, ItemFound->Name);
+			pFindInfo->uSizeOrCount = ItemFound->Size;
+			pFindInfo->lCreationTime = 0x44444444;
+			pFindInfo->lLastAccessTime = 0x44444444;
+			pFindInfo->lLastModificationTime = 0x44444444;
 
-				TFindHandle* hFind = NewSteamFindFileHandle();
-				hFind->IsFindLocal = false;
-				hFind->hFind = ItemFound;
-				hFind->eFilter = eFilter;
-				strcpy(hFind->szCachePattern, szCachePattern);
-				strcpy(hFind->szPattern, cszPattern);
+			TFindHandle* hFind = NewSteamFindFileHandle();
+			hFind->IsFindLocal = false;
+			hFind->hFind = ItemFound;
+			hFind->eFilter = eFilter;
+			strcpy(hFind->szCachePattern, szCachePattern);
+			strcpy(hFind->szPattern, cszPattern);
+			hFind->CurrentIndex = CurrentIndex;
 
-				hFind->CurrentIndex = CurrentIndex;
+			//if (bLogging && bLogFS) Logger->Write("\tFound first file {%s} (%s) using pattern (%s)\n", ((CCache*)hFind->hFind->pCache)->Name, ItemFound->Name, szCachePattern);
 
-				//if (bLogging && bLogFS) Logger->Write("\tFound first file {%s} (%s) using pattern (%s)\n", ((CCache*)hFind->hFind->pCache)->Name, ItemFound->Name, szCachePattern);
-
-				return hFind;
-			}
+			return hFind;
 		}
 
 		return NULL;
@@ -543,6 +539,36 @@ public:
 			hFind->CurrentIndex = CurrentIndex;
 
 			//if (bLogging && bLogFS) Logger->Write("\tFound next file {%s} (%s) using pattern (%s)\n", ((CCache*)hFind->hFind->pCache)->Name, ItemFound->Name, hFind->szCachePattern);
+
+			return 0;
+		}
+
+		return -1;
+	}
+
+	int CacheFindNextFromLocal(TFindHandle* hFind, TSteamElemInfo* pFindInfo)
+	{
+		hFind->IsFindLocal = false;
+		strcpy(hFind->szCachePattern, hFind->szPattern);
+
+		if (!GetFilenameInCache(hFind->szCachePattern) || !hFind->szCachePattern[0])
+			return -1;
+
+		unsigned int CurrentIndex = 0;
+		if (TManifestEntriesInCache* ItemFound = FindItem(0, hFind->szCachePattern, &CurrentIndex))
+		{
+			pFindInfo->bIsDir = (ItemFound->Type == 0 ? 1 : 0);
+			pFindInfo->bIsLocal = 0;
+			strcpy(pFindInfo->cszName, ItemFound->Name);
+			pFindInfo->uSizeOrCount = ItemFound->Size;
+			pFindInfo->lCreationTime = 0x44444444;
+			pFindInfo->lLastAccessTime = 0x44444444;
+			pFindInfo->lLastModificationTime = 0x44444444;
+
+			hFind->hFind = ItemFound;
+			hFind->CurrentIndex = CurrentIndex;
+
+			//if (bLogging && bLogFS) Logger->Write("\tFound first file {%s} (%s) using pattern (%s)\n", ((CCache*)hFind->hFind->pCache)->Name, ItemFound->Name, szCachePattern);
 
 			return 0;
 		}
