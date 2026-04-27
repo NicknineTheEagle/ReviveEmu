@@ -806,9 +806,9 @@ STEAM_API int SteamStat(const char* cszFileName, TSteamElemInfo* pInfo, TSteamEr
 	{
 		pInfo->bIsDir = ((buf.st_mode & S_IFMT) == S_IFDIR);
 
-		pInfo->uSizeOrCount = buf.st_size;
+		pInfo->uSizeOrCount = (unsigned int)buf.st_size;
 		pInfo->bIsLocal = 1;
-		strcpy(pInfo->cszName, cszFileName);
+		strcpy(pInfo->cszName, V_GetFileName(cszFileName));
 		pInfo->lCreationTime = (long)buf.st_ctime;
 		pInfo->lLastAccessTime = (long)buf.st_atime;
 		pInfo->lLastModificationTime = (long)buf.st_mtime;
