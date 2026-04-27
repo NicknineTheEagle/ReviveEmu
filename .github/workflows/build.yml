@@ -54,7 +54,17 @@ jobs:
           path: artifacts
           if-no-files-found: error
   build-linux:
-    name: Linux
+    name: ${{ matrix.name }}
+
+    strategy:
+      matrix:
+        include:
+          - name: "Linux 32-bit"
+            gccflags: "-m32"
+            outname: "ReviveEmu-Linux32"
+          - name: "Linux 64-bit"
+            gccflags: "-m64"
+            outname: "ReviveEmu-Linux64"
 
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
@@ -64,6 +74,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install 32-bit toolchain
+        if: matrix.name == 'Linux 32-bit'
         run: |
           sudo apt-get update
           sudo apt-get install -y gcc-multilib g++-multilib libc6-dev-i386
@@ -71,7 +82,7 @@ jobs:
       - name: Run CMake
         shell: bash
         working-directory: Steam/steam
-        run: cmake -B ./build -DCMAKE_C_FLAGS="-m32" -DCMAKE_CXX_FLAGS="-m32"
+        run: cmake -B ./build -DCMAKE_C_FLAGS="${{ matrix.gccflags }}" -DCMAKE_CXX_FLAGS="${{ matrix.gccflags }}"
 
       - name: Build
         shell: bash
@@ -90,7 +101,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ReviveEmu-Linux
+          name: ${{ matrix.outname }}
           path: artifacts
           if-no-files-found: error
   create-release:
