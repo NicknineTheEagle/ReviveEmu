@@ -14,7 +14,7 @@ extern void RevInitialize(const char* cszInitSource);
 
 STEAM_API void* STEAM_CALL CreateInterface(const char* cszSteamDLLAppsystemInterfaceVersion, int* pReturnCode)
 {
-	if(bLogging) Logger->Write("CreateInterface(%s)\n", cszSteamDLLAppsystemInterfaceVersion); 
+	if(bLogging) Logger->Write("CreateInterface(%s)\n", cszSteamDLLAppsystemInterfaceVersion);
 	static CSteamDLLAppsystem001 SteamDLLAppsystem001;
 
 	if(cszSteamDLLAppsystemInterfaceVersion != NULL)

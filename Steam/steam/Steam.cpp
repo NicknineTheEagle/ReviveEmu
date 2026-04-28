@@ -482,7 +482,7 @@ void RevInitialize(const char* cszInitSource)
 		setRegistry("Software\\Valve\\Steam\\ActiveProcess", "SteamClientDll", chClientPath);
 	}
 #endif
-	
+
 #ifndef VALIDATOR_DLL
 	// Initialize the unique User ID used to authenticate with game server
 #ifdef _WIN32

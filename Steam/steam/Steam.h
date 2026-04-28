@@ -9,10 +9,10 @@
 	#include "SteamCommon.h"
 #endif
 
-// The following ifdef block is the standard way of creating macros which make exporting 
+// The following ifdef block is the standard way of creating macros which make exporting
 // from a DLL simpler. All files within this DLL are compiled with the STEAM_EXPORTS
 // symbol defined on the command line. this symbol should not be defined on any project
-// that uses this DLL. This way any other project whose source files include this file see 
+// that uses this DLL. This way any other project whose source files include this file see
 // STEAM_API functions as being imported from a DLL, whereas this DLL sees symbols
 // defined with this macro as being exported.
 
@@ -52,7 +52,7 @@ STEAM_API int					STEAM_CALL	SteamProcessCall( SteamCallHandle_t handle, TSteamP
 STEAM_API int					STEAM_CALL	SteamAbortCall( SteamCallHandle_t handle, TSteamError *pError );
 STEAM_API int					STEAM_CALL	SteamBlockingCall( SteamCallHandle_t handle, unsigned int uiProcessTickMS, TSteamError *pError );
 STEAM_API int					STEAM_CALL	SteamSetMaxStallCount( unsigned int uNumStalls, TSteamError *pError );
-							
+
 /*
 ** Filesystem
 */

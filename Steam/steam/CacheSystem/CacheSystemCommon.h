@@ -8,16 +8,16 @@ typedef enum
 
 typedef struct
 {
-	unsigned int Dummy0;		
-	ESteamCacheFileType Type;	
-	unsigned int CacheFileVersion;	
+	unsigned int Dummy0;
+	ESteamCacheFileType Type;
+	unsigned int CacheFileVersion;
 	unsigned int CacheID;
 	unsigned int CacheVersion;
 	bool IsMounted;
 	unsigned int Dummy2;
-	unsigned int FileSize;		
-	unsigned int PhysicalSectorSize;	
-	unsigned int SectorCount;	
+	unsigned int FileSize;
+	unsigned int PhysicalSectorSize;
+	unsigned int SectorCount;
 	unsigned int Checksum;
 }TCacheHeader;
 
@@ -30,18 +30,18 @@ typedef struct
 	unsigned int Dummy2;
 	unsigned int Dummy3;
 	unsigned int Dummy4;
-	unsigned int Checksum;		
+	unsigned int Checksum;
 }TCacheBlockHeader;
 
 typedef struct
 {
-	unsigned int EntryType;				
-	unsigned int FileDataOffset;	
-	unsigned int FileDataSize;		
-	unsigned int FirstDataBlockIndex;	
-	unsigned int NextBlockEntryIndex;	
-	unsigned int PreviousBlockEntryIndex;	
-	unsigned int DirectoryIndex;		
+	unsigned int EntryType;
+	unsigned int FileDataOffset;
+	unsigned int FileDataSize;
+	unsigned int FirstDataBlockIndex;
+	unsigned int NextBlockEntryIndex;
+	unsigned int PreviousBlockEntryIndex;
+	unsigned int DirectoryIndex;
 }TCacheBlockEntry;
 
 typedef struct
@@ -49,41 +49,41 @@ typedef struct
 	unsigned int BlockCount;
 	unsigned int Dummy0;
 	unsigned int Dummy1;
-	unsigned int Checksum;	
+	unsigned int Checksum;
 }TCacheAllocationTableHeader;
 
 typedef struct
 {
-	unsigned int NextDataBlockIndex;	
+	unsigned int NextDataBlockIndex;
 }TCacheAllocationTableEntry;
 
 typedef struct
 {
-	unsigned int Dummy0;		
-	unsigned int CacheID;			
-	unsigned int CacheVersion;		
-	unsigned int ItemCount;				
-	unsigned int FileCount;			
-	unsigned int LogicalSectorSize;	
-	unsigned int ManifestSize;		
-	unsigned int NameSize;		
-	unsigned int Info1Count;	
-	unsigned int CopyCount;	
-	unsigned int LocalCount;	
+	unsigned int Dummy0;
+	unsigned int CacheID;
+	unsigned int CacheVersion;
+	unsigned int ItemCount;
+	unsigned int FileCount;
+	unsigned int LogicalSectorSize;
+	unsigned int ManifestSize;
+	unsigned int NameSize;
+	unsigned int Info1Count;
+	unsigned int CopyCount;
+	unsigned int LocalCount;
 	unsigned int Dummy1;
 	unsigned int Dummy2;
-	unsigned int Checksum;	
+	unsigned int Checksum;
 }TCacheManifestHeader;
 
 typedef struct
 {
 	unsigned int NameOffset;
-	unsigned int ItemSize;		
+	unsigned int ItemSize;
 	unsigned int ChecksumIndex;
 	unsigned int Type;
-	unsigned int ParentIndex;	
-	unsigned int NextIndex;	
-	unsigned int FirstIndex;	
+	unsigned int ParentIndex;
+	unsigned int NextIndex;
+	unsigned int FirstIndex;
 }TCacheManifestEntry;
 
 typedef struct
@@ -108,8 +108,8 @@ typedef struct
 
 typedef struct
 {
-	unsigned int Dummy0;	
-	unsigned int Dummy1;	
+	unsigned int Dummy0;
+	unsigned int Dummy1;
 }TCacheManifestMapHeader;
 
 typedef struct
@@ -119,21 +119,21 @@ typedef struct
 
 typedef struct
 {
-	unsigned int Dummy0;		
-	unsigned int ChecksumSize;	
+	unsigned int Dummy0;
+	unsigned int ChecksumSize;
 }TCacheChecksumTableHeader;
 
 typedef struct
 {
-	unsigned int Dummy0;	
-	unsigned int Dummy1;	
-	unsigned int ItemCount;		
-	unsigned int ChecksumCount;	
+	unsigned int Dummy0;
+	unsigned int Dummy1;
+	unsigned int ItemCount;
+	unsigned int ChecksumCount;
 }TCacheChecksumTableMapHeader;
 
 typedef struct
 {
-	unsigned int ChecksumCount;		
+	unsigned int ChecksumCount;
 	unsigned int FirstChecksumIndex;
 }TCacheChecksumTableMapEntry;
 
@@ -145,11 +145,11 @@ typedef struct
 typedef struct
 {
 	unsigned int CacheVersion;
-	unsigned int SectorCount;		
+	unsigned int SectorCount;
 	unsigned int PhysicalSectorSize;
-	unsigned int FirstSectorOffset;	
-	unsigned int SectorsUsed;	
-	unsigned int Checksum;			
+	unsigned int FirstSectorOffset;
+	unsigned int SectorsUsed;
+	unsigned int Checksum;
 }TCacheSectorsHeader;
 
 typedef struct

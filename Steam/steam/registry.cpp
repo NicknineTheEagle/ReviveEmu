@@ -25,17 +25,17 @@ int getRegistry(const char * key, const char * name, DWORD * value)
 {
 	HKEY root;
 	DWORD dwDisp;
-	
+
 	if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, key, 0, KEY_QUERY_VALUE, &root) != ERROR_SUCCESS)
 	{
 		RegCreateKeyExA(HKEY_LOCAL_MACHINE, key, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_QUERY_VALUE, NULL, &root, &dwDisp);
 	}
-	
+
 	DWORD dwLength=sizeof(DWORD);
 	DWORD type=0;
 	int result=RegQueryValueExA(root, name, NULL,&type, (PBYTE)value, &dwLength);
 	if (result == ERROR_SUCCESS && type!=REG_DWORD) result=1;
-		
+
 	RegCloseKey(root);
 	return result;
 }
@@ -44,18 +44,18 @@ int getRegistry(const char * key, const char * name, char * value, DWORD maxLeng
 {
 	HKEY root;
 	DWORD dwDisp;
-	
+
 	if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, key, 0, KEY_QUERY_VALUE, &root) != ERROR_SUCCESS)
 	{
 		RegCreateKeyExA(HKEY_LOCAL_MACHINE, key, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_QUERY_VALUE, NULL, &root, &dwDisp);
 	}
-	
+
 	DWORD dwLength=maxLength;
 	DWORD type=0;
 	int result=RegQueryValueExA(root, name, NULL,&type, (PBYTE)value, &dwLength);
 	if (result == ERROR_SUCCESS && type!=REG_SZ) result=1;
 
-	_strupr(value);	
+	_strupr(value);
 
 	RegCloseKey(root);
 	return result;
@@ -65,18 +65,18 @@ int getRegistryU(const char * key, const char * name, char * value, DWORD maxLen
 {
 	HKEY root;
 	DWORD dwDisp;
-	
+
 	if (RegOpenKeyExA(HKEY_CURRENT_USER, key, 0, KEY_QUERY_VALUE, &root) != ERROR_SUCCESS)
 	{
 		RegCreateKeyExA(HKEY_CURRENT_USER, key, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_QUERY_VALUE, NULL, &root, &dwDisp);
 	}
-	
+
 	DWORD dwLength=maxLength;
 	DWORD type=0;
 	int result=RegQueryValueExA(root, name, NULL,&type, (PBYTE)value, &dwLength);
 	if (result == ERROR_SUCCESS && type!=REG_SZ) result=1;
 
-	_strupr(value);	
+	_strupr(value);
 
 	RegCloseKey(root);
 	return result;
@@ -86,23 +86,23 @@ int getRegistry(const char * key, const char * name, char ** values, int * nbVal
 {
 	HKEY root;
 	DWORD dwDisp;
-	
+
 	if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, key, 0,	KEY_QUERY_VALUE, &root) != ERROR_SUCCESS)
 	{
 		RegCreateKeyExA(HKEY_LOCAL_MACHINE, key, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_QUERY_VALUE, NULL, &root, &dwDisp);
 	}
-	
+
 	DWORD dwLength=65535;
 	DWORD type=0;
 	char * vals=(char *)malloc(65535);
-	
+
 	int result=RegQueryValueExA(root, name, NULL,&type, (PBYTE)vals, &dwLength);
 	if (result == ERROR_SUCCESS && type!=REG_MULTI_SZ) result=1;
-	
+
 	if (result == ERROR_SUCCESS)
 	{
 		char * temp=vals;
-		
+
 		while (strlen(temp))
 		{
 			values[*nbValues]=(char*)malloc((strlen(temp)+1)*sizeof(char));
@@ -113,7 +113,7 @@ int getRegistry(const char * key, const char * name, char ** values, int * nbVal
 		}
 	}
 	free(vals);
-	
+
 	RegCloseKey(root);
 	return result;
 }
@@ -122,15 +122,15 @@ void setRegistry(const char * key, const char * name, DWORD value)
 {
 	HKEY root;
 	DWORD dwDisp;
-	
+
 	if (RegOpenKeyExA(HKEY_CURRENT_USER, key, 0,	KEY_WRITE, &root) != ERROR_SUCCESS)
 	{
 		RegCreateKeyExA(HKEY_CURRENT_USER, key, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &root, &dwDisp);
 	}
-	
+
 	DWORD dwLength=sizeof(DWORD);
 	RegSetValueExA(root, name, NULL, REG_DWORD, (PBYTE)&value, dwLength);
-	
+
 	RegCloseKey(root);
 }
 
@@ -138,16 +138,16 @@ void setRegistry(const char * key, const char * name, const char * value)
 {
 	HKEY root;
 	DWORD dwDisp;
-	
+
 	if (RegOpenKeyExA(HKEY_CURRENT_USER, key, 0,	KEY_WRITE, &root) != ERROR_SUCCESS)
 	{
 		RegCreateKeyExA(HKEY_CURRENT_USER, key, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &root, &dwDisp);
 	}
-	
+
 	DWORD dwLength=sizeof(DWORD);
 	dwLength=strlen(value)+1;
 	RegSetValueExA(root, name, NULL, REG_SZ, (PBYTE)value, dwLength);
-	
+
 	RegCloseKey(root);
 }
 
@@ -155,20 +155,20 @@ void setRegistry(const char * key, const char * name, const char ** values,int n
 {
 	HKEY root;
 	DWORD dwDisp;
-	
+
 	if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, key, 0,	KEY_WRITE, &root) != ERROR_SUCCESS)
 	{
 		RegCreateKeyExA(HKEY_LOCAL_MACHINE, key, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &root, &dwDisp);
 	}
-	
+
 	DWORD dwLength=1;
 	for (int ind = 0; ind < nbValues; ind++)
 	{
 		dwLength+=strlen(values[ind])+1;
 	}
-	
+
 	char * vals=(char *)malloc(dwLength);
-	
+
 	char * temp=vals;
 	for (int ind = 0; ind < nbValues; ind++)
 	{
@@ -176,10 +176,10 @@ void setRegistry(const char * key, const char * name, const char ** values,int n
 		temp+=strlen(temp)+1;
 	}
 	strcpy(temp,"");
-	
+
 	RegSetValueExA(root, name, NULL, REG_MULTI_SZ, (PBYTE)vals, dwLength);
-	
+
 	free(vals);
-	
+
 	RegCloseKey(root);
 }

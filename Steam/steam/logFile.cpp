@@ -33,7 +33,7 @@ void CLogFile::Write(const char* cszFormat, ...)
 	SYSTEMTIME time;
 	GetLocalTime(&time);
 
-	fprintf(m_pLogFile, "%02d:%02d:%02d:%03d [%u\\%u]\t", 
+	fprintf(m_pLogFile, "%02d:%02d:%02d:%03d [%u\\%u]\t",
 		time.wHour, time.wMinute, time.wSecond, time.wMilliseconds,
 		GetCurrentProcessId(), GetCurrentThreadId());
 #elif defined(_OSX)
@@ -46,7 +46,7 @@ void CLogFile::Write(const char* cszFormat, ...)
 	uint64 tid;
 	pthread_threadid_np(NULL, &tid);
 
-	fprintf(m_pLogFile, "%02d:%02d:%02d:%03d [%d\\%llu]\t", 
+	fprintf(m_pLogFile, "%02d:%02d:%02d:%03d [%d\\%llu]\t",
 		tm.tm_hour, tm.tm_min, tm.tm_sec, (int)(tv.tv_usec / 1000),
 		(int)getpid(), tid);
 #else
@@ -56,7 +56,7 @@ void CLogFile::Write(const char* cszFormat, ...)
 	struct tm tm;
 	localtime_r(&ts.tv_sec, &tm);
 
-	fprintf(m_pLogFile, "%02d:%02d:%02d:%03d [%d\\%d]\t", 
+	fprintf(m_pLogFile, "%02d:%02d:%02d:%03d [%d\\%d]\t",
 		tm.tm_hour, tm.tm_min, tm.tm_sec, (int)(ts.tv_nsec / 1000000),
 		(int)getpid(), (int)syscall(SYS_gettid));
 #endif

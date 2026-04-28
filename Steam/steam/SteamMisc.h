@@ -129,7 +129,7 @@ const char* g_aHL2MasterServers[] =
 };
 
 // cser.steampowered.com
-const char* g_aCSERServers[] = 
+const char* g_aCSERServers[] =
 {
 	"208.64.203.186:27013"
 };

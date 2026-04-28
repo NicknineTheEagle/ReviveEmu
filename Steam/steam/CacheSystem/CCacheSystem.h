@@ -309,7 +309,7 @@ public:
 		int64 lReadPosition = (int64)hCacheFile->Sectors->Header->FirstSectorOffset +
 		                      (int64)(hFileInCache->Sectors[iSectorIndex]) * (int64)(hCacheFile->Sectors->Header->PhysicalSectorSize) +
 		                      (int64)uOffset;
-#ifdef _WIN32		
+#ifdef _WIN32
 		if (_fseeki64(fCacheFile, lReadPosition, SEEK_SET))
 			return 0;
 #else
@@ -392,7 +392,7 @@ public:
 
 		int64 lReadPosition = (int64)hCacheFile->Sectors->Header->FirstSectorOffset +
 		                      (int64)(hFileInCache->Sectors[iSectorIndex]) * (int64)(hCacheFile->Sectors->Header->PhysicalSectorSize);
-#ifdef _WIN32		
+#ifdef _WIN32
 		if (_fseeki64(fCacheFile, lReadPosition, SEEK_SET))
 			return 0;
 #else

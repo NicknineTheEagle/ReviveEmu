@@ -188,7 +188,7 @@ STEAM_API int STEAM_CALL SteamGetUser(char *szUser, unsigned int uBufSize, unsig
 		if (puUserChars)
 			*puUserChars = strlen(g_szSteamUser);
 	}
-	
+
 	if (g_eCompatMode > REV_COMPAT_2003)
 	{
 		if (pSteamGlobalUserID)
@@ -220,7 +220,7 @@ STEAM_API int STEAM_CALL SteamIsAccountNameInUse()
 STEAM_API int STEAM_CALL SteamIsLoggedIn(int *pbIsLoggedIn, TSteamError *pError)
 {
 	if(bLogging) Logger->Write("SteamIsLoggedIn\n");
-	
+
 	*pbIsLoggedIn = 1;
 	SteamClearError(pError);
 	return 1;
