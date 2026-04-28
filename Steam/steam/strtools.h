@@ -158,10 +158,6 @@ const char*	V_strnistr( const char* pStr, const char* pSearch, int n );
 const char*	V_strnchr( const char* pStr, char c, int n );
 inline int V_strcasecmp (const char *s1, const char *s2) { return V_stricmp(s1, s2); }
 inline int V_strncasecmp (const char *s1, const char *s2, int n) { return V_strnicmp(s1, s2, n); }
-#ifdef _MSC_VER // TODO
-void		V_qsort_s( void *base, size_t num, size_t width, int ( __cdecl *compare )(void *, const void *,
-const void *), void *context );
-#endif
 
 
 // returns string immediately following prefix, (ie str+strlen(prefix)) or NULL if prefix not found

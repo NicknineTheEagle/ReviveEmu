@@ -2845,22 +2845,6 @@ size_t Q_URLDecodeRaw( char *pchDecodeDest, int nDecodeDestLen, const char *pchE
 	return Q_URLDecodeInternal( pchDecodeDest, nDecodeDestLen, pchEncodedSource, nEncodedSourceLen, false );
 }
 
-#ifdef _MSC_VER // TODO
-#if defined( LINUX ) || defined( _PS3 )
-extern "C" void qsort_s( void *base, size_t num, size_t width, int (*compare )(void *, const void *, const void *), void * context );
-#endif
-
-void V_qsort_s( void *base, size_t num, size_t width, int ( __cdecl *compare )(void *, const void *, const void *), void * context ) 
-{
-#if defined OSX
-	// the arguments are swapped 'round on the mac - awesome, huh?
-	return qsort_r( base, num, width, context, compare );
-#else
-	return qsort_s( base, num, width, compare, context );
-#endif
-}
-#endif
-
 //-----------------------------------------------------------------------------
 // Purpose: format the time and/or date with the user's current locale
 // If timeVal is 0, gets the current time
