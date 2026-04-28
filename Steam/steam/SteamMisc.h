@@ -145,7 +145,7 @@ STEAM_API int STEAM_CALL SteamFindServersIterateServer(ESteamServerType eSteamSe
 		strcpy(szServerAddress, "empty");
 		int (*fptr)(int, int, char*, unsigned int);
 		*(void **)(&fptr) = GetProcAddress(g_hOrigSteamDll, "SteamFindServersIterateServer");
-		retval = (*fptr)(eSteamServerType, uIndex, szServerAddress, iServerAddressChars);
+		retval = fptr(eSteamServerType, uIndex, szServerAddress, iServerAddressChars);
 		if (bLogging) Logger->Write("\t (%u, %u, %s, %u) %u\n", eSteamServerType, uIndex, szServerAddress, iServerAddressChars, retval);
 		return retval;
 	}
@@ -191,7 +191,7 @@ STEAM_API int STEAM_CALL SteamFindServersNumServers(ESteamServerType eSteamServe
 		int retval = 1;
 		int (*fptr)(unsigned int);
 		*(void **)(&fptr) = GetProcAddress(g_hOrigSteamDll, "SteamFindServersNumServers");
-		retval = (*fptr)(eSteamServerType);
+		retval = fptr(eSteamServerType);
 		if (bLogging) Logger->Write("\t (%u) %u\n", eSteamServerType, retval);
 		return retval;
 	}
@@ -255,25 +255,3 @@ int SteamGetCurrentAppId(unsigned int* puAppId, TSteamError *pError)
 	*puAppId = g_uAppId;
 	return 1;
 }
-
-/*
-.text:301C5210                 public SteamFindServersNumServers
-.text:301C5210 SteamFindServersNumServers proc near    ; CODE XREF: sub_3005C520+5p
-.text:301C5210
-.text:301C5210 var_14          = dword ptr -14h
-.text:301C5210 var_10          = dword ptr -10h
-.text:301C5210 var_C           = dword ptr -0Ch
-.text:301C5210 var_4           = dword ptr -4
-.text:301C5210 arg_0           = dword ptr  8 
-
-	var_4 = 0;
-	switch(arg_0)
-	{
-	case 0x04:
-		return 4;
-	case 0x03:
-		return 1;
-	default:
-		return 0;
-	}
-*/
