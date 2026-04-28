@@ -1,6 +1,6 @@
 # REVive Emulator
 
-This is a Steam.dll emulator forked from 2008 code of RevEmu. In addition to existing RevEmu features such as GCF mounting and multiplayer support, it also has Steam001 interface implementation (allows 2004 builds of Source Engine to work) and a good number of bugfixes.
+This is a Steam.dll emulator forked from 2008 code of RevEmu. In addition to existing RevEmu features such as GCF mounting and multiplayer support, it also has Steam001 interface implementation (allows 2004 builds of Source Engine to work) and a good number of bugfixes, and it's cross-platform.
 
 Get the latest release here: https://github.com/NicknineTheEagle/ReviveEmu/releases/latest
 
@@ -24,39 +24,30 @@ cmake --build build
 
 ## Usage (loose files)
 
-1. Extract Steam.dll and rev.ini next to game exe (unless you're running a Source Engine game, then extract Steam.dll into bin directory and rev.ini next to game exe).
-
+1. Extract Steam.dll and rev.ini next to game exe.
 2. Play.
 
 ## Usage (GCF mounting)
 
-1. Extract Steam.dll and rev.ini next to game exe (unless you're running a Source Engine game, then extract Steam.dll into bin directory and rev.ini next to game exe).
-
+1. Extract Steam.dll and rev.ini next to game exe.
 2. In rev.ini, set CacheEnabled to True and CachePath to the path where your GCF files are.
-
 3. The emulator needs a way to know which GCF files to mount. You can do one of the following:
-
     * Put period appropriate raw CDR blob next to game exe and name it cdr.bin.
-
     * Put ClientRegistry.blob with period appropriate CDR next to game exe.
-
     * Extract revApps.ini next to game exe and configure it to mount the right GCF files for your game's app ID.
-
-4. Specify the app ID in one of the following ways:
-
-    * Write your game's app ID into steam_appid.txt located next to game exe.
-
-    * Run the game with -appid \<appid\>.
-
-    * Set SteamAppId environment variable to your game's app ID.
-
+4. Specify your game's app ID in one of the following ways:
+    * Write the app ID into steam_appid.txt located next to game exe.
+    * Run the game with -appid \<appid\> parameter.
+    * Set SteamAppId environment variable to the app ID.
 5. Play.
 
 ## Additional notes
-* Later versions GoldSource Engine and Source Engine use both Steam.dll and steam_api.dll - in this case, you will need to combine REVive with a steam_api.dll emulator.
-
-* The loaders that come with Goldberg and SmartSteamEmu both automatically set SteamAppId env var so you don't need to bother with step 4 when using GCF mounting.
+* If you're running a Source Engine game, you need to extract Steam.dll into bin directory and rev.ini next to game exe.
+* Later versions of GoldSource Engine and Source Engine use both Steam.dll and steam_api.dll - in this case, you will need to combine REVive with a steam_api.dll emulator.
+* The loaders that come with Goldberg and SmartSteamEmu both automatically set SteamAppId env var, so you don't need to bother with step 4 when using GCF mounting.
 
 ## Credits
 
-shmelle, revCrew, vityan666, bir3yk - original 2008 version of RevEmu.
+* shmelle, revCrew, vityan666, bir3yk - original 2008 version of RevEmu.
+* Bestest - Linux testing.
+* Pancakes - macOS testing.
