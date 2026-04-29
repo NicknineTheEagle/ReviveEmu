@@ -75,15 +75,14 @@ int GetFiles(const char* szSource, const char* szDest, int mode, const char* szM
 						{
 							V_ComposeFileName(szCWD, TestFile->FullName, szFileName, MAX_PATH);
 
-							struct _stat buf;
-							retval = _stat(szFileName, &buf);
+							retval = _access(szFileName, 0);
 						}
 						else
 						{
 							retval = -1;
 						}
 
-						if (!retval)
+						if (retval != 0)
 						{
 							retval = g_CacheManager->CacheExtractFile(hFile, szDest);
 						}

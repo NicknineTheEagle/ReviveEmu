@@ -285,8 +285,7 @@ void RevInitialize(const char* cszInitSource)
 	// Attempt to load rev.ini from dll dir first.
 	char szIniFile[MAX_PATH];
 	V_ComposeFileName(szSteamDLLPath, "rev.ini", szIniFile, MAX_PATH);
-	struct _stat filestat;
-	if (_stat(szIniFile, &filestat) != 0)
+	if (_access(szIniFile, 0) != 0)
 	{
 		// Then try the current dir.
 		V_ComposeFileName(szRunFromPath, "rev.ini", szIniFile, MAX_PATH);
@@ -387,14 +386,14 @@ void RevInitialize(const char* cszInitSource)
 
 		V_ComposeFileName(szIniDir, "ClientRegistry.blob", g_szBlobFile, MAX_PATH);
 
-		if (_stat(g_szCDRFile, &filestat) == 0)
+		if (_access(g_szCDRFile, 0) == 0)
 		{
 			if (bLogging) Logger->Write("Cache support initialized via %s\n", g_szCDRFile);
 			g_bSteamFileSystem = true;
 			g_bSteamBlobSystem = true;
 			g_bRawCDR = true;
 		}
-		else if (_stat(g_szBlobFile, &filestat) == 0)
+		else if (_access(g_szBlobFile, 0) == 0)
 		{
 			if (bLogging) Logger->Write("Cache support initialized via %s\n", g_szBlobFile);
 			g_bSteamFileSystem = true;
@@ -404,7 +403,7 @@ void RevInitialize(const char* cszInitSource)
 		{
 			g_bSteamBlobSystem = false;
 
-			if (_stat(g_szAppIni, &filestat) == 0)
+			if (_access(g_szAppIni, 0) == 0)
 			{
 				if (bLogging) Logger->Write("Cache support initialized via revApps.Ini\n");
 				g_bSteamFileSystem = true;

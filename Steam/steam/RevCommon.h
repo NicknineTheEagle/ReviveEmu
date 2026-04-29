@@ -28,6 +28,7 @@ typedef unsigned long long uint64;
 #define GetProcAddress dlsym
 #define LoadLibraryA(x) dlopen(x, RTLD_NOW)
 #define _stat stat
+#define _access access
 #define ARRAYSIZE(a) (sizeof(a) / sizeof((a)[0]))
 
 typedef void* HMODULE;
