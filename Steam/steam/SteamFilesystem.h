@@ -230,7 +230,7 @@ int _findnext(intptr_t handle, struct _finddata_t* fileinfo)
 		V_ComposeFileName(hFind->szFindDir, pEnt->d_name, szFilePath, MAX_PATH);
 
 		struct stat filedata;
-		if (stat(szFilePath, &filedata) != 0)
+		if (stat(szFilePath, &filedata) != 0 || !((filedata.st_mode & S_IFMT) == S_IFDIR || (filedata.st_mode & S_IFMT) == S_IFREG))
 		{
 			free(pEnt);
 			continue;
