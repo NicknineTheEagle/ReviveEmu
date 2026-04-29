@@ -802,7 +802,7 @@ STEAM_API int SteamStat(const char* cszFileName, TSteamElemInfo* pInfo, TSteamEr
 	}
 #endif
 
-	if (retval == 0)
+	if (retval == 0 && ((buf.st_mode & S_IFMT) == S_IFDIR || (buf.st_mode & S_IFMT) == S_IFREG))
 	{
 		pInfo->bIsDir = ((buf.st_mode & S_IFMT) == S_IFDIR);
 
@@ -816,6 +816,10 @@ STEAM_API int SteamStat(const char* cszFileName, TSteamElemInfo* pInfo, TSteamEr
 	else if (g_bSteamFileSystem == true)
 	{
 		retval = g_CacheManager->CacheStat(cszFileName, pInfo);
+	}
+	else
+	{
+		retval = -1;
 	}
 
 	if (retval != 0)
