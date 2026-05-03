@@ -94,9 +94,9 @@ void MountFileSystemByID(unsigned int uAppId, const char* cszExtraMount)
 	g_CacheManager->MountCache(szPath, cszExtraMount);
 }
 
-void MountFileSystemByName(const char* cszPath)
+void MountFileSystemByName(const char* cszPath, const char* cszExtraMount)
 {
-	g_CacheManager->MountCache(cszPath, "");
+	g_CacheManager->MountCache(cszPath, cszExtraMount);
 }
 
 void AddAppDependency(std::vector<TSteamAppDependencyInfo>& depots, unsigned int uAppId, const char* szMountPath, bool bIsSystemDefined)
@@ -511,7 +511,15 @@ STEAM_API int SteamMountAppFilesystem(TSteamError* pError)
 				{
 					char szPath[MAX_PATH];
 					V_ComposeFileName(g_szGCFPath, cszGCF, szPath, MAX_PATH);
-					MountFileSystemByName(szPath);
+
+					// Hack for GoldSource Engine.
+					const char* cszExtraMount = "";
+					if (V_stricmp(cszGCF, "platform.gcf") == 0)
+					{
+						cszExtraMount = "platform";
+					}
+
+					MountFileSystemByName(szPath, cszExtraMount);
 				}
 			}
 		}
