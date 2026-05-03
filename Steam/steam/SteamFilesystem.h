@@ -52,11 +52,11 @@ void CloseSteamFindFileHandle(SteamHandle_t hSteamHandle)
 	g_FindFileHandles.erase(hSteamHandle);
 }
 
-unsigned int GetAppIDFromName(char* szName)
+unsigned int GetAppIDFromName(const char* cszName)
 {
 	for (CAppRecord* pRecord : CDR->ApplicationRecords)
 	{
-		if (V_stricmp(szName, pRecord->Name) == 0)
+		if (V_stricmp(cszName, pRecord->Name) == 0)
 		{
 			return pRecord->AppId;
 		}
@@ -77,7 +77,7 @@ CAppRecord* GetAppRecord(unsigned int uAppId)
 	return NULL;
 }
 
-void MountFileSystemByID(unsigned int uAppId, const char* szExtraMount)
+void MountFileSystemByID(unsigned int uAppId, const char* cszExtraMount)
 {
 	char szPath[MAX_PATH];
 	char szGCF[MAX_PATH];
@@ -91,12 +91,12 @@ void MountFileSystemByID(unsigned int uAppId, const char* szExtraMount)
 	strcat(szGCF, ".gcf");
 
 	V_ComposeFileName(g_szGCFPath, szGCF, szPath, MAX_PATH);
-	g_CacheManager->MountCache(szPath, szExtraMount);
+	g_CacheManager->MountCache(szPath, cszExtraMount);
 }
 
-void MountFileSystemByName(const char* szPath)
+void MountFileSystemByName(const char* cszPath)
 {
-	g_CacheManager->MountCache(szPath, "");
+	g_CacheManager->MountCache(cszPath, "");
 }
 
 void AddAppDependency(std::vector<TSteamAppDependencyInfo>& depots, unsigned int uAppId, const char* szMountPath, bool bIsSystemDefined)
@@ -136,7 +136,7 @@ void AddExtraDepots(std::vector<TSteamAppDependencyInfo>& depots, unsigned int u
 #endif
 }
 
-void AddExtraLanguageDepots(std::vector<TSteamAppDependencyInfo>& depots, unsigned int uAppId, const char* szMountLanguage, bool bCheckDependency)
+void AddExtraLanguageDepots(std::vector<TSteamAppDependencyInfo>& depots, unsigned int uAppId, const char* cszMountLanguage, bool bCheckDependency)
 {
 	CAppRecord* pRecord = GetAppRecord(uAppId);
 	if (!pRecord)
@@ -144,7 +144,7 @@ void AddExtraLanguageDepots(std::vector<TSteamAppDependencyInfo>& depots, unsign
 
 	// Mount localization depot for the app if it exists.
 	char szLangDepot[MAX_PATH];
-	V_sprintf_safe(szLangDepot, "%s %s", pRecord->Name, szMountLanguage);
+	V_sprintf_safe(szLangDepot, "%s %s", pRecord->Name, cszMountLanguage);
 	unsigned int uDepotId = GetAppIDFromName(szLangDepot);
 
 	if (uDepotId != UINT_MAX)
@@ -156,7 +156,7 @@ void AddExtraLanguageDepots(std::vector<TSteamAppDependencyInfo>& depots, unsign
 			AddAppDependency(depots, 235, "", false);
 		}
 
-		if (bLogging && bLogFS) Logger->Write("Loading Localized Cache Requirements for AppID(%u) Language(%s)\n", uDepotId, szMountLanguage);
+		if (bLogging && bLogFS) Logger->Write("Loading Localized Cache Requirements for AppID(%u) Language(%s)\n", uDepotId, cszMountLanguage);
 		AddAppDependency(depots, uDepotId, "", false);
 	}
 
@@ -169,7 +169,7 @@ void AddExtraLanguageDepots(std::vector<TSteamAppDependencyInfo>& depots, unsign
 
 		if (SteamGetAppUserDefinedInfo(uAppId, "dependantOnApp", szPropertyValue, sizeof(szPropertyValue), &uPropertyValueLength, &steamError))
 		{
-			AddExtraLanguageDepots(depots, atoi(szPropertyValue), szMountLanguage, true);
+			AddExtraLanguageDepots(depots, atoi(szPropertyValue), cszMountLanguage, true);
 		}
 	}
 }
