@@ -1,7 +1,6 @@
 #pragma once
 
 extern bool g_bSteamStartup;
-extern unsigned int g_uRootAppId;
 
 extern TFileInCacheHandle* NewSteamFileHandle();
 
@@ -107,10 +106,14 @@ int GetFiles(const char* szSource, const char* szDest, int mode, const char* szM
 
 STEAM_API int SteamEnumerateApp(unsigned int uAppID, TSteamApp* pApp, TSteamError* pError)
 {
+	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
+
 	if (bLogging) Logger->Write("SteamEnumerateApp (%u)\n", uAppID);
 
 	if (g_bSteamBlobSystem)
 	{
+		ParseAppDependencies(uAppID);
+
 		CAppRecord* pRecord = GetAppRecord(uAppID);
 
 		if (pRecord)
@@ -144,7 +147,7 @@ STEAM_API int SteamEnumerateApp(unsigned int uAppID, TSteamApp* pApp, TSteamErro
 
 			pApp->uNumVersions = pRecord->VersionsRecord.size();
 
-			pApp->uNumDependencies = pRecord->FilesystemsRecord.size();
+			pApp->uNumDependencies = g_AppDependencies[uAppID].size();
 
 			SteamClearError(pError);
 			return 1;
@@ -159,24 +162,19 @@ STEAM_API int SteamEnumerateApp(unsigned int uAppID, TSteamApp* pApp, TSteamErro
 
 STEAM_API int SteamEnumerateAppDependency(unsigned int uAppId, unsigned int uDependency, TSteamAppDependencyInfo* pDependencyInfo, TSteamError* pError)
 {
-	if (bLogging) Logger->Write("SteamEnumerateAppDependency (%u, %u)\n", uAppId, uDependency);
+	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
 
-	g_uRootAppId = uAppId;
+	if (bLogging) Logger->Write("SteamEnumerateAppDependency (%u, %u)\n", uAppId, uDependency);
 
 	if (g_bSteamBlobSystem)
 	{
-		CAppRecord* pRecord = GetAppRecord(uAppId);
+		std::vector<TSteamAppDependencyInfo>& depots = g_AppDependencies[uAppId];
 
-		if (pRecord)
+		if (uDependency < depots.size())
 		{
-			if (uDependency < pRecord->FilesystemsRecord.size())
-			{
-				pDependencyInfo->uAppId = pRecord->FilesystemsRecord[uDependency]->AppId;
-				pDependencyInfo->bIsSystemDefined = 1;
-				strcpy(pDependencyInfo->szMountPath, pRecord->FilesystemsRecord[uDependency]->MountName);
-				SteamClearError(pError);
-				return 1;
-			}
+			memcpy(pDependencyInfo, &depots[uDependency], sizeof(TSteamAppDependencyInfo));
+			SteamClearError(pError);
+			return 1;
 		}
 	}
 

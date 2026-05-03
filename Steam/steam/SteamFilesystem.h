@@ -1,7 +1,6 @@
 #pragma once
 
-extern unsigned int g_uRootAppId;
-
+std::map<unsigned int, std::vector<TSteamAppDependencyInfo>> g_AppDependencies;
 std::map<SteamHandle_t, TFileInCacheHandle> g_FileHandles;
 std::map<SteamHandle_t, TFindHandle> g_FindFileHandles;
 
@@ -100,7 +99,16 @@ void MountFileSystemByName(const char* szPath)
 	g_CacheManager->MountCache(szPath, "");
 }
 
-void MountExtraCaches(unsigned int uAppId)
+void AddAppDependency(std::vector<TSteamAppDependencyInfo>& depots, unsigned int uAppId, const char* szMountPath, bool bIsSystemDefined)
+{
+	TSteamAppDependencyInfo info;
+	info.uAppId = uAppId;
+	info.bIsSystemDefined = bIsSystemDefined ? 1 : 0;
+	strcpy(info.szMountPath, szMountPath);
+	depots.push_back(info);
+}
+
+void AddExtraDepots(std::vector<TSteamAppDependencyInfo>& depots, unsigned int uAppId)
 {
 	TSteamError steamError;
 	unsigned int uPropertyValueLength;
@@ -111,7 +119,7 @@ void MountExtraCaches(unsigned int uAppId)
 		// half-life high definition.gcf
 		unsigned int uDepotId = atoi(szPropertyValue);
 		if (bLogging && bLogFS) Logger->Write("Loading Optional HD Cache Requirements for AppID(%u)\n", uDepotId);
-		MountFileSystemByID(uDepotId, "");
+		AddAppDependency(depots, uDepotId, "", false);
 	}
 
 #ifdef _WIN64
@@ -122,13 +130,13 @@ void MountExtraCaches(unsigned int uAppId)
 		{
 			// source engine 64-bit.gcf
 			if (bLogging && bLogFS) Logger->Write("Loading Optional 64-bit Cache Requirements for AppID(%u)\n", 201);
-			MountFileSystemByID(201, "");
+			AddAppDependency(depots, 201, "", false);
 		}
 	}
 #endif
 }
 
-void MountExtraLanguageCaches(unsigned int uAppId, const char* szMountLanguage, bool bCheckDependency)
+void AddExtraLanguageDepots(std::vector<TSteamAppDependencyInfo>& depots, unsigned int uAppId, const char* szMountLanguage, bool bCheckDependency)
 {
 	CAppRecord* pRecord = GetAppRecord(uAppId);
 	if (!pRecord)
@@ -145,11 +153,11 @@ void MountExtraLanguageCaches(unsigned int uAppId, const char* szMountLanguage, 
 		if (uDepotId == 232)
 		{
 			if (bLogging && bLogFS) Logger->Write("Loading Localized Cache Requirements for AppID(%u) Language(%s)\n", 235, "buka russian");
-			MountFileSystemByID(235, "");
+			AddAppDependency(depots, 235, "", false);
 		}
 
 		if (bLogging && bLogFS) Logger->Write("Loading Localized Cache Requirements for AppID(%u) Language(%s)\n", uDepotId, szMountLanguage);
-		MountFileSystemByID(uDepotId, "");
+		AddAppDependency(depots, uDepotId, "", false);
 	}
 
 	// Also recursively mount localization depots from app dependencies.
@@ -161,8 +169,56 @@ void MountExtraLanguageCaches(unsigned int uAppId, const char* szMountLanguage, 
 
 		if (SteamGetAppUserDefinedInfo(uAppId, "dependantOnApp", szPropertyValue, sizeof(szPropertyValue), &uPropertyValueLength, &steamError))
 		{
-			MountExtraLanguageCaches(atoi(szPropertyValue), szMountLanguage, true);
+			AddExtraLanguageDepots(depots, atoi(szPropertyValue), szMountLanguage, true);
 		}
+	}
+}
+
+void ParseAppDependencies(unsigned int uAppId)
+{
+	if (g_AppDependencies.count(uAppId))
+		return;
+
+	CAppRecord* pRecord = GetAppRecord(uAppId);
+	if (!pRecord || pRecord->FilesystemsRecord.empty())
+		return;
+
+	std::vector<TSteamAppDependencyInfo>& depots = g_AppDependencies[uAppId];
+
+	AddExtraDepots(depots, uAppId);
+	AddExtraLanguageDepots(depots, uAppId, g_szLanguage, true);
+
+	for (CAppFilesystemRecord* pFSRecord : pRecord->FilesystemsRecord)
+	{
+		// Don't mount depots from other operating systems.
+#if defined(_WIN32)
+		const char* cszHostOS = "windows";
+#elif defined(_OSX)
+		const char* cszHostOS = "macos";
+#elif defined(_LINUX)
+		const char* cszHostOS = "linux";
+#endif
+		if (pFSRecord->ValidOSList)
+		{
+			char szOSList[64];
+			V_strcpy_safe(szOSList, pFSRecord->ValidOSList);
+			bool bValidForOS = false;
+			for (const char* cszOS = strtok(szOSList, ","); cszOS; cszOS = strtok(NULL, ","))
+			{
+				if (V_stricmp(cszOS, cszHostOS) == 0)
+				{
+					bValidForOS = true;
+					break;
+				}
+			}
+
+			if (!bValidForOS)
+				continue;
+		}
+
+		if (bLogging && bLogFS) Logger->Write("Loading Default Cache Requirements for AppID(%u)\n", pFSRecord->AppId);
+
+		AddAppDependency(depots, pFSRecord->AppId, pFSRecord->MountName, true);
 	}
 }
 
@@ -393,79 +449,16 @@ STEAM_API int SteamMountFilesystem(unsigned int uAppId, const char* szMountPath,
 
 	if (bLogging) Logger->Write("SteamMountFilesystem (%u, %s)\n", uAppId, szMountPath);
 
-	if (CDR)
-	{
-		CAppRecord* pRecord = GetAppRecord(uAppId);
+	SteamClearError(pError);
 
-		if (pRecord)
-		{
-			MountExtraCaches(uAppId);
-			MountExtraLanguageCaches(uAppId, g_szLanguage, true);
-
-			if (pRecord->FilesystemsRecord.size() > 0)
-			{
-				// Language Caches have been processed as this is a root AppID
-
-				for (CAppFilesystemRecord* pFSRecord : pRecord->FilesystemsRecord)
-				{
-					// Don't mount depots from other operating systems.
-#if defined(_WIN32)
-					const char* cszHostOS = "windows";
-#elif defined(_OSX)
-					const char* cszHostOS = "macos";
-#elif defined(_LINUX)
-					const char* cszHostOS = "linux";
-#endif
-					if (pFSRecord->ValidOSList)
-					{
-						char szOSList[64];
-						V_strcpy_safe(szOSList, pFSRecord->ValidOSList);
-						bool bValidForOS = false;
-						for (const char* cszOS = strtok(szOSList, ","); cszOS; cszOS = strtok(NULL, ","))
-						{
-							if (V_stricmp(cszOS, cszHostOS) == 0)
-							{
-								bValidForOS = true;
-								break;
-							}
-						}
-
-						if (!bValidForOS)
-							continue;
-					}
-
-					if (bLogging && bLogFS) Logger->Write("Loading Default Cache Requirements for AppID(%u)\n", pFSRecord->AppId);
-
-					MountFileSystemByID(pFSRecord->AppId, pFSRecord->MountName);
-				}
-			}
-			else
-			{
-				// Language Caches must be processed by calculating the rootAppID as some mods mount individual depots directly
-				// rootAppID was recorded on the last enumerate app call as this would populate the enumerations for the root app
-
-				CAppRecord* pRecord = GetAppRecord(g_uRootAppId);
-
-				if (pRecord)
-				{
-					MountExtraCaches(g_uRootAppId);
-					MountExtraLanguageCaches(g_uRootAppId, g_szLanguage, true);
-				}
-
-				if (bLogging && bLogFS) Logger->Write("Loading Default Cache Requirements for AppID(%d)\n", uAppId);
-
-				MountFileSystemByID(uAppId, "");
-			}
-		}
-
-		SteamClearError(pError);
-	}
-	else
+	if (!g_bSteamBlobSystem)
 	{
 		if (bLogging && bLogFS) Logger->Write("Error retrieving CDR from blob file!\n");
 		pError->eSteamError = eSteamErrorUnknown;
 		return 0;
 	}
+
+	MountFileSystemByID(uAppId, szMountPath);
 
 	return 1;
 }
@@ -493,9 +486,14 @@ STEAM_API int SteamMountAppFilesystem(TSteamError* pError)
 			RevError("You are trying to launch an unknown App ID, please specify -appid on the command line or write App ID into steam_appid.txt.");
 		}
 
-		if (g_bSteamBlobSystem == true && CDR)
+		if (g_bSteamBlobSystem == true)
 		{
-			return SteamMountFilesystem(g_uAppId, "", pError);
+			ParseAppDependencies(g_uAppId);
+
+			for (TSteamAppDependencyInfo& info : g_AppDependencies[g_uAppId])
+			{
+				MountFileSystemByID(info.uAppId, info.szMountPath);
+			}
 		}
 		else
 		{
@@ -517,8 +515,6 @@ STEAM_API int SteamMountAppFilesystem(TSteamError* pError)
 				}
 			}
 		}
-
-		return 1;
 	}
 
 	return 1;

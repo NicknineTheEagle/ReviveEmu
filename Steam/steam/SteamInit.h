@@ -3,6 +3,7 @@
 extern CLogFile* Logger;
 extern bool bLogging;
 extern bool g_bSteamStartup;
+extern std::map<unsigned int, std::vector<TSteamAppDependencyInfo>> g_AppDependencies;
 
 extern void RevInitialize(const char* cszInitSource);
 
@@ -80,6 +81,8 @@ STEAM_API int STEAM_CALL SteamCleanup(TSteamError *pError)
 	{
 		if (g_bSteamFileSystem)
 		{
+			g_AppDependencies.clear();
+
 			if (g_CacheManager)
 			{
 				delete g_CacheManager;

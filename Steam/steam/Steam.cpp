@@ -7,7 +7,6 @@ bool g_bConfigLoaded = false;
 bool g_bSteamStartup = false;
 CSteamID g_SteamID;
 unsigned int g_uAppId = 0;
-unsigned int g_uRootAppId = 0;
 bool g_bSteamDll = false;
 bool g_bSteamClient = false;
 bool g_bAllowNonRev = true;
