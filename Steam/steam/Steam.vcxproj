@@ -171,7 +171,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Steam.cpp" />
-    <ClCompile Include="SteamDLLAppsystem.cpp" />
+    <ClCompile Include="SteamDLLAppsystemImpl.cpp" />
     <ClCompile Include="SteamInterfaceImpl.cpp" />
     <ClCompile Include="strtools.cpp" />
     <ClCompile Include="strtools_unicode.cpp" />
@@ -293,6 +293,7 @@
     <ClInclude Include="CacheSystem\Cache\CCacheManifest.h" />
     <ClInclude Include="CacheSystem\Cache\CCacheSectors.h" />
     <ClInclude Include="CacheSystem\CCacheSystem.h" />
+    <ClInclude Include="IAppSystem.h" />
     <ClInclude Include="ISteamInterface001.h" />
     <ClInclude Include="ISteamInterface003.h" />
     <ClInclude Include="ISteamInterface004.h" />
@@ -310,7 +311,7 @@
     <ClInclude Include="SteamApplication.h" />
     <ClInclude Include="SteamAsyncCallHandling.h" />
     <ClInclude Include="SteamCommon.h" />
-    <ClInclude Include="SteamDLLAppsystem001.h" />
+    <ClInclude Include="SteamDLLAppsystemImpl.h" />
     <ClInclude Include="SteamFilesystem.h" />
     <ClInclude Include="SteamInit.h" />
     <ClInclude Include="SteamInterface.h" />

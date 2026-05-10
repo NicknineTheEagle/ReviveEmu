@@ -1,7 +1,7 @@
 #pragma once
 
 #include "SteamInterfaceImpl.h"
-#include "SteamDLLAppsystem001.h"
+#include "SteamDLLAppsystemImpl.h"
 
 extern CLogFile* Logger;
 extern bool bLogging;
@@ -10,21 +10,20 @@ extern void RevInitialize(const char* cszInitSource);
 
 STEAM_API void* STEAM_CALL CreateInterface(const char* cszSteamDLLAppsystemInterfaceVersion, int* pReturnCode)
 {
-	if(bLogging) Logger->Write("CreateInterface(%s)\n", cszSteamDLLAppsystemInterfaceVersion);
-	static CSteamDLLAppsystem001 SteamDLLAppsystem001;
+	if (bLogging) Logger->Write("CreateInterface(%s)\n", cszSteamDLLAppsystemInterfaceVersion);
 
-	if(cszSteamDLLAppsystemInterfaceVersion != NULL)
+	static CSteamDLLAppsystem SteamDLLAppsystem;
+
+	if (cszSteamDLLAppsystemInterfaceVersion != NULL)
 	{
-		if(strcmp(cszSteamDLLAppsystemInterfaceVersion,"SteamDLLAppsystem001") == 0)
+		if (strcmp(cszSteamDLLAppsystemInterfaceVersion, "SteamDLLAppsystem001") == 0)
 		{
-			if (pReturnCode)
-				*pReturnCode = 0;
-			return (void*)&SteamDLLAppsystem001;
+			if (pReturnCode) *pReturnCode = 0;
+			return static_cast<IAppSystem*>(&SteamDLLAppsystem);
 		}
 	}
 
-	if (pReturnCode)
-		*pReturnCode = 1;
+	if (pReturnCode) *pReturnCode = 1;
 	return NULL;
 }
 

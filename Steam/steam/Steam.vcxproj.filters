@@ -72,7 +72,7 @@
     <ClCompile Include="SteamInterfaceImpl.cpp">
       <Filter>Source Files\SteamInterface</Filter>
     </ClCompile>
-    <ClCompile Include="SteamDLLAppsystem.cpp">
+    <ClCompile Include="SteamDLLAppsystemImpl.cpp">
       <Filter>Source Files\SteamDLLAppsystem</Filter>
     </ClCompile>
     <ClCompile Include="Win32MiniDump.cpp">
@@ -204,7 +204,7 @@
     <ClInclude Include="SteamInterfaceImpl.h">
       <Filter>Header Files\SteamInterface</Filter>
     </ClInclude>
-    <ClInclude Include="SteamDLLAppsystem001.h">
+    <ClInclude Include="SteamDLLAppsystemImpl.h">
       <Filter>Header Files\SteamDLLAppsystem</Filter>
     </ClInclude>
     <ClInclude Include="BlobSystem\BlobSystemCommon.h">
@@ -311,6 +311,9 @@
     </ClInclude>
     <ClInclude Include="zlib\zutil.h">
       <Filter>Header Files\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="IAppSystem.h">
+      <Filter>Header Files\SteamDLLAppsystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
