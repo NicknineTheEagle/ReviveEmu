@@ -172,11 +172,7 @@
     </ClCompile>
     <ClCompile Include="Steam.cpp" />
     <ClCompile Include="SteamDLLAppsystem.cpp" />
-    <ClCompile Include="SteamInterface001.cpp" />
-    <ClCompile Include="SteamInterface003.cpp" />
-    <ClCompile Include="SteamInterface004.cpp" />
-    <ClCompile Include="SteamInterface005.cpp" />
-    <ClCompile Include="SteamInterface006.cpp" />
+    <ClCompile Include="SteamInterfaceImpl.cpp" />
     <ClCompile Include="strtools.cpp" />
     <ClCompile Include="strtools_unicode.cpp" />
     <ClCompile Include="Win32MiniDump.cpp" />
@@ -318,11 +314,7 @@
     <ClInclude Include="SteamFilesystem.h" />
     <ClInclude Include="SteamInit.h" />
     <ClInclude Include="SteamInterface.h" />
-    <ClInclude Include="SteamInterface001.h" />
-    <ClInclude Include="SteamInterface003.h" />
-    <ClInclude Include="SteamInterface004.h" />
-    <ClInclude Include="SteamInterface005.h" />
-    <ClInclude Include="SteamInterface006.h" />
+    <ClInclude Include="SteamInterfaceImpl.h" />
     <ClInclude Include="SteamLogging.h" />
     <ClInclude Include="SteamMiniDump.h" />
     <ClInclude Include="SteamMisc.h" />

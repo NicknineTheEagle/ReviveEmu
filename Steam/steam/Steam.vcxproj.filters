@@ -69,19 +69,7 @@
     <ClCompile Include="strtools_unicode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SteamInterface001.cpp">
-      <Filter>Source Files\SteamInterface</Filter>
-    </ClCompile>
-    <ClCompile Include="SteamInterface003.cpp">
-      <Filter>Source Files\SteamInterface</Filter>
-    </ClCompile>
-    <ClCompile Include="SteamInterface004.cpp">
-      <Filter>Source Files\SteamInterface</Filter>
-    </ClCompile>
-    <ClCompile Include="SteamInterface005.cpp">
-      <Filter>Source Files\SteamInterface</Filter>
-    </ClCompile>
-    <ClCompile Include="SteamInterface006.cpp">
+    <ClCompile Include="SteamInterfaceImpl.cpp">
       <Filter>Source Files\SteamInterface</Filter>
     </ClCompile>
     <ClCompile Include="SteamDLLAppsystem.cpp">
@@ -213,19 +201,7 @@
     <ClInclude Include="ISteamInterface006.h">
       <Filter>Header Files\SteamInterface</Filter>
     </ClInclude>
-    <ClInclude Include="SteamInterface001.h">
-      <Filter>Header Files\SteamInterface</Filter>
-    </ClInclude>
-    <ClInclude Include="SteamInterface003.h">
-      <Filter>Header Files\SteamInterface</Filter>
-    </ClInclude>
-    <ClInclude Include="SteamInterface004.h">
-      <Filter>Header Files\SteamInterface</Filter>
-    </ClInclude>
-    <ClInclude Include="SteamInterface005.h">
-      <Filter>Header Files\SteamInterface</Filter>
-    </ClInclude>
-    <ClInclude Include="SteamInterface006.h">
+    <ClInclude Include="SteamInterfaceImpl.h">
       <Filter>Header Files\SteamInterface</Filter>
     </ClInclude>
     <ClInclude Include="SteamDLLAppsystem001.h">

@@ -1,10 +1,6 @@
 #pragma once
 
-#include "SteamInterface001.h"
-#include "SteamInterface003.h"
-#include "SteamInterface004.h"
-#include "SteamInterface005.h"
-#include "SteamInterface006.h"
+#include "SteamInterfaceImpl.h"
 #include "SteamDLLAppsystem001.h"
 
 extern CLogFile* Logger;
@@ -36,33 +32,31 @@ STEAM_API void* STEAM_CALL _f(const char* cszSteamInterfaceVersion)
 {
 	RevInitialize("_f");
 
-	if(cszSteamInterfaceVersion != NULL)
+	static CSteamInterface SteamInterface;
+
+	if (cszSteamInterfaceVersion != NULL)
 	{
-		if(bLogging) Logger->Write("Using Interface %s\n", cszSteamInterfaceVersion);
-		if(strcmp(cszSteamInterfaceVersion,"Steam001") == 0)
+		if (bLogging) Logger->Write("Using Interface %s\n", cszSteamInterfaceVersion);
+
+		if (strcmp(cszSteamInterfaceVersion, "Steam001") == 0)
 		{
-			static CSteamInterface001 SteamInterface001;
-			return (void*)&SteamInterface001;
+			return static_cast<ISteamInterface001*>(&SteamInterface);
 		}
-		else if(strcmp(cszSteamInterfaceVersion,"Steam003") == 0)
+		else if (strcmp(cszSteamInterfaceVersion, "Steam003") == 0)
 		{
-			static CSteamInterface003 SteamInterface003;
-			return (void*)&SteamInterface003;
+			return static_cast<ISteamInterface003*>(&SteamInterface);
 		}
-		else if(strcmp(cszSteamInterfaceVersion,"Steam004") == 0)
+		else if (strcmp(cszSteamInterfaceVersion, "Steam004") == 0)
 		{
-			static CSteamInterface004 SteamInterface004;
-			return (void*)&SteamInterface004;
+			return static_cast<ISteamInterface004*>(&SteamInterface);
 		}
-		else if(strcmp(cszSteamInterfaceVersion,"Steam005") == 0)
+		else if (strcmp(cszSteamInterfaceVersion, "Steam005") == 0)
 		{
-			static CSteamInterface005 SteamInterface005;
-			return (void*)&SteamInterface005;
+			return static_cast<ISteamInterface005*>(&SteamInterface);
 		}
-		else if(strcmp(cszSteamInterfaceVersion,"Steam006") == 0)
+		else if (strcmp(cszSteamInterfaceVersion, "Steam006") == 0)
 		{
-			static CSteamInterface006 SteamInterface006;
-			return (void*)&SteamInterface006;
+			return static_cast<ISteamInterface006*>(&SteamInterface);
 		}
 	}
 
