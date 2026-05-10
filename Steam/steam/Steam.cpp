@@ -461,23 +461,12 @@ void RevInitialize(const char* cszInitSource)
 	// Set the registry values required for steamclient.dll to be loaded
 	if (g_bSteamClient = Ini.GetBoolValue("Emulator", "SteamClient")) // Should we enable steamclient loading ?
 	{
-		char chClientPath[MAX_PATH];
-		V_strcpy_safe(chClientPath, szRunFromPath);
+		char szClientPath[MAX_PATH];
+		V_ComposeFileName(szSteamDLLPath, "steamclient.dll", szClientPath, MAX_PATH);
 
-		char szExePath[MAX_PATH];
-		GetModuleFileNameA(NULL, szExePath, MAX_PATH);
-		const char* chProcName = V_GetFileName(szExePath);
-
-		if (!V_stricmp(chProcName, "hlds.exe") || !V_stricmp(chProcName, "hl.exe"))
-			V_strcat_safe(chClientPath, "steamclient.dll");
-		else if (!V_stricmp(chProcName, "srcds.exe") || !V_stricmp(chProcName, "hl2.exe") || !V_stricmp(chProcName, "sdklauncher.exe"))
-			V_strcat_safe(chClientPath, "bin\\steamclient.dll");
-		else
-			V_strcat_safe(chClientPath, "steamclient.dll");
-
-		if (bLogging) Logger->Write("-- Using Steam Client: %s\n", chClientPath);
+		if (bLogging) Logger->Write("-- Using Steam Client: %s\n", szClientPath);
 		setRegistry("Software\\Valve\\Steam\\ActiveProcess", "pid", GetCurrentProcessId());
-		setRegistry("Software\\Valve\\Steam\\ActiveProcess", "SteamClientDll", chClientPath);
+		setRegistry("Software\\Valve\\Steam\\ActiveProcess", "SteamClientDll", szClientPath);
 	}
 #endif
 
