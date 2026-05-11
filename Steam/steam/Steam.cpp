@@ -111,6 +111,17 @@ void RevError(const char* cszError)
 #endif
 }
 
+const char* GetUserIDString(const TSteamGlobalUserID* pSteamID)
+{
+	static char idstr[128];
+	V_sprintf_safe(idstr, "STEAM_%u:%u:%u", (SteamInstanceID_t)pSteamID->m_SteamInstanceID,
+	          (unsigned int)((SteamLocalUserID_t)pSteamID->m_SteamLocalUserID.Split.High32bits),
+	          (unsigned int)((SteamLocalUserID_t)pSteamID->m_SteamLocalUserID.Split.Low32bits));
+	idstr[sizeof(idstr) - 1] = '\0';
+
+	return idstr;
+}
+
 bool RevGetEnvVar(const char* cszVar, char* szOut, unsigned int nOutSize)
 {
 #ifdef _WIN32
@@ -476,6 +487,9 @@ void RevInitialize(const char* cszInitSource)
 	DWORD serialNumber;
 	GetVolumeInformationA(NULL, NULL, NULL, &serialNumber, NULL, NULL, NULL, NULL);
 	g_SteamID.Set(serialNumber, k_EUniversePublic, k_EAccountTypeIndividual);
+	TSteamGlobalUserID Steam2ID;
+	g_SteamID.ConvertToSteam2(&Steam2ID);
+	if (bLogging) Logger->Write("SteamID set to %s\n", GetUserIDString(&Steam2ID));
 #else
 	// There are no Linux or Mac clients that actually use Steam2 auth, so there's no need to set this.
 	g_SteamID.Clear();

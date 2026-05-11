@@ -781,7 +781,7 @@ STEAM_API int STEAM_CALL SteamStat( const char *cszName, TSteamElemInfo *pInfo, 
 {
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
 
-	if (bLogging && bLogFS) Logger->Write("SteamStat (%s, 0x%p)\n", cszName, pInfo);
+	if (bLogging && bLogFS) Logger->Write("SteamStat (%s)\n", cszName);
 
 	SteamClearError(pError);
 

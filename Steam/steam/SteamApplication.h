@@ -184,7 +184,7 @@ STEAM_API int STEAM_CALL SteamEnumerateAppDependency( unsigned int uAppId, unsig
 
 STEAM_API int STEAM_CALL SteamEnumerateAppLaunchOption( unsigned int uAppId, unsigned int uLaunchOptionIndex, TSteamAppLaunchOption *pLaunchOption, TSteamError *pError )
 {
-	if (bLogging) Logger->Write("SteamEnumerateAppLaunchOption\n");
+	if (bLogging) Logger->Write("SteamEnumerateAppLaunchOption (%u, %u)\n", uAppId, uLaunchOptionIndex);
 
 	if (g_bSteamBlobSystem)
 	{
@@ -220,7 +220,7 @@ STEAM_API int STEAM_CALL SteamEnumerateAppLaunchOption( unsigned int uAppId, uns
 
 STEAM_API SteamCallHandle_t STEAM_CALL SteamRefreshMinimumFootprintFiles( unsigned int uAppId, TSteamError *pError )
 {
-	if (bLogging) Logger->Write("SteamRefreshMinimumFootprintFiles\n");
+	if (bLogging) Logger->Write("SteamRefreshMinimumFootprintFiles (%u)\n", uAppId);
 
 	char szGCF[MAX_PATH];
 	char szPath[MAX_PATH];
@@ -266,7 +266,7 @@ STEAM_API SteamCallHandle_t STEAM_CALL SteamRefreshMinimumFootprintFiles( unsign
 
 STEAM_API SteamCallHandle_t STEAM_CALL SteamLaunchApp( unsigned int uAppId, unsigned int uLaunchOption, const char *cszArgs, TSteamError *pError )
 {
-	if (bLogging) Logger->Write("SteamLaunchApp\n");
+	if (bLogging) Logger->Write("SteamLaunchApp (%u, %u, %s)\n", uAppId, uLaunchOption, cszArgs);
 
 	int retval = 0;
 
@@ -377,7 +377,7 @@ STEAM_API SteamCallHandle_t STEAM_CALL SteamLaunchApp( unsigned int uAppId, unsi
 
 STEAM_API int STEAM_CALL SteamCheckAppOwnership( unsigned int uAppId, int *pbOwned, TSteamGlobalUserID *pSteamID, TSteamError *pError )
 {
-	if (bLogging) Logger->Write("SteamCheckAppOwnership\n");
+	if (bLogging) Logger->Write("SteamCheckAppOwnership (%u, 0x%p, %s)\n", uAppId, pbOwned, GetUserIDString(pSteamID));
 
 	SteamClearError(pError);
 
@@ -385,19 +385,19 @@ STEAM_API int STEAM_CALL SteamCheckAppOwnership( unsigned int uAppId, int *pbOwn
 	TSteamGlobalUserID mySteamID;
 	if (!SteamGetUser(NULL, 0, NULL, &mySteamID, pError))
 	{
-		*pbOwned = false;
+		*pbOwned = 0;
 		return 0;
 	}
 
 	if (memcmp(&mySteamID, pSteamID, sizeof(TSteamGlobalUserID)) != 0)
 	{
-		*pbOwned = false;
+		*pbOwned = 0;
 		return 1;
 	}
 #endif
 
-	int pending = false;
-	return SteamIsAppSubscribed(uAppId, pbOwned, &pending, pError);
+	int bPending = false;
+	return SteamIsAppSubscribed(uAppId, pbOwned, &bPending, pError);
 }
 
 STEAM_API int STEAM_CALL SteamIsSubscribed( unsigned int uSubscriptionId, int *pbIsSubscribed, int *pbIsSubscriptionPending, TSteamError *pError )
@@ -506,7 +506,7 @@ STEAM_API int STEAM_CALL SteamGetAppPurchaseCountry( unsigned int uAppId, char *
 
 STEAM_API int STEAM_CALL SteamGetAppUserDefinedInfo( unsigned int uAppId, const char *cszKey, char *szValueBuf, unsigned int uValueBufLen, unsigned int *puValueLen, TSteamError *pError )
 {
-	if (bLogging) Logger->Write("SteamGetAppUserDefinedInfo\n");
+	if (bLogging) Logger->Write("SteamGetAppUserDefinedInfo (%u, %s, 0x%p, %u, 0x%p)\n", uAppId, cszKey, szValueBuf, uValueBufLen, puValueLen);
 	SteamClearError(pError);
 
 	CAppRecord* pRecord = GetAppRecord(uAppId);
@@ -582,7 +582,7 @@ STEAM_API int STEAM_CALL SteamGetAppStats( TSteamAppStats *pAppStats, TSteamErro
 
 STEAM_API SteamCallHandle_t STEAM_CALL SteamGetAppUpdateStats( unsigned int uAppOrCacheId, ESteamAppUpdateStatsQueryType eQueryType, TSteamUpdateStats *pUpdateStats, TSteamError *pError )
 {
-	if (bLogging) Logger->Write("SteamGetAppUpdateStats (%u, %d, 0x%p)\n", uAppOrCacheId, eQueryType, pUpdateStats);
+	if (bLogging) Logger->Write("SteamGetAppUpdateStats (%u, %d)\n", uAppOrCacheId, eQueryType);
 	SteamClearError(pError);
 
 	switch (uAppOrCacheId)
@@ -617,7 +617,7 @@ STEAM_API int STEAM_CALL SteamGetTotalUpdateStats( TSteamUpdateStats *pUpdateSta
 
 STEAM_API int STEAM_CALL SteamGetAppIds( unsigned int *puIds, unsigned int uMaxIds, TSteamError *pError )
 {
-	if (bLogging) Logger->Write("SteamGetAppIds\n");
+	if (bLogging) Logger->Write("SteamGetAppIds (0x%p, %u)\n", puIds, uMaxIds);
 	SteamClearError(pError);
 
 	if (CDR)
@@ -800,7 +800,7 @@ STEAM_API SteamCallHandle_t STEAM_CALL SteamStopLoadingCache( unsigned int uAppI
 
 STEAM_API int STEAM_CALL SteamGetCacheDefaultDirectory( char *szPath, TSteamError *pError )
 {
-	if (bLogging) Logger->Write("SteamGetCacheDefaultDirectory\n");
+	if (bLogging) Logger->Write("SteamGetCacheDefaultDirectory (0x%p)\n", szPath);
 	SteamClearError(pError);
 
 	if (!g_bSteamFileSystem)

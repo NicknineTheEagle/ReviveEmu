@@ -17,7 +17,7 @@ public:
 STEAM_API SteamHandle_t STEAM_CALL SteamCreateLogContext( const char *cszName )
 {
 // #ifdef DEBUG
-	if (bLogging) Logger->Write("SteamCreateLogContext\n");
+	if (bLogging) Logger->Write("SteamCreateLogContext (%s)\n", cszName);
 // #endif
 	return 1;
 }
@@ -25,7 +25,7 @@ STEAM_API SteamHandle_t STEAM_CALL SteamCreateLogContext( const char *cszName )
 STEAM_API int STEAM_CALL SteamLog( SteamHandle_t hContext, const char *cszMsg )
 {
 // #ifdef DEBUG
-	if (bLogging) Logger->Write("SteamLog\n");
+	if (bLogging) Logger->Write("SteamLog (0x%08X, %s)\n", hContext, cszMsg);
 // #endif
 	return 1;
 }
@@ -33,13 +33,13 @@ STEAM_API int STEAM_CALL SteamLog( SteamHandle_t hContext, const char *cszMsg )
 STEAM_API void STEAM_CALL SteamLogResourceLoadStarted( const char *cszMsg )
 {
 // #ifdef DEBUG
-	if (bLogging) Logger->Write("SteamLogResourceLoadStarted: %s\n", cszMsg);
+	if (bLogging) Logger->Write("SteamLogResourceLoadStarted (%s)\n", cszMsg);
 // #endif
 }
 
 STEAM_API void STEAM_CALL SteamLogResourceLoadFinished( const char *cszMsg )
 {
 // #ifdef DEBUG
-	if (bLogging) Logger->Write("SteamLogResourceLoadFinished %s\n", cszMsg);
+	if (bLogging) Logger->Write("SteamLogResourceLoadFinished (%s)\n", cszMsg);
 // #endif
 }

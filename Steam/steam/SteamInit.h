@@ -21,7 +21,7 @@ STEAM_API int STEAM_CALL SteamStartEngine( TSteamError *pError )
 
 STEAM_API int STEAM_CALL SteamStartup( unsigned int uUsingMask, TSteamError *pError )
 {
-	if (bLogging) Logger->Write("SteamStartup\n");
+	if (bLogging) Logger->Write("SteamStartup (0x%02X)\n", uUsingMask);
 
 	SteamClearError(pError);
 

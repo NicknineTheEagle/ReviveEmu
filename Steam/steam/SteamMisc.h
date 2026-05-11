@@ -137,7 +137,7 @@ const char* g_aCSERServers[] =
 STEAM_API int STEAM_CALL SteamFindServersIterateServer( ESteamServerType eServerType, unsigned int nServer, char *szIpAddrPort, int szIpAddrPortLen )
 {
 // #ifdef DEBUG
-	if (bLogging) Logger->Write("SteamFindServersIterateServer\n");
+	if (bLogging) Logger->Write("SteamFindServersIterateServer (%d, %u, 0x%p, %d)\n", eServerType, nServer, szIpAddrPort, szIpAddrPortLen);
 // #endif
 	if (g_bSteamDll)
 	{
@@ -184,7 +184,7 @@ STEAM_API int STEAM_CALL SteamFindServersIterateServer( ESteamServerType eServer
 STEAM_API int STEAM_CALL SteamFindServersNumServers( ESteamServerType eServerType )
 {
 // #ifdef DEBUG
-	if (bLogging) Logger->Write("SteamFindServersNumServers\n");
+	if (bLogging) Logger->Write("SteamFindServersNumServers (%d)\n", eServerType);
 // #endif
 	if (g_bSteamDll)
 	{

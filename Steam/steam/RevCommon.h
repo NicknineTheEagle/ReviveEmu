@@ -92,3 +92,4 @@ T max(T a, T b)
 
 extern SteamHandle_t NewSteamHandle();
 extern void RevError(const char* cszError);
+extern const char* GetUserIDString(const TSteamGlobalUserID* pSteamID);
