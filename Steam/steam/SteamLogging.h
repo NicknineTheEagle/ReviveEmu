@@ -3,13 +3,6 @@
 extern CLogFile* Logger;
 extern bool bLogging;
 
-class CSteamLogging
-{
-public:
-	CSteamLogging(){}
-	virtual ~CSteamLogging(){}
-};
-
 /*
 ** Logging
 */
