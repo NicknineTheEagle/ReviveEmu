@@ -5,7 +5,7 @@ extern bool bLogging;
 extern bool bLogAcc;
 
 
-STEAM_API SteamCallHandle_t STEAM_CALL SteamCreateAccount(const char *cszUser, const char *cszPassphrase, const char *cszCreationKey, const char *cszPersonalQuestion, const char *cszAnswerToQuestion, const char* cszArg6, int *pbCreated, TSteamError *pError)
+STEAM_API SteamCallHandle_t STEAM_CALL SteamCreateAccount( const char *cszUser, const char *cszEmailAddress, const char *cszPassphrase, const char *cszCreationKey, const char *cszPersonalQuestion, const char *cszAnswerToQuestion, int *pbCreated, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc) Logger->Write("SteamCreateAccount\n");
@@ -13,7 +13,7 @@ STEAM_API SteamCallHandle_t STEAM_CALL SteamCreateAccount(const char *cszUser, c
 	return 1;
 }
 
-STEAM_API SteamCallHandle_t STEAM_CALL SteamDeleteAccount(TSteamError *pError)
+STEAM_API SteamCallHandle_t STEAM_CALL SteamDeleteAccount( TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc) Logger->Write("SteamDeleteAccount\n");
@@ -21,7 +21,7 @@ STEAM_API SteamCallHandle_t STEAM_CALL SteamDeleteAccount(TSteamError *pError)
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamChangeAccountName(const char* cszCurrentAccountName, const char* cszNewAccountName, TSteamError* pError)
+STEAM_API SteamCallHandle_t STEAM_CALL SteamChangeAccountName( const char *cszCurrentPassphrase, const char *cszNewAccountName, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc) Logger->Write("SteamChangeAccountName\n");
@@ -29,7 +29,7 @@ STEAM_API int STEAM_CALL SteamChangeAccountName(const char* cszCurrentAccountNam
 	return 1;
 }
 
-STEAM_API SteamCallHandle_t STEAM_CALL SteamChangeEmailAddress(const char* cszNewEmailAddress, TSteamError* pError)
+STEAM_API SteamCallHandle_t STEAM_CALL SteamChangeEmailAddress( const char *cszNewEmailAddress, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc) Logger->Write("SteamChangeEmailAddress\n");
@@ -37,7 +37,7 @@ STEAM_API SteamCallHandle_t STEAM_CALL SteamChangeEmailAddress(const char* cszNe
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamChangeForgottenPassword()
+STEAM_API SteamCallHandle_t STEAM_CALL SteamChangeForgottenPassword( const char *cszUser, const char *cszAnswerToQuestion, const char *cszEmailVerificationKey, const char *cszNewPassphrase, int *pbChanged, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamChangeForgottenPassword\n");
@@ -45,7 +45,7 @@ STEAM_API int STEAM_CALL SteamChangeForgottenPassword()
 	return 1;
 }
 
-STEAM_API SteamCallHandle_t STEAM_CALL SteamChangePassword(const char* cszCurrentPassphrase, const char* cszNewPassphrase, TSteamError* pError)
+STEAM_API SteamCallHandle_t STEAM_CALL SteamChangePassword( const char *cszCurrentPassphrase, const char *cszNewPassphrase, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamChangePassword\n");
@@ -53,7 +53,7 @@ STEAM_API SteamCallHandle_t STEAM_CALL SteamChangePassword(const char* cszCurren
 	return 1;
 }
 
-STEAM_API SteamCallHandle_t STEAM_CALL SteamChangePersonalQA(const char* cszCurrentPassphrase, const char* cszNewPersonalQuestion, const char* cszNewAnswerToQuestion, TSteamError* pError)
+STEAM_API SteamCallHandle_t STEAM_CALL SteamChangePersonalQA( const char *cszCurrentPassphrase, const char *cszNewPersonalQuestion, const char *cszNewAnswerToQuestion, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamChangePersonalQA\n");
@@ -63,19 +63,19 @@ STEAM_API SteamCallHandle_t STEAM_CALL SteamChangePersonalQA(const char* cszCurr
 
 
 
-STEAM_API int STEAM_CALL SteamEnumerateSubscription(unsigned int uSubId, TSteamSubscription *pSubscription, TSteamError *pError)
+STEAM_API int STEAM_CALL SteamEnumerateSubscription( unsigned int uId, TSteamSubscription *pSubscription, TSteamError *pError )
 {
 	if(pSubscription && pError)
 	{
 // #ifdef DEBUG
-		if (bLogging && bLogAcc)  Logger->Write("SteamEnumerateSubscription (%u)\n", uSubId);
+		if (bLogging && bLogAcc) Logger->Write("SteamEnumerateSubscription (%u)\n", uId);
 // #endif
 		return 1;
 	}
 	return 0;
 }
 
-STEAM_API int STEAM_CALL SteamEnumerateSubscriptionDiscount()
+STEAM_API int STEAM_CALL SteamEnumerateSubscriptionDiscount( unsigned int uSubscriptionId, unsigned int uDiscountIndex, TSteamSubscriptionDiscount *pDiscount, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamEnumerateSubscriptionDiscount\n");
@@ -83,7 +83,7 @@ STEAM_API int STEAM_CALL SteamEnumerateSubscriptionDiscount()
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamEnumerateSubscriptionDiscountQualifier()
+STEAM_API int STEAM_CALL SteamEnumerateSubscriptionDiscountQualifier( unsigned int uSubscriptionId, unsigned int uDiscountIndex, unsigned int uQualifierIndex, TSteamDiscountQualifier *pDiscountQualifier, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamEnumerateSubscriptionDiscountQualifier\n");
@@ -91,7 +91,7 @@ STEAM_API int STEAM_CALL SteamEnumerateSubscriptionDiscountQualifier()
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamGenerateSuggestedAccountNames(const char* cszArg1, const char* cszArg2, char* szArg3, unsigned int uArg4, unsigned int* puArg5, TSteamError *pError)
+STEAM_API SteamCallHandle_t STEAM_CALL SteamGenerateSuggestedAccountNames( const char *cszAccountNameToSelectMasterAS, const char *cszGenerateNamesLikeAccountName, char *pSuggestedNamesBuf, unsigned int uBufSize, unsigned int *puNumSuggestedChars, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamGenerateSuggestedAccountNames\n");
@@ -99,7 +99,7 @@ STEAM_API int STEAM_CALL SteamGenerateSuggestedAccountNames(const char* cszArg1,
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamGetAccountStatus()
+STEAM_API int STEAM_CALL SteamGetAccountStatus( unsigned int *puAccountStatusFlags, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamGetAccountStatus\n");
@@ -108,13 +108,13 @@ STEAM_API int STEAM_CALL SteamGetAccountStatus()
 }
 
 
-STEAM_API int STEAM_CALL SteamGetCurrentEmailAddress(char *szEmailaddress, unsigned int uBufSize, unsigned int *puEmailaddressChars, TSteamError *pError)
+STEAM_API int STEAM_CALL SteamGetCurrentEmailAddress( char *szEmailAddress, unsigned int uBufSize, unsigned int *puEmailChars, TSteamError *pError )
 {
 	if (bLogging && bLogAcc)  Logger->Write("SteamGetCurrentEmailAddress\n");
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamGetNumAccountsWithEmailAddress()
+STEAM_API SteamCallHandle_t STEAM_CALL SteamGetNumAccountsWithEmailAddress( const char *cszEmailAddress, unsigned int *puNumAccounts, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamGetNumAccountsWithEmailAddress\n");
@@ -124,7 +124,7 @@ STEAM_API int STEAM_CALL SteamGetNumAccountsWithEmailAddress()
 
 
 
-STEAM_API int STEAM_CALL SteamGetSubscriptionExtendedInfo()
+STEAM_API int STEAM_CALL SteamGetSubscriptionExtendedInfo( unsigned int uSubscriptionId, const char *cszKey, char *szValueBuf, unsigned int uValueBufLen, unsigned *puValueLen, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamGetSubscriptionExtendedInfo\n");
@@ -132,7 +132,7 @@ STEAM_API int STEAM_CALL SteamGetSubscriptionExtendedInfo()
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamGetSubscriptionIds(unsigned int *puSubIds, unsigned int uMaxIds, TSteamError *pError)
+STEAM_API int STEAM_CALL SteamGetSubscriptionIds( unsigned int *puIds, unsigned int uMaxIds, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamGetSubscriptionIds (%u)\n", uMaxIds);
@@ -140,7 +140,7 @@ STEAM_API int STEAM_CALL SteamGetSubscriptionIds(unsigned int *puSubIds, unsigne
 	return 0;
 }
 
-STEAM_API int STEAM_CALL SteamGetSubscriptionPurchaseCountry()
+STEAM_API int STEAM_CALL SteamGetSubscriptionPurchaseCountry( unsigned int uSubscriptionId, char *szCountry, unsigned int uBufSize, int *pPurchaseTime, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamGetSubscriptionPurchaseCountry\n");
@@ -148,7 +148,7 @@ STEAM_API int STEAM_CALL SteamGetSubscriptionPurchaseCountry()
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamGetSubscriptionReceipt(unsigned int uSubscriptionId , TSteamSubscriptionReceipt* pSteamSubscriptionReceipt, TSteamError *pError)
+STEAM_API int STEAM_CALL SteamGetSubscriptionReceipt( unsigned int uSubscriptionId, TSteamSubscriptionReceipt *pSubscriptionReceipt, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamGetSubscriptionReceipt\n");
@@ -156,7 +156,7 @@ STEAM_API int STEAM_CALL SteamGetSubscriptionReceipt(unsigned int uSubscriptionI
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamGetSubscriptionStats(TSteamSubscriptionStats *pSubscriptionStats, TSteamError *pError)
+STEAM_API int STEAM_CALL SteamGetSubscriptionStats( TSteamSubscriptionStats *pSubscriptionStats, TSteamError *pError )
 {
 // #ifdef DEBUG
 		if (bLogging && bLogAcc)  Logger->Write("SteamGetSubscriptionStats\n");
@@ -164,8 +164,8 @@ STEAM_API int STEAM_CALL SteamGetSubscriptionStats(TSteamSubscriptionStats *pSub
 	return 0;
 }
 
-//STEAM_API int STEAM_CALL SteamGetUser(char *szUser, unsigned int uBufSize, unsigned int *puUserChars, TSteamError *pError)
-STEAM_API int STEAM_CALL SteamGetUser(char *szUser, unsigned int uBufSize, unsigned int *puUserChars, TSteamGlobalUserID* pSteamGlobalUserID, TSteamError *pError)
+//STEAM_API int STEAM_CALL SteamGetUser( char *szUser, unsigned int uBufSize, unsigned int *puUserChars, TSteamError *pError )
+STEAM_API int STEAM_CALL SteamGetUser( char *szUser, unsigned int uBufSize, unsigned int *puUserChars, TSteamGlobalUserID *pOptionalReceiveUserID, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc) Logger->Write("SteamGetUser\n");
@@ -175,7 +175,7 @@ STEAM_API int STEAM_CALL SteamGetUser(char *szUser, unsigned int uBufSize, unsig
 	TSteamError *pArgError = NULL;
 	if (g_eCompatMode <= REV_COMPAT_2003)
 	{
-		memcpy(&pArgError, &pSteamGlobalUserID, sizeof(pArgError));
+		memcpy(&pArgError, &pOptionalReceiveUserID, sizeof(pArgError));
 	}
 	else
 	{
@@ -191,9 +191,9 @@ STEAM_API int STEAM_CALL SteamGetUser(char *szUser, unsigned int uBufSize, unsig
 
 	if (g_eCompatMode > REV_COMPAT_2003)
 	{
-		if (pSteamGlobalUserID)
+		if (pOptionalReceiveUserID)
 		{
-			g_SteamID.ConvertToSteam2(pSteamGlobalUserID);
+			g_SteamID.ConvertToSteam2(pOptionalReceiveUserID);
 		}
 	}
 
@@ -201,7 +201,7 @@ STEAM_API int STEAM_CALL SteamGetUser(char *szUser, unsigned int uBufSize, unsig
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamGetUserType(unsigned int* puArg1, TSteamError* pError)
+STEAM_API int STEAM_CALL SteamGetUserType( unsigned int *puUserTypeFlags, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamGetUserType\n");
@@ -209,7 +209,7 @@ STEAM_API int STEAM_CALL SteamGetUserType(unsigned int* puArg1, TSteamError* pEr
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamIsAccountNameInUse()
+STEAM_API SteamCallHandle_t STEAM_CALL SteamIsAccountNameInUse( const char *cszAccountName, int *pbIsUsed, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamIsAccountNameInUse\n");
@@ -217,7 +217,7 @@ STEAM_API int STEAM_CALL SteamIsAccountNameInUse()
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamIsLoggedIn(int *pbIsLoggedIn, TSteamError *pError)
+STEAM_API int STEAM_CALL SteamIsLoggedIn( int *pbIsLoggedIn, TSteamError *pError )
 {
 	if(bLogging) Logger->Write("SteamIsLoggedIn\n");
 
@@ -226,7 +226,7 @@ STEAM_API int STEAM_CALL SteamIsLoggedIn(int *pbIsLoggedIn, TSteamError *pError)
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamIsSecureComputer(int *pbIsSecure, TSteamError *pError)
+STEAM_API int STEAM_CALL SteamIsSecureComputer(  int *pbIsSecure, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamIsSecureComputer\n");
@@ -237,7 +237,7 @@ STEAM_API int STEAM_CALL SteamIsSecureComputer(int *pbIsSecure, TSteamError *pEr
 
 
 
-STEAM_API SteamCallHandle_t STEAM_CALL SteamLogin(const char *cszUser, const char *cszPassphrase, int bIsSecureComputer, TSteamError *pError)
+STEAM_API SteamCallHandle_t STEAM_CALL SteamLogin( const char *cszUser, const char *cszPassphrase, int bIsSecureComputer, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamLogin\n");
@@ -245,7 +245,7 @@ STEAM_API SteamCallHandle_t STEAM_CALL SteamLogin(const char *cszUser, const cha
 	return 1;
 }
 
-STEAM_API SteamCallHandle_t STEAM_CALL SteamLogout(TSteamError *pError)
+STEAM_API SteamCallHandle_t STEAM_CALL SteamLogout( TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamLogout\n");
@@ -254,7 +254,7 @@ STEAM_API SteamCallHandle_t STEAM_CALL SteamLogout(TSteamError *pError)
 }
 
 
-STEAM_API int STEAM_CALL SteamRefreshAccountInfo()
+STEAM_API SteamCallHandle_t STEAM_CALL SteamRefreshAccountInfo( TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamRefreshAccountInfo\n");
@@ -262,7 +262,7 @@ STEAM_API int STEAM_CALL SteamRefreshAccountInfo()
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamRefreshAccountInfoEx()
+STEAM_API SteamCallHandle_t STEAM_CALL SteamRefreshAccountInfoEx( int bContentDescriptionOnly, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamRefreshAccountInfoEx\n");
@@ -270,7 +270,7 @@ STEAM_API int STEAM_CALL SteamRefreshAccountInfoEx()
 	return 1;
 }
 
-STEAM_API SteamCallHandle_t STEAM_CALL SteamRefreshLogin(const char *cszPassphrase, int bIsSecureComputer, TSteamError * pError)
+STEAM_API SteamCallHandle_t STEAM_CALL SteamRefreshLogin( const char *cszPassphrase, int bIsSecureComputer, TSteamError * pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamRefreshLogin\n");
@@ -279,7 +279,7 @@ STEAM_API SteamCallHandle_t STEAM_CALL SteamRefreshLogin(const char *cszPassphra
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamRequestAccountsByCdKeyEmail()
+STEAM_API SteamCallHandle_t STEAM_CALL SteamRequestAccountsByCdKeyEmail( const char *cszCdKey, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamRequestAccountsByCdKeyEmail\n");
@@ -287,7 +287,7 @@ STEAM_API int STEAM_CALL SteamRequestAccountsByCdKeyEmail()
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamRequestAccountsByEmailAddressEmail()
+STEAM_API SteamCallHandle_t STEAM_CALL SteamRequestAccountsByEmailAddressEmail( const char *cszEmailAddress, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamRequestAccountsByEmailAddressEmail\n");
@@ -295,7 +295,7 @@ STEAM_API int STEAM_CALL SteamRequestAccountsByEmailAddressEmail()
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamRequestEmailAddressVerificationEmail(TSteamError *pError)
+STEAM_API SteamCallHandle_t STEAM_CALL SteamRequestEmailAddressVerificationEmail( TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamRequestEmailAddressVerificationEmail\n");
@@ -303,7 +303,7 @@ STEAM_API int STEAM_CALL SteamRequestEmailAddressVerificationEmail(TSteamError *
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamRequestForgottenPasswordEmail()
+STEAM_API SteamCallHandle_t STEAM_CALL SteamRequestForgottenPasswordEmail( const char *cszUser, SteamPersonalQuestion_t ReceivePersonalQuestion, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamRequestForgottenPasswordEmail\n");
@@ -311,7 +311,7 @@ STEAM_API int STEAM_CALL SteamRequestForgottenPasswordEmail()
 	return 1;
 }
 
-STEAM_API SteamCallHandle_t STEAM_CALL SteamSetUser(const char *cszUser, int *pbUserSet, TSteamError *pError)
+STEAM_API SteamCallHandle_t STEAM_CALL SteamSetUser( const char *cszUser, int *pbUserSet, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamSetUser (%s)\n", cszUser);
@@ -322,7 +322,7 @@ STEAM_API SteamCallHandle_t STEAM_CALL SteamSetUser(const char *cszUser, int *pb
 	return 1;
 }
 
-STEAM_API SteamCallHandle_t STEAM_CALL SteamSubscribe(unsigned int uSubscriptionId, const TSteamSubscriptionBillingInfo *pSubscriptionBillingInfo, TSteamError *pError)
+STEAM_API SteamCallHandle_t STEAM_CALL SteamSubscribe( unsigned int uSubscriptionId, const TSteamSubscriptionBillingInfo *pSubscriptionBillingInfo, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamSubscribe\n");
@@ -330,7 +330,7 @@ STEAM_API SteamCallHandle_t STEAM_CALL SteamSubscribe(unsigned int uSubscription
 	return 1;
 }
 
-STEAM_API SteamCallHandle_t STEAM_CALL SteamUnsubscribe(unsigned int uSubscriptionId, TSteamError *pError)
+STEAM_API SteamCallHandle_t STEAM_CALL SteamUnsubscribe( unsigned int uSubscriptionId, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamUnsubscribe\n");
@@ -338,7 +338,7 @@ STEAM_API SteamCallHandle_t STEAM_CALL SteamUnsubscribe(unsigned int uSubscripti
 	return 1;
 }
 
-STEAM_API SteamCallHandle_t STEAM_CALL SteamUpdateAccountBillingInfo(const TSteamPaymentCardInfo *pPaymentCardInfo, TSteamError *pError)
+STEAM_API SteamCallHandle_t STEAM_CALL SteamUpdateAccountBillingInfo( const TSteamPaymentCardInfo *pPaymentCardInfo, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamUpdateAccountBillingInfo\n");
@@ -346,7 +346,7 @@ STEAM_API SteamCallHandle_t STEAM_CALL SteamUpdateAccountBillingInfo(const TStea
 	return 1;
 }
 
-STEAM_API SteamCallHandle_t STEAM_CALL SteamUpdateSubscriptionBillingInfo(unsigned int uSubscriptionId, const TSteamSubscriptionBillingInfo *pSubscriptionBillingInfo, TSteamError *pError)
+STEAM_API SteamCallHandle_t STEAM_CALL SteamUpdateSubscriptionBillingInfo( unsigned int uSubscriptionId, const TSteamSubscriptionBillingInfo *pSubscriptionBillingInfo, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamUpdateSubscriptionBillingInfo\n");
@@ -354,7 +354,7 @@ STEAM_API SteamCallHandle_t STEAM_CALL SteamUpdateSubscriptionBillingInfo(unsign
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamVerifyEmailAddress(const char* cszEmailAddress, TSteamError *pError)
+STEAM_API SteamCallHandle_t STEAM_CALL SteamVerifyEmailAddress( const char *cszEmailVerificationKey, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamVerifyEmailAddress\n");
@@ -362,7 +362,7 @@ STEAM_API int STEAM_CALL SteamVerifyEmailAddress(const char* cszEmailAddress, TS
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamVerifyPassword(const char* cszArg1, int* piArg2, TSteamError* pError)
+STEAM_API int STEAM_CALL SteamVerifyPassword( const char *cszPassphrase, int *pbCorrect, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamVerifyPassword\n");
@@ -372,7 +372,7 @@ STEAM_API int STEAM_CALL SteamVerifyPassword(const char* cszArg1, int* piArg2, T
 
 
 
-STEAM_API int STEAM_CALL SteamAckSubscriptionReceipt()
+STEAM_API SteamCallHandle_t STEAM_CALL SteamAckSubscriptionReceipt( unsigned int uSubscriptionId, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamAckSubscriptionReceipt\n");
@@ -381,11 +381,10 @@ STEAM_API int STEAM_CALL SteamAckSubscriptionReceipt()
 }
 
 
-STEAM_API int STEAM_CALL SteamNumAppsRunning(TSteamError *pError)
+STEAM_API unsigned int STEAM_CALL SteamNumAppsRunning( TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamNumAppsRunning\n");
 // #endif
 	return 1;
 }
-

@@ -11,7 +11,7 @@ extern void RevInitialize(const char* cszInitSource);
 ** Initialization
 */
 
-STEAM_API int STEAM_CALL SteamStartEngine(TSteamError *pError)
+STEAM_API int STEAM_CALL SteamStartEngine( TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging) Logger->Write("SteamStartEngine\n");
@@ -19,7 +19,7 @@ STEAM_API int STEAM_CALL SteamStartEngine(TSteamError *pError)
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamStartup(unsigned int uUsingMask, TSteamError *pError)
+STEAM_API int STEAM_CALL SteamStartup( unsigned int uUsingMask, TSteamError *pError )
 {
 	if (bLogging) Logger->Write("SteamStartup\n");
 
@@ -70,7 +70,7 @@ STEAM_API int STEAM_CALL SteamStartup(unsigned int uUsingMask, TSteamError *pErr
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamCleanup(TSteamError *pError)
+STEAM_API int STEAM_CALL SteamCleanup( TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging) Logger->Write("SteamCleanup\n");
@@ -106,7 +106,7 @@ STEAM_API int STEAM_CALL SteamCleanup(TSteamError *pError)
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamGetVersion(char *szVersion, unsigned int uVersionBufSize)
+STEAM_API int STEAM_CALL SteamGetVersion( char *szVersion, unsigned int uVersionBufSize )
 {
 // #ifdef DEBUG
 	if (bLogging) Logger->Write("SteamGetVersion\n");
@@ -119,7 +119,7 @@ STEAM_API int STEAM_CALL SteamGetVersion(char *szVersion, unsigned int uVersionB
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamShutdownEngine(TSteamError *pError)
+STEAM_API int STEAM_CALL SteamShutdownEngine( TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging) Logger->Write("SteamShutdownEngine\n");

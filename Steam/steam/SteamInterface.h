@@ -8,15 +8,15 @@ extern bool bLogging;
 
 extern void RevInitialize(const char* cszInitSource);
 
-STEAM_API void* STEAM_CALL CreateInterface(const char* cszSteamDLLAppsystemInterfaceVersion, int* pReturnCode)
+STEAM_API void * STEAM_CALL CreateInterface( const char *pName, int *pReturnCode )
 {
-	if (bLogging) Logger->Write("CreateInterface(%s)\n", cszSteamDLLAppsystemInterfaceVersion);
+	if (bLogging) Logger->Write("CreateInterface(%s)\n", pName);
 
 	static CSteamDLLAppsystem SteamDLLAppsystem;
 
-	if (cszSteamDLLAppsystemInterfaceVersion != NULL)
+	if (pName != NULL)
 	{
-		if (strcmp(cszSteamDLLAppsystemInterfaceVersion, "SteamDLLAppsystem001") == 0)
+		if (strcmp(pName, "SteamDLLAppsystem001") == 0)
 		{
 			if (pReturnCode) *pReturnCode = 0;
 			return static_cast<IAppSystem*>(&SteamDLLAppsystem);
@@ -27,33 +27,33 @@ STEAM_API void* STEAM_CALL CreateInterface(const char* cszSteamDLLAppsystemInter
 	return NULL;
 }
 
-STEAM_API void* STEAM_CALL _f(const char* cszSteamInterfaceVersion)
+STEAM_API void * STEAM_CALL _f( const char *szInterfaceVersionRequested )
 {
 	RevInitialize("_f");
 
 	static CSteamInterface SteamInterface;
 
-	if (cszSteamInterfaceVersion != NULL)
+	if (szInterfaceVersionRequested != NULL)
 	{
-		if (bLogging) Logger->Write("Using Interface %s\n", cszSteamInterfaceVersion);
+		if (bLogging) Logger->Write("Using Interface %s\n", szInterfaceVersionRequested);
 
-		if (strcmp(cszSteamInterfaceVersion, "Steam001") == 0)
+		if (strcmp(szInterfaceVersionRequested, "Steam001") == 0)
 		{
 			return static_cast<ISteamInterface001*>(&SteamInterface);
 		}
-		else if (strcmp(cszSteamInterfaceVersion, "Steam003") == 0)
+		else if (strcmp(szInterfaceVersionRequested, "Steam003") == 0)
 		{
 			return static_cast<ISteamInterface003*>(&SteamInterface);
 		}
-		else if (strcmp(cszSteamInterfaceVersion, "Steam004") == 0)
+		else if (strcmp(szInterfaceVersionRequested, "Steam004") == 0)
 		{
 			return static_cast<ISteamInterface004*>(&SteamInterface);
 		}
-		else if (strcmp(cszSteamInterfaceVersion, "Steam005") == 0)
+		else if (strcmp(szInterfaceVersionRequested, "Steam005") == 0)
 		{
 			return static_cast<ISteamInterface005*>(&SteamInterface);
 		}
-		else if (strcmp(cszSteamInterfaceVersion, "Steam006") == 0)
+		else if (strcmp(szInterfaceVersionRequested, "Steam006") == 0)
 		{
 			return static_cast<ISteamInterface006*>(&SteamInterface);
 		}

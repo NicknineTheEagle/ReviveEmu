@@ -363,24 +363,24 @@ int _findclose(intptr_t handle)
 }
 #endif
 
-SteamHandle_t SteamOpenFile2(const char* cszFileName, const char* cszMode, int nFlags, unsigned int* puFileSize, int* pbLocal, TSteamError* pError)
+SteamHandle_t SteamOpenFile2( const char *cszName, const char *cszMode, int nFlags, unsigned int *puFileSize, int *pbLocal, TSteamError *pError )
 {
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
 
-	if (bLogging && bLogFS) Logger->Write("SteamOpenFileEx (%s, %s, 0x%02X, 0x%p, 0x%p)\n", cszFileName, cszMode, nFlags, puFileSize, pbLocal);
+	if (bLogging && bLogFS) Logger->Write("SteamOpenFileEx (%s, %s, 0x%02X, 0x%p, 0x%p)\n", cszName, cszMode, nFlags, puFileSize, pbLocal);
 
 	SteamClearError(pError);
 
-	if (strpbrk(cszFileName, "?*"))
+	if (strpbrk(cszName, "?*"))
 	{
 		pError->eSteamError = eSteamErrorNotFound;
-		if (bLogging && bLogFS) Logger->Write("\tFile not found (%s)\n", cszFileName);
+		if (bLogging && bLogFS) Logger->Write("\tFile not found (%s)\n", cszName);
 		return STEAM_INVALID_HANDLE;
 	}
 
 	// FIXME: Is this necessary?
 	char szFullPath[MAX_PATH];
-	V_MakeAbsolutePath(szFullPath, MAX_PATH, cszFileName);
+	V_MakeAbsolutePath(szFullPath, MAX_PATH, cszName);
 
 	TFileInCacheHandle* hCacheFile = NULL;
 	SteamHandle_t retval = STEAM_INVALID_HANDLE;
@@ -422,12 +422,12 @@ SteamHandle_t SteamOpenFile2(const char* cszFileName, const char* cszMode, int n
 	else
 	{
 		if (g_bSteamFileSystem == true)
-			hCacheFile = g_CacheManager->CacheOpenFileEx(cszFileName, cszMode, puFileSize);
+			hCacheFile = g_CacheManager->CacheOpenFileEx(cszName, cszMode, puFileSize);
 
 		if (!hCacheFile)
 		{
 			pError->eSteamError = eSteamErrorNotFound;
-			if (bLogging && bLogFS) Logger->Write("\tFile not found (%s)\n", cszFileName);
+			if (bLogging && bLogFS) Logger->Write("\tFile not found (%s)\n", cszName);
 		}
 		else
 		{
@@ -436,14 +436,14 @@ SteamHandle_t SteamOpenFile2(const char* cszFileName, const char* cszMode, int n
 			if (pbLocal)
 				*pbLocal = 0;
 
-			if (bLogging && bLogFS) Logger->Write("\tOpened 0x%08X from Cache(%s) %s\n", hCacheFile->hSteamHandle, cszMode, cszFileName);
+			if (bLogging && bLogFS) Logger->Write("\tOpened 0x%08X from Cache(%s) %s\n", hCacheFile->hSteamHandle, cszMode, cszName);
 		}
 	}
 
 	return retval;
 }
 
-STEAM_API int SteamMountFilesystem(unsigned int uAppId, const char* szMountPath, TSteamError* pError)
+STEAM_API SteamHandle_t STEAM_CALL SteamMountFilesystem( unsigned int uAppId, const char *szMountPath, TSteamError *pError )
 {
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
 
@@ -463,15 +463,15 @@ STEAM_API int SteamMountFilesystem(unsigned int uAppId, const char* szMountPath,
 	return 1;
 }
 
-STEAM_API int SteamUnmountFilesystem(unsigned int uAppID, TSteamError* pError)
+STEAM_API int STEAM_CALL SteamUnmountFilesystem( SteamHandle_t hFs, TSteamError *pError )
 {
-	if (bLogging) Logger->Write("SteamUnmountFilesystem (%u)\n", uAppID);
+	if (bLogging) Logger->Write("SteamUnmountFilesystem (0x%08X)\n", hFs);
 	SteamClearError(pError);
 
 	return 1;
 }
 
-STEAM_API int SteamMountAppFilesystem(TSteamError* pError)
+STEAM_API int STEAM_CALL SteamMountAppFilesystem( TSteamError *pError )
 {
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
 
@@ -528,7 +528,7 @@ STEAM_API int SteamMountAppFilesystem(TSteamError* pError)
 	return 1;
 }
 
-STEAM_API int SteamUnmountAppFilesystem(TSteamError* pError)
+STEAM_API int STEAM_CALL SteamUnmountAppFilesystem( TSteamError *pError )
 {
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
 
@@ -545,17 +545,17 @@ STEAM_API int SteamUnmountAppFilesystem(TSteamError* pError)
 	return 1;
 }
 
-STEAM_API SteamHandle_t SteamOpenFileEx(const char* cszFileName, const char* cszMode, unsigned int* puFileSize, TSteamError* pError)
+STEAM_API SteamHandle_t STEAM_CALL SteamOpenFile( const char *cszName, const char *cszMode, TSteamError *pError )
 {
-	return SteamOpenFile2(cszFileName, cszMode, 0, puFileSize, NULL, pError);
+	return SteamOpenFile2(cszName, cszMode, 0, NULL, NULL, pError);
 }
 
-STEAM_API SteamHandle_t SteamOpenFile(const char* cszFileName, const char* cszMode, TSteamError* pError)
+STEAM_API SteamHandle_t STEAM_CALL SteamOpenFileEx( const char *cszName, const char *cszMode, unsigned int *puFileSize, TSteamError *pError )
 {
-	return SteamOpenFile2(cszFileName, cszMode, 0, NULL, NULL, pError);
+	return SteamOpenFile2(cszName, cszMode, 0, puFileSize, NULL, pError);
 }
 
-STEAM_API unsigned int SteamReadFile(void* pBuf, unsigned int uSize, unsigned int uCount, SteamHandle_t hFile, TSteamError* pError)
+STEAM_API unsigned int STEAM_CALL SteamReadFile( void *pBuf, unsigned int uSize, unsigned int uCount, SteamHandle_t hFile, TSteamError *pError )
 {
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
 
@@ -595,7 +595,7 @@ STEAM_API unsigned int SteamReadFile(void* pBuf, unsigned int uSize, unsigned in
 
 extern bool g_bSteamStartup;
 
-STEAM_API int SteamCloseFile(SteamHandle_t hFile, TSteamError* pError)
+STEAM_API int STEAM_CALL SteamCloseFile( SteamHandle_t hFile, TSteamError *pError )
 {
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
 
@@ -630,7 +630,7 @@ STEAM_API int SteamCloseFile(SteamHandle_t hFile, TSteamError* pError)
 	return retval;
 }
 
-STEAM_API SteamHandle_t SteamFindFirst(const char* cszPattern, ESteamFindFilter eFilter, TSteamElemInfo* pFindInfo, TSteamError* pError)
+STEAM_API SteamHandle_t STEAM_CALL SteamFindFirst( const char *cszPattern, ESteamFindFilter eFilter, TSteamElemInfo *pFindInfo, TSteamError *pError )
 {
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
 
@@ -694,7 +694,7 @@ STEAM_API SteamHandle_t SteamFindFirst(const char* cszPattern, ESteamFindFilter 
 	return STEAM_INVALID_HANDLE;
 }
 
-STEAM_API int SteamFindNext(SteamHandle_t hDirectory, TSteamElemInfo* pFindInfo, TSteamError* pError)
+STEAM_API int STEAM_CALL SteamFindNext( SteamHandle_t hDirectory, TSteamElemInfo *pFindInfo, TSteamError *pError )
 {
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
 
@@ -753,7 +753,7 @@ STEAM_API int SteamFindNext(SteamHandle_t hDirectory, TSteamElemInfo* pFindInfo,
 	return retval;
 }
 
-STEAM_API int SteamFindClose(SteamHandle_t hDirectory, TSteamError* pError)
+STEAM_API int STEAM_CALL SteamFindClose( SteamHandle_t hDirectory, TSteamError *pError )
 {
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
 
@@ -777,29 +777,29 @@ STEAM_API int SteamFindClose(SteamHandle_t hDirectory, TSteamError* pError)
 	return retval;
 }
 
-STEAM_API int SteamStat(const char* cszFileName, TSteamElemInfo* pInfo, TSteamError* pError)
+STEAM_API int STEAM_CALL SteamStat( const char *cszName, TSteamElemInfo *pInfo, TSteamError *pError )
 {
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
 
-	if (bLogging && bLogFS) Logger->Write("SteamStat (%s, 0x%p)\n", cszFileName, pInfo);
+	if (bLogging && bLogFS) Logger->Write("SteamStat (%s, 0x%p)\n", cszName, pInfo);
 
 	SteamClearError(pError);
 
-	if (strpbrk(cszFileName, "?*"))
+	if (strpbrk(cszName, "?*"))
 	{
 		pError->eSteamError = eSteamErrorNotFound;
-		if (bLogging && bLogFS) Logger->Write("\tFile not found (%s)\n", cszFileName);
+		if (bLogging && bLogFS) Logger->Write("\tFile not found (%s)\n", cszName);
 		return -1;
 	}
 
 	struct _stat buf;
-	int retval = _stat(cszFileName, &buf);
+	int retval = _stat(cszName, &buf);
 
 #ifdef POSIX
 	if (retval != 0)
 	{
 		char szFixedName[MAX_PATH];
-		if (GetFileCaseless(cszFileName, szFixedName, MAX_PATH))
+		if (GetFileCaseless(cszName, szFixedName, MAX_PATH))
 		{
 			retval = _stat(szFixedName, &buf);
 		}
@@ -812,14 +812,14 @@ STEAM_API int SteamStat(const char* cszFileName, TSteamElemInfo* pInfo, TSteamEr
 
 		pInfo->uSizeOrCount = (unsigned int)buf.st_size;
 		pInfo->bIsLocal = 1;
-		strcpy(pInfo->cszName, V_GetFileName(cszFileName));
+		strcpy(pInfo->cszName, V_GetFileName(cszName));
 		pInfo->lCreationTime = (long)buf.st_ctime;
 		pInfo->lLastAccessTime = (long)buf.st_atime;
 		pInfo->lLastModificationTime = (long)buf.st_mtime;
 	}
 	else if (g_bSteamFileSystem == true)
 	{
-		retval = g_CacheManager->CacheStat(cszFileName, pInfo);
+		retval = g_CacheManager->CacheStat(cszName, pInfo);
 	}
 	else
 	{
@@ -829,13 +829,13 @@ STEAM_API int SteamStat(const char* cszFileName, TSteamElemInfo* pInfo, TSteamEr
 	if (retval != 0)
 	{
 		pError->eSteamError = eSteamErrorNotFound;
-		if (bLogging && bLogFS) Logger->Write("\tFile not found (%s)\n", cszFileName);
+		if (bLogging && bLogFS) Logger->Write("\tFile not found (%s)\n", cszName);
 	}
 
 	return retval;
 }
 
-STEAM_API int SteamFlushFile(SteamHandle_t hFile, TSteamError* pError)
+STEAM_API int STEAM_CALL SteamFlushFile( SteamHandle_t hFile, TSteamError *pError )
 {
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
 
@@ -860,7 +860,7 @@ STEAM_API int SteamFlushFile(SteamHandle_t hFile, TSteamError* pError)
 	return retval;
 }
 
-STEAM_API int SteamGetc(SteamHandle_t hFile, TSteamError* pError)
+STEAM_API int STEAM_CALL SteamGetc( SteamHandle_t hFile, TSteamError *pError )
 {
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
 
@@ -891,7 +891,7 @@ STEAM_API int SteamGetc(SteamHandle_t hFile, TSteamError* pError)
 	return retval;
 }
 
-STEAM_API SteamHandle_t SteamOpenTmpFile(TSteamError* pError)
+STEAM_API SteamHandle_t STEAM_CALL SteamOpenTmpFile( TSteamError *pError )
 {
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
 
@@ -914,7 +914,7 @@ STEAM_API SteamHandle_t SteamOpenTmpFile(TSteamError* pError)
 	return retval;
 }
 
-STEAM_API int SteamPutc(int cChar, SteamHandle_t hFile, TSteamError* pError)
+STEAM_API int STEAM_CALL SteamPutc( int cChar, SteamHandle_t hFile, TSteamError *pError )
 {
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
 
@@ -939,11 +939,11 @@ STEAM_API int SteamPutc(int cChar, SteamHandle_t hFile, TSteamError* pError)
 	return retval;
 }
 
-STEAM_API int SteamSeekFile(SteamHandle_t hFile, long lOffset, ESteamSeekMethod esMethod, TSteamError* pError)
+STEAM_API int STEAM_CALL SteamSeekFile( SteamHandle_t hFile, long lOffset, ESteamSeekMethod eMethod, TSteamError *pError )
 {
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
 
-	if (bLogging && bLogFS) Logger->Write("SteamSeekFile (0x%08X, %ld, %d)\n", hFile, lOffset, esMethod);
+	if (bLogging && bLogFS) Logger->Write("SteamSeekFile (0x%08X, %ld, %d)\n", hFile, lOffset, eMethod);
 
 	SteamClearError(pError);
 
@@ -952,7 +952,7 @@ STEAM_API int SteamSeekFile(SteamHandle_t hFile, long lOffset, ESteamSeekMethod 
 
 	if (hCacheFile->IsFileLocal)
 	{
-		retval = fseek(hCacheFile->LocalFile, lOffset, esMethod);
+		retval = fseek(hCacheFile->LocalFile, lOffset, eMethod);
 		if (retval != 0)
 		{
 			if (bLogging && bLogFS) Logger->Write("\tLocal seek failed (0x%08X)\n", hFile);
@@ -960,7 +960,7 @@ STEAM_API int SteamSeekFile(SteamHandle_t hFile, long lOffset, ESteamSeekMethod 
 	}
 	else
 	{
-		retval = g_CacheManager->CacheSeekFile(hCacheFile, lOffset, esMethod);
+		retval = g_CacheManager->CacheSeekFile(hCacheFile, lOffset, eMethod);
 		if (retval != 0)
 		{
 			if (bLogging && bLogFS) Logger->Write("\tCache seek failed (0x%08X)\n", hFile);
@@ -970,7 +970,7 @@ STEAM_API int SteamSeekFile(SteamHandle_t hFile, long lOffset, ESteamSeekMethod 
 	return retval;
 }
 
-STEAM_API unsigned int SteamWriteFile(const void* pBuf, unsigned int uSize, unsigned int uCount, SteamHandle_t hFile, TSteamError* pError)
+STEAM_API unsigned int STEAM_CALL SteamWriteFile( const void *pBuf, unsigned int uSize, unsigned int uCount, SteamHandle_t hFile, TSteamError *pError )
 {
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
 
@@ -999,7 +999,7 @@ STEAM_API unsigned int SteamWriteFile(const void* pBuf, unsigned int uSize, unsi
 	return retval;
 }
 
-STEAM_API long SteamTellFile(SteamHandle_t hFile, TSteamError* pError)
+STEAM_API long STEAM_CALL SteamTellFile( SteamHandle_t hFile, TSteamError *pError )
 {
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
 
@@ -1030,7 +1030,7 @@ STEAM_API long SteamTellFile(SteamHandle_t hFile, TSteamError* pError)
 	return retval;
 }
 
-STEAM_API long SteamSizeFile(SteamHandle_t hFile, TSteamError* pError)
+STEAM_API long STEAM_CALL SteamSizeFile( SteamHandle_t hFile, TSteamError *pError )
 {
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
 
@@ -1060,36 +1060,36 @@ STEAM_API long SteamSizeFile(SteamHandle_t hFile, TSteamError* pError)
 	return retval;
 }
 
-STEAM_API int SteamGetLocalFileCopy(const char* cszFileName, TSteamError* pError)
+STEAM_API int STEAM_CALL SteamGetLocalFileCopy( const char *cszName, TSteamError *pError )
 {
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
 
-	if (bLogging && bLogFS) Logger->Write("SteamGetLocalFileCopy (%s)\n", cszFileName);
+	if (bLogging && bLogFS) Logger->Write("SteamGetLocalFileCopy (%s)\n", cszName);
 
 	SteamClearError(pError);
 
 #ifdef _WIN32
 	// FIXME: Is this necessary?
-	if (!V_IsAbsolutePath(cszFileName))
+	if (!V_IsAbsolutePath(cszName))
 	{
 		char pathbuffer[MAX_PATH];
-		_searchenv(cszFileName, "PATH", pathbuffer);
+		_searchenv(cszName, "PATH", pathbuffer);
 		if (*pathbuffer)
 		{
-			if (bLogging && bLogFS) Logger->Write("\tFound ENV (%s)\n", cszFileName);
+			if (bLogging && bLogFS) Logger->Write("\tFound ENV (%s)\n", cszName);
 			return 1;
 		}
 	}
 #endif
 
 	struct _stat buf;
-	int retval = _stat(cszFileName, &buf);
+	int retval = _stat(cszName, &buf);
 
 #ifdef POSIX
 	if (retval != 0)
 	{
 		char szFixedName[MAX_PATH];
-		if (GetFileCaseless(cszFileName, szFixedName, MAX_PATH))
+		if (GetFileCaseless(cszName, szFixedName, MAX_PATH))
 		{
 			retval = _stat(szFixedName, &buf);
 		}
@@ -1098,20 +1098,20 @@ STEAM_API int SteamGetLocalFileCopy(const char* cszFileName, TSteamError* pError
 
 	if (retval == 0 && (buf.st_mode & S_IFREG))
 	{
-		if (bLogging && bLogFS) Logger->Write("\tFound Local (%s)\n", cszFileName);
+		if (bLogging && bLogFS) Logger->Write("\tFound Local (%s)\n", cszName);
 		return 1;
 	}
 
 	//Changed to always try cache if others fail - for dedicated server to work
 	if (g_bSteamFileSystem)
 	{
-		TFileInCacheHandle* hFile = g_CacheManager->CacheOpenFileEx(cszFileName, "rb", NULL);
+		TFileInCacheHandle* hFile = g_CacheManager->CacheOpenFileEx(cszName, "rb", NULL);
 		if (hFile)
 		{
 			int retval = g_CacheManager->CacheExtractFile(hFile, NULL);
 			if (retval != 0)
 			{
-				if (bLogging && bLogFS) Logger->Write("\tFound Cache (%s)\n", cszFileName);
+				if (bLogging && bLogFS) Logger->Write("\tFound Cache (%s)\n", cszName);
 				g_CacheManager->CacheCloseFile(hFile);
 				return 1;
 			}
@@ -1123,11 +1123,11 @@ STEAM_API int SteamGetLocalFileCopy(const char* cszFileName, TSteamError* pError
 	}
 
 	pError->eSteamError = eSteamErrorNotFound;
-	if (bLogging && bLogFS) Logger->Write("\tFile not found (%s)\n", cszFileName);
+	if (bLogging && bLogFS) Logger->Write("\tFile not found (%s)\n", cszName);
 	return 0;
 }
 
-STEAM_API int SteamIsFileImmediatelyAvailable(const char* cszName, TSteamError* pError)
+STEAM_API int STEAM_CALL SteamIsFileImmediatelyAvailable( const char *cszName, TSteamError *pError )
 {
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
 
@@ -1147,7 +1147,7 @@ STEAM_API int SteamIsFileImmediatelyAvailable(const char* cszName, TSteamError* 
 	return 0;
 }
 
-STEAM_API int SteamPrintFile(SteamHandle_t hFile, TSteamError* pError, const char* cszFormat, ...)
+STEAM_API int STEAM_CALL SteamPrintFile( SteamHandle_t hFile, TSteamError *pError, const char *cszFormat, ... )
 {
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
 
@@ -1175,7 +1175,7 @@ STEAM_API int SteamPrintFile(SteamHandle_t hFile, TSteamError* pError, const cha
 	return retval;
 }
 
-STEAM_API int STEAM_CALL SteamSetvBuf(SteamHandle_t hFile, void* pBuf, ESteamBufferMethod eMethod, unsigned int uBytes, TSteamError* pError)
+STEAM_API int STEAM_CALL SteamSetvBuf( SteamHandle_t hFile, void *pBuf, ESteamBufferMethod eMethod, unsigned int uBytes, TSteamError *pError )
 {
 	std::lock_guard<std::recursive_mutex> lock(g_GlobalMutex);
 
@@ -1209,35 +1209,42 @@ STEAM_API int STEAM_CALL SteamSetvBuf(SteamHandle_t hFile, void* pBuf, ESteamBuf
 	return retval;
 }
 
-STEAM_API int STEAM_CALL SteamHintResourceNeed(const char* cszHintList, int bForgetEverything, TSteamError* pError)
+STEAM_API int STEAM_CALL SteamHintResourceNeed( const char *cszMasterList, int bForgetEverything, TSteamError *pError )
 {
-	if (bLogging && bLogFS) Logger->Write("SteamHintResourceNeed (%s, %d)\n", cszHintList, bForgetEverything);
+	if (bLogging && bLogFS) Logger->Write("SteamHintResourceNeed (%s, %d)\n", cszMasterList, bForgetEverything);
 	SteamClearError(pError);
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamForgetAllHints(TSteamError* pError)
+STEAM_API SteamCallHandle_t STEAM_CALL SteamWaitForResources( const char *cszMasterList, TSteamError *pError )
+{
+	if (bLogging) Logger->Write("SteamWaitForResources (%s)\n", cszMasterList);
+	SteamClearError(pError);
+	return 1;
+}
+
+STEAM_API int STEAM_CALL SteamForgetAllHints( TSteamError *pError )
 {
 	if (bLogging && bLogFS) Logger->Write("SteamForgetAllHints\n");
 	SteamClearError(pError);
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamPauseCachePreloading(TSteamError* pError)
+STEAM_API int STEAM_CALL SteamPauseCachePreloading( TSteamError *pError )
 {
 	if (bLogging && bLogFS) Logger->Write("SteamPauseCachePreloading\n");
 	SteamClearError(pError);
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamResumeCachePreloading(TSteamError* pError)
+STEAM_API int STEAM_CALL SteamResumeCachePreloading( TSteamError *pError )
 {
 	if (bLogging && bLogFS) Logger->Write("SteamResumeCachePreloading\n");
 	SteamClearError(pError);
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamGetCacheFilePath(unsigned int uAppId, char* szFilePath, unsigned int uBufferLength, unsigned int* puRecievedLength, TSteamError* pError)
+STEAM_API int STEAM_CALL SteamGetCacheFilePath( unsigned int uCacheId, char *szPathBuf, unsigned int uBufSize, unsigned int *puPathChars, TSteamError *pError )
 {
 	if (bLogging && bLogFS) Logger->Write("SteamGetCacheFilePath\n");
 	SteamClearError(pError);

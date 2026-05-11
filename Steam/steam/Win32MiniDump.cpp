@@ -28,7 +28,7 @@ void CWin32MiniDump::ClearComments()
 	return;
 }
 
-void CWin32MiniDump::WriteUsingExceptionInfo(DWORD dwExceptionCode, _EXCEPTION_POINTERS* pStructuredExceptionPointers)
+void CWin32MiniDump::WriteUsingExceptionInfo(unsigned int uStructuredExceptionCode, _EXCEPTION_POINTERS* pExceptionInfo)
 {
 	SYSTEMTIME systemtime;
 	GetSystemTime(&systemtime);
@@ -47,7 +47,7 @@ void CWin32MiniDump::WriteUsingExceptionInfo(DWORD dwExceptionCode, _EXCEPTION_P
 	{
 		MINIDUMP_EXCEPTION_INFORMATION mdmpExceptionInfo;
 		mdmpExceptionInfo.ThreadId = GetCurrentThreadId();
-		mdmpExceptionInfo.ExceptionPointers = pStructuredExceptionPointers;
+		mdmpExceptionInfo.ExceptionPointers = pExceptionInfo;
 		mdmpExceptionInfo.ClientPointers = FALSE;
 
 		//AddComments as User Stream!

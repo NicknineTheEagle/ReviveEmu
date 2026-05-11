@@ -41,7 +41,7 @@ const char* GetUserIDString(const TSteamGlobalUserID& steamid)
 }
 
 #ifndef VALIDATOR_DLL
-STEAM_API ESteamError STEAM_CALL SteamGetEncryptedUserIDTicket(const void *pEncryptionKeyReceivedFromAppServer, unsigned int uEncryptionKeyLength, void *pOutputBuffer, unsigned int uSizeOfOutputBuffer, unsigned int *pReceiveSizeOfEncryptedTicket, TSteamError *pError)
+STEAM_API ESteamError STEAM_CALL SteamGetEncryptedUserIDTicket( const void *pEncryptionKeyReceivedFromAppServer, unsigned int uEncryptionKeyLength, void *pOutputBuffer, unsigned int uSizeOfOutputBuffer, unsigned int *pReceiveSizeOfEncryptedTicket, TSteamError *pError )
 {
 	if (bLogging && bLogUserId)
 	{
@@ -76,7 +76,7 @@ STEAM_API ESteamError STEAM_CALL SteamGetEncryptedUserIDTicket(const void *pEncr
 }
 #endif
 
-STEAM_API ESteamError STEAM_CALL SteamInitializeUserIDTicketValidator(const char * pszOptionalPublicEncryptionKeyFilename, const char *	pszOptionalPrivateDecryptionKeyFilename, unsigned int ClientClockSkewToleranceInSeconds, unsigned int ServerClockSkewToleranceInSeconds, unsigned int MaxNumLoginsWithinClientClockSkewTolerancePerClient, unsigned int	HintPeakSimultaneousValidations, unsigned int AbortValidationAfterStallingForNProcessSteps)
+STEAM_API ESteamError STEAM_CALL SteamInitializeUserIDTicketValidator( const char *pszOptionalPublicEncryptionKeyFilename, const char *pszOptionalPrivateDecryptionKeyFilename, unsigned int ClientClockSkewToleranceInSeconds, unsigned int ServerClockSkewToleranceInSeconds, unsigned int MaxNumLoginsWithinClientClockSkewTolerancePerClient, unsigned int HintPeakSimultaneousValidations, unsigned int AbortValidationAfterStallingForNProcessSteps )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogUserId) Logger->Write("SteamInitializeUserIDTicketValidator\n");
@@ -122,7 +122,7 @@ STEAM_API ESteamError STEAM_CALL SteamShutdownUserIDTicketValidator()
 	return eSteamErrorNone;
 }
 
-STEAM_API const unsigned char* STEAM_CALL SteamGetEncryptionKeyToSendToNewClient(unsigned int * pReceiveSizeOfEncryptionKey)
+STEAM_API const char * STEAM_CALL SteamGetEncryptionKeyToSendToNewClient( unsigned int *pReceiveSizeOfEncryptionKey )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogUserId) Logger->Write("SteamGetEncryptionKeyToSendToNewClient (0x%p)\n", pReceiveSizeOfEncryptionKey);
@@ -130,8 +130,8 @@ STEAM_API const unsigned char* STEAM_CALL SteamGetEncryptionKeyToSendToNewClient
 
 	if (g_bSteamDll)
 	{
-		const unsigned char* retval;
-		const unsigned char* (*fptr)(unsigned int*);
+		const char* retval;
+		const char* (*fptr)(unsigned int*);
 		*(void **)(&fptr) = GetProcAddress(g_hOrigSteamDll, "SteamGetEncryptionKeyToSendToNewClient");
 		retval = fptr(pReceiveSizeOfEncryptionKey);
 		if (bLogging && bLogUserId) Logger->Write("\t 0x%p\n", retval);
@@ -139,10 +139,10 @@ STEAM_API const unsigned char* STEAM_CALL SteamGetEncryptionKeyToSendToNewClient
 	}
 
 	*pReceiveSizeOfEncryptionKey = sizeof(g_TicketKey);
-	return g_TicketKey;
+	return (const char*)g_TicketKey;
 }
 
-STEAM_API ESteamError STEAM_CALL SteamStartValidatingUserIDTicket(void *pEncryptedUserIDTicketFromClient, unsigned int uSizeOfEncryptedUserIDTicketFromClient, unsigned int ObservedClientIPAddr, SteamUserIDTicketValidationHandle_t *pReceiveHandle)
+STEAM_API ESteamError STEAM_CALL SteamStartValidatingUserIDTicket( void *pEncryptedUserIDTicketFromClient, unsigned int uSizeOfEncryptedUserIDTicketFromClient, unsigned int ObservedClientIPAddr, SteamUserIDTicketValidationHandle_t *pReceiveHandle )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogUserId) Logger->Write("SteamStartValidatingUserIDTicket (0x%p, %u, %u, 0x%p)\n", pEncryptedUserIDTicketFromClient, uSizeOfEncryptedUserIDTicketFromClient, ObservedClientIPAddr, pReceiveHandle);
@@ -287,7 +287,7 @@ STEAM_API ESteamError STEAM_CALL SteamStartValidatingUserIDTicket(void *pEncrypt
 	return eSteamErrorNotFinishedProcessing;
 }
 
-STEAM_API ESteamError STEAM_CALL SteamStartValidatingNewValveCDKey(void *pEncryptedNewValveCDKeyFromClient, unsigned int uSizeOfEncryptedNewValveCDKeyFromClient, unsigned int ObservedClientIPAddr, struct sockaddr *pPrimaryValidateNewCDKeyServerSockAddr, struct sockaddr *pSecondaryValidateNewCDKeyServerSockAddr, SteamUserIDTicketValidationHandle_t *pReceiveHandle)
+STEAM_API ESteamError STEAM_CALL SteamStartValidatingNewValveCDKey( void *pEncryptedNewValveCDKeyFromClient, unsigned int uSizeOfEncryptedNewValveCDKeyFromClient, unsigned int ObservedClientIPAddr, struct sockaddr *pPrimaryValidateNewCDKeyServerSockAddr, struct sockaddr *pSecondaryValidateNewCDKeyServerSockAddr, SteamUserIDTicketValidationHandle_t *pReceiveHandle )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogUserId) Logger->Write("SteamStartValidatingNewValveCDKey\n");
@@ -321,7 +321,7 @@ STEAM_API ESteamError STEAM_CALL SteamStartValidatingNewValveCDKey(void *pEncryp
 	return eSteamErrorUnknown;
 }
 
-STEAM_API ESteamError STEAM_CALL SteamProcessOngoingUserIDTicketValidation(SteamUserIDTicketValidationHandle_t Handle, TSteamGlobalUserID *pReceiveValidSteamGlobalUserID, unsigned int *pReceiveClientLocalIPAddr, unsigned char *pOptionalReceiveProofOfAuthenticationToken, size_t SizeOfOptionalAreaToReceiveProofOfAuthenticationToken, size_t *pOptionalReceiveSizeOfProofOfAuthenticationToken)
+STEAM_API ESteamError STEAM_CALL SteamProcessOngoingUserIDTicketValidation( SteamUserIDTicketValidationHandle_t Handle, TSteamGlobalUserID *pReceiveValidSteamGlobalUserID, unsigned int *pReceiveClientLocalIPAddr, unsigned char *pOptionalReceiveProofOfAuthenticationToken, size_t SizeOfOptionalAreaToReceiveProofOfAuthenticationToken, size_t *pOptionalReceiveSizeOfProofOfAuthenticationToken )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogUserId) Logger->Write("SteamProcessOngoingUserIDTicketValidation (0x%p)\n", Handle);
@@ -377,7 +377,7 @@ STEAM_API ESteamError STEAM_CALL SteamProcessOngoingUserIDTicketValidation(Steam
 	return eSteamErrorNone;
 }
 
-STEAM_API void STEAM_CALL SteamAbortOngoingUserIDTicketValidation(SteamUserIDTicketValidationHandle_t Handle)
+STEAM_API void STEAM_CALL SteamAbortOngoingUserIDTicketValidation( SteamUserIDTicketValidationHandle_t Handle )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogUserId) Logger->Write("SteamAbortOngoingUserIDTicketValidation (0x%p)\n", Handle);
@@ -404,7 +404,7 @@ STEAM_API void STEAM_CALL SteamAbortOngoingUserIDTicketValidation(SteamUserIDTic
 	}
 }
 
-STEAM_API ESteamError STEAM_CALL SteamOptionalCleanUpAfterClientHasDisconnected(unsigned int ObservedClientIPAddr, unsigned int ClientLocalIPAddr)
+STEAM_API ESteamError STEAM_CALL SteamOptionalCleanUpAfterClientHasDisconnected( unsigned int ObservedClientIPAddr, unsigned int ClientLocalIPAddr )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogUserId) Logger->Write("SteamOptionalCleanUpAfterClientHasDisconnected\n");

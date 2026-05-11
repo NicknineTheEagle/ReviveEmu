@@ -12,5 +12,5 @@ public:
 	void SetComment(const char* cszComment);
 	void AddComment(const char* cszComment);
 	void ClearComments();
-	void WriteUsingExceptionInfo(DWORD dwExceptionCode, _EXCEPTION_POINTERS* pStructuredExceptionPointers);
+	void WriteUsingExceptionInfo(unsigned int uStructuredExceptionCode, _EXCEPTION_POINTERS* pExceptionInfo);
 };

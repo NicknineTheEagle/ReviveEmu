@@ -19,22 +19,22 @@ STEAM_API int STEAM_CALL SteamWriteMiniDumpFromAssert()
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamWriteMiniDumpSetComment( const char* cszComment )
+STEAM_API int STEAM_CALL SteamWriteMiniDumpSetComment( const char *cszComment )
 {
 	s_Win32MiniDump.SetComment( cszComment );
 	return 1;
 }
 
-STEAM_API void STEAM_CALL SteamWriteMiniDumpUsingExceptionInfo( DWORD dwExceptionCode, _EXCEPTION_POINTERS* pStructuredExceptionPointers )
+STEAM_API void STEAM_CALL SteamWriteMiniDumpUsingExceptionInfo( unsigned int uStructuredExceptionCode, _EXCEPTION_POINTERS *pExceptionInfo )
 {
-	s_Win32MiniDump.WriteUsingExceptionInfo( dwExceptionCode, pStructuredExceptionPointers );
+	s_Win32MiniDump.WriteUsingExceptionInfo(uStructuredExceptionCode, pExceptionInfo);
 	s_Win32MiniDump.ClearComments();
 }
 
-STEAM_API void STEAM_CALL SteamWriteMiniDumpUsingExceptionInfoWithBuildId( DWORD dwExceptionCode, _EXCEPTION_POINTERS* pStructuredExceptionPointers, unsigned int uSourceControlID )
+STEAM_API void STEAM_CALL SteamWriteMiniDumpUsingExceptionInfoWithBuildId( unsigned int uStructuredExceptionCode, _EXCEPTION_POINTERS *pExceptionInfo, unsigned int uBuildID )
 {
 	//Add BuildID as comment
 	//s_Win32MiniDump.AddComment();
-	s_Win32MiniDump.WriteUsingExceptionInfo( dwExceptionCode, pStructuredExceptionPointers );
+	s_Win32MiniDump.WriteUsingExceptionInfo(uStructuredExceptionCode, pExceptionInfo);
 	s_Win32MiniDump.ClearComments();
 }

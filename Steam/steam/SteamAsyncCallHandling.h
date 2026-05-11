@@ -7,7 +7,7 @@ extern bool bLogging;
 ** Asynchrounous call handling
 */
 
-STEAM_API int STEAM_CALL SteamProcessCall(SteamCallHandle_t handle, TSteamProgress *pProgress, TSteamError *pError)
+STEAM_API int STEAM_CALL SteamProcessCall( SteamCallHandle_t handle, TSteamProgress *pProgress, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging) Logger->Write("SteamProcessCall\n");
@@ -24,7 +24,7 @@ STEAM_API int STEAM_CALL SteamProcessCall(SteamCallHandle_t handle, TSteamProgre
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamAbortCall(SteamCallHandle_t handle, TSteamError *pError)
+STEAM_API int STEAM_CALL SteamAbortCall( SteamCallHandle_t handle, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging) Logger->Write("SteamAbortCall\n");
@@ -33,7 +33,7 @@ STEAM_API int STEAM_CALL SteamAbortCall(SteamCallHandle_t handle, TSteamError *p
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamBlockingCall(SteamCallHandle_t handle, unsigned int uiProcessTickMS, TSteamError *pError)
+STEAM_API int STEAM_CALL SteamBlockingCall( SteamCallHandle_t handle, unsigned int uiProcessTickMS, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging) Logger->Write("SteamBlockingCall\n");
@@ -42,7 +42,7 @@ STEAM_API int STEAM_CALL SteamBlockingCall(SteamCallHandle_t handle, unsigned in
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamSetMaxStallCount(unsigned int uNumStalls, TSteamError *pError)
+STEAM_API int STEAM_CALL SteamSetMaxStallCount( unsigned int uNumStalls, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging) Logger->Write("SteamSetMaxStallCount\n");

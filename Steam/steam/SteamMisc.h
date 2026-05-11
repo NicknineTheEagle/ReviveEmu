@@ -7,7 +7,7 @@ extern bool bLogging;
 ** Misc
 */
 
-STEAM_API void STEAM_CALL SteamClearError(TSteamError *pError)
+STEAM_API void STEAM_CALL SteamClearError( TSteamError *pError )
 {
 	if(pError)
 	{
@@ -38,7 +38,7 @@ STEAM_API int STEAM_CALL InternalSteamShouldShutdownEngine2()
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamGetLocalClientVersion(unsigned int* puArg1, unsigned int* puArg2, TSteamError *pError)
+STEAM_API int STEAM_CALL SteamGetLocalClientVersion( unsigned int *puBootstrapperVersion, unsigned int *puClientVersion, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging) Logger->Write("SteamGetLocalClientVersion\n");
@@ -46,7 +46,7 @@ STEAM_API int STEAM_CALL SteamGetLocalClientVersion(unsigned int* puArg1, unsign
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamChangeOfflineStatus(TSteamOfflineStatus* pSteamOfflineStatus, TSteamError* pError)
+STEAM_API int STEAM_CALL SteamChangeOfflineStatus( TSteamOfflineStatus *pStatus, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging) Logger->Write("SteamChangeOfflineStatus\n");
@@ -54,17 +54,17 @@ STEAM_API int STEAM_CALL SteamChangeOfflineStatus(TSteamOfflineStatus* pSteamOff
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamGetOfflineStatus(TSteamOfflineStatus* pSteamOfflineStatus, TSteamError* pError)
+STEAM_API int STEAM_CALL SteamGetOfflineStatus( TSteamOfflineStatus *pStatus, TSteamError *pError )
 {
 	if (bLogging) Logger->Write("SteamGetOfflineStatus\n");
 
 	SteamClearError(pError);
-	pSteamOfflineStatus->eOfflineNow = 0;
-	pSteamOfflineStatus->eOfflineNextSession = 0;
+	pStatus->eOfflineNow = 0;
+	pStatus->eOfflineNextSession = 0;
 	return 1;
 }
 
-STEAM_API SteamCallHandle_t STEAM_CALL SteamUninstall(TSteamError *pError)
+STEAM_API SteamCallHandle_t STEAM_CALL SteamUninstall( TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging) Logger->Write("SteamUninstall\n");
@@ -72,39 +72,39 @@ STEAM_API SteamCallHandle_t STEAM_CALL SteamUninstall(TSteamError *pError)
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamWeakVerifyNewValveCDKey()
+STEAM_API ESteamError STEAM_CALL SteamWeakVerifyNewValveCDKey( const char *pszCDKeyFormattedForCDLabel, unsigned int *pReceiveGameCode, unsigned int *pReceiveSalesTerritoryCode, unsigned int *pReceiveUniqueSerialNumber )
 {
 // #ifdef DEBUG
 	if (bLogging) Logger->Write("SteamWeakVerifyNewValveCDKey\n");
 // #endif
-	return 1;
+	return eSteamErrorUnknown;
 }
 
-STEAM_API int STEAM_CALL SteamGetEncryptedNewValveCDKey()
+STEAM_API ESteamError STEAM_CALL SteamGetEncryptedNewValveCDKey( const char *pszCDKeyFormattedForCDLabel, unsigned int ClientLocalIPAddr, const void *pEncryptionKeyReceivedFromAppServer, unsigned int uEncryptionKeyLength, void *pOutputBuffer, unsigned int uSizeOfOutputBuffer, unsigned int *pReceiveSizeOfEncryptedNewValveCDKey )
 {
 // #ifdef DEBUG
 	if (bLogging) Logger->Write("SteamGetEncryptedNewValveCDKey\n");
 // #endif
-	return 1;
+	return eSteamErrorUnknown;
 }
 
-STEAM_API int STEAM_CALL SteamDecryptDataForThisMachine()
+STEAM_API ESteamError STEAM_CALL SteamEncryptDataForThisMachine( const char *pDataToEncrypt, unsigned int uSizeOfDataToEncrypt, void *pOutputBuffer, unsigned int uSizeOfOutputBuffer, unsigned int *pReceiveSizeOfEncryptedData )
 {
 // #ifdef DEBUG
 	if (bLogging) Logger->Write("SteamDecryptDataForThisMachine\n");
 // #endif
-	return 1;
+	return eSteamErrorUnknown;
 }
 
-STEAM_API int STEAM_CALL SteamEncryptDataForThisMachine()
+STEAM_API ESteamError STEAM_CALL SteamDecryptDataForThisMachine( const char *pDataToDecrypt, unsigned int uSizeOfDataToDecrypt, void *pOutputBuffer, unsigned int uSizeOfOutputBuffer, unsigned int *pReceiveSizeOfDecryptedData )
 {
 // #ifdef DEBUG
 	if (bLogging) Logger->Write("SteamEncryptDataForThisMachine\n");
 // #endif
-	return 1;
+	return eSteamErrorUnknown;
 }
 
-STEAM_API const char* STEAM_CALL SteamFindServersGetErrorString()
+STEAM_API const char * STEAM_CALL SteamFindServersGetErrorString()
 {
 // #ifdef DEBUG
 	if (bLogging) Logger->Write("SteamFindServersGetErrorString\n");
@@ -134,7 +134,7 @@ const char* g_aCSERServers[] =
 	"208.64.203.186:27013"
 };
 
-STEAM_API int STEAM_CALL SteamFindServersIterateServer(ESteamServerType eSteamServerType, unsigned int uIndex, char* szServerAddress, int iServerAddressChars)
+STEAM_API int STEAM_CALL SteamFindServersIterateServer( ESteamServerType eServerType, unsigned int nServer, char *szIpAddrPort, int szIpAddrPortLen )
 {
 // #ifdef DEBUG
 	if (bLogging) Logger->Write("SteamFindServersIterateServer\n");
@@ -142,18 +142,18 @@ STEAM_API int STEAM_CALL SteamFindServersIterateServer(ESteamServerType eSteamSe
 	if (g_bSteamDll)
 	{
 		int retval = 1;
-		strcpy(szServerAddress, "empty");
-		int (*fptr)(int, int, char*, unsigned int);
+		strcpy(szIpAddrPort, "empty");
+		int (*fptr)(ESteamServerType, unsigned int, char*, int);
 		*(void **)(&fptr) = GetProcAddress(g_hOrigSteamDll, "SteamFindServersIterateServer");
-		retval = fptr(eSteamServerType, uIndex, szServerAddress, iServerAddressChars);
-		if (bLogging) Logger->Write("\t (%u, %u, %s, %u) %u\n", eSteamServerType, uIndex, szServerAddress, iServerAddressChars, retval);
+		retval = fptr(eServerType, nServer, szIpAddrPort, szIpAddrPortLen);
+		if (bLogging) Logger->Write("\t (%d, %u, %s, %d) %d\n", eServerType, nServer, szIpAddrPort, szIpAddrPortLen, retval);
 		return retval;
 	}
 
 	const char** pServers = NULL;
 	size_t iNumServers = 0;
 
-	switch (eSteamServerType)
+	switch (eServerType)
 	{
 		case eSteamHalfLifeMasterServer:
 			pServers = g_aHL1MasterServers;
@@ -171,17 +171,17 @@ STEAM_API int STEAM_CALL SteamFindServersIterateServer(ESteamServerType eSteamSe
 			break;
 	}
 
-	if (pServers && uIndex < iNumServers)
+	if (pServers && nServer < iNumServers)
 	{
-		strncpy(szServerAddress, pServers[uIndex], iServerAddressChars);
+		strncpy(szIpAddrPort, pServers[nServer], szIpAddrPortLen);
 		return 0;
 	}
 
-	szServerAddress[0] = '\0';
+	szIpAddrPort[0] = '\0';
 	return -1;
 }
 
-STEAM_API int STEAM_CALL SteamFindServersNumServers(ESteamServerType eSteamServerType)
+STEAM_API int STEAM_CALL SteamFindServersNumServers( ESteamServerType eServerType )
 {
 // #ifdef DEBUG
 	if (bLogging) Logger->Write("SteamFindServersNumServers\n");
@@ -189,14 +189,14 @@ STEAM_API int STEAM_CALL SteamFindServersNumServers(ESteamServerType eSteamServe
 	if (g_bSteamDll)
 	{
 		int retval = 1;
-		int (*fptr)(unsigned int);
+		int (*fptr)(ESteamServerType);
 		*(void **)(&fptr) = GetProcAddress(g_hOrigSteamDll, "SteamFindServersNumServers");
-		retval = fptr(eSteamServerType);
-		if (bLogging) Logger->Write("\t (%u) %u\n", eSteamServerType, retval);
+		retval = fptr(eServerType);
+		if (bLogging) Logger->Write("\t (%d) %d\n", eServerType, retval);
 		return retval;
 	}
 
-	switch (eSteamServerType)
+	switch (eServerType)
 	{
 		case eSteamHalfLifeMasterServer:
 			return ARRAYSIZE(g_aHL1MasterServers);
@@ -214,7 +214,7 @@ STEAM_API int STEAM_CALL SteamFindServersNumServers(ESteamServerType eSteamServe
 	return 0;
 }
 
-STEAM_API int STEAM_CALL SteamGetContentServerInfo(unsigned int uAppId, unsigned int* pServerId, unsigned int* pServerIpAddress, TSteamError* pError)
+STEAM_API int STEAM_CALL SteamGetContentServerInfo( unsigned int uAppId, unsigned int *puServerId, unsigned int *puServerIpAddress, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging) Logger->Write("SteamGetContentServerInfo\n");
@@ -222,7 +222,7 @@ STEAM_API int STEAM_CALL SteamGetContentServerInfo(unsigned int uAppId, unsigned
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamSetNotificationCallback(SteamNotificationCallback_t pCallbackFunction, TSteamError *pError)
+STEAM_API int STEAM_CALL SteamSetNotificationCallback( SteamNotificationCallback_t pCallbackFunction, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging) Logger->Write("SteamSetNotificationCallback\n");
@@ -230,7 +230,7 @@ STEAM_API int STEAM_CALL SteamSetNotificationCallback(SteamNotificationCallback_
 	return 1;
 }
 
-STEAM_API int STEAM_CALL SteamWasBlobRegistryDeleted(int* puWasDeleted, TSteamError* pError)
+STEAM_API int STEAM_CALL SteamWasBlobRegistryDeleted( int *puWasDeleted, TSteamError *pError )
 {
 	if (bLogging) Logger->Write("SteamWasBlobRegistryDeleted\n");
 
@@ -239,7 +239,7 @@ STEAM_API int STEAM_CALL SteamWasBlobRegistryDeleted(int* puWasDeleted, TSteamEr
 	return 1;
 }
 
-int SteamGetCurrentAppId(unsigned int* puAppId, TSteamError *pError)
+int SteamGetCurrentAppId( unsigned int *puAppId, TSteamError *pError )
 {
 	if (bLogging) Logger->Write("SteamGetCurrentAppId\n");
 
