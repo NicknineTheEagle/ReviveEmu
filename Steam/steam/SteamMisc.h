@@ -7,21 +7,6 @@ extern bool bLogging;
 ** Misc
 */
 
-STEAM_API void STEAM_CALL SteamClearError( TSteamError *pError )
-{
-	if(pError)
-	{
-// #ifdef DEBUG
-		//if (bLogging) Logger->Write("SteamClearError\n");
-// #endif
-		pError->eSteamError = eSteamErrorNone;
-		pError->eDetailedErrorType = eNoDetailedErrorAvailable;
-		pError->nDetailedErrorCode = 0;
-		pError->szDesc[0] = 0;
-	}
-	return;
-}
-
 STEAM_API int STEAM_CALL InternalSteamNumClientsConnectedToEngine()
 {
 // #ifdef DEBUG

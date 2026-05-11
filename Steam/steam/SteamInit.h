@@ -19,6 +19,14 @@ STEAM_API int STEAM_CALL SteamStartEngine( TSteamError *pError )
 	return 1;
 }
 
+STEAM_API int STEAM_CALL SteamShutdownEngine( TSteamError *pError )
+{
+// #ifdef DEBUG
+	if (bLogging) Logger->Write("SteamShutdownEngine\n");
+// #endif
+	return 1;
+}
+
 STEAM_API int STEAM_CALL SteamStartup( unsigned int uUsingMask, TSteamError *pError )
 {
 	if (bLogging) Logger->Write("SteamStartup (0x%02X)\n", uUsingMask);
@@ -106,6 +114,25 @@ STEAM_API int STEAM_CALL SteamCleanup( TSteamError *pError )
 	return 1;
 }
 
+STEAM_API unsigned int STEAM_CALL SteamNumAppsRunning( TSteamError *pError )
+{
+// #ifdef DEBUG
+	if (bLogging && bLogAcc)  Logger->Write("SteamNumAppsRunning\n");
+// #endif
+	return 1;
+}
+
+STEAM_API void STEAM_CALL SteamClearError( TSteamError *pError )
+{
+	if (pError)
+	{
+		pError->eSteamError = eSteamErrorNone;
+		pError->eDetailedErrorType = eNoDetailedErrorAvailable;
+		pError->nDetailedErrorCode = 0;
+		pError->szDesc[0] = '\0';
+	}
+}
+
 STEAM_API int STEAM_CALL SteamGetVersion( char *szVersion, unsigned int uVersionBufSize )
 {
 // #ifdef DEBUG
@@ -116,13 +143,5 @@ STEAM_API int STEAM_CALL SteamGetVersion( char *szVersion, unsigned int uVersion
 		return 0;
 
 	strncpy(szVersion, "2.0.0.0", uVersionBufSize);
-	return 1;
-}
-
-STEAM_API int STEAM_CALL SteamShutdownEngine( TSteamError *pError )
-{
-// #ifdef DEBUG
-	if (bLogging) Logger->Write("SteamShutdownEngine\n");
-// #endif
 	return 1;
 }

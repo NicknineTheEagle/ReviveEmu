@@ -370,21 +370,10 @@ STEAM_API int STEAM_CALL SteamVerifyPassword( const char *cszPassphrase, int *pb
 	return 1;
 }
 
-
-
 STEAM_API SteamCallHandle_t STEAM_CALL SteamAckSubscriptionReceipt( unsigned int uSubscriptionId, TSteamError *pError )
 {
 // #ifdef DEBUG
 	if (bLogging && bLogAcc)  Logger->Write("SteamAckSubscriptionReceipt\n");
-// #endif
-	return 1;
-}
-
-
-STEAM_API unsigned int STEAM_CALL SteamNumAppsRunning( TSteamError *pError )
-{
-// #ifdef DEBUG
-	if (bLogging && bLogAcc)  Logger->Write("SteamNumAppsRunning\n");
 // #endif
 	return 1;
 }
