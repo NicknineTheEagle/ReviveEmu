@@ -103,7 +103,7 @@ SteamHandle_t NewSteamHandle()
 void RevError(const char* cszError)
 {
 #ifdef _WIN32
-	MessageBoxA(NULL, "REVive Error", cszError, MB_OK);
+	MessageBoxA(NULL, cszError, "REVive Error", MB_OK);
 	ExitProcess(1);
 #else
 	printf("%s\n", cszError);
